@@ -5,9 +5,11 @@ __pycache__/
 .venv/
 venv/
 
-# Dữ liệu chạy & báo cáo sinh ra
-data/
+# Dữ liệu runtime (sinh khi chạy)
+data/chat/
+data/uploads/
 report/
+api.log
 *.log
 
 # Hệ điều hành / IDE

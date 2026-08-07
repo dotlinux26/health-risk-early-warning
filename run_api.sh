@@ -8,7 +8,7 @@
 set -e
 
 PORT="${PORT:-8000}"
-LOG=/tmp/opencode/api.log
+LOG=./api.log
 
 start() {
     if curl -s -m 2 "http://127.0.0.1:${PORT}/api/health" >/dev/null 2>&1; then
