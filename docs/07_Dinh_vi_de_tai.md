@@ -135,7 +135,53 @@ chỗ đề xuất một **khung cảnh báo sớm chi phí thấp, giải thíc
 
 ---
 
-## 5. Bốn lợi thế của cách định vị khung
+## 5. Không tạo ra AI, không cải tiến AI — đặt AI đúng vị trí
+
+Một điểm tinh tế giúp phân biệt đề tài với phần lớn nghiên cứu AI: nhóm **không
+đề xuất mô hình AI mới, cũng không cải tiến một mô hình AI hiện có**. Đóng góp
+của đề tài nằm ở việc **xác định đúng vai trò của AI trong một quy trình ra
+quyết định y tế và đặt AI vào đúng vị trí đó**:
+
+- AI ở đâu? — ở Tầng 3, với vai trò hẹp: **ước lượng điểm nguy cơ** từ dữ liệu.
+- AI không được làm gì? — không tự quyết định, không tự sinh kết luận, không bỏ
+  qua lớp kiểm soát thống kê và luật y khoa.
+- Tại sao lại đặt ở đó? — vì đó là vị trí mà việc học từ dữ liệu mang lại giá trị
+  rõ rệt nhất (phát hiện các tương quan tinh tế giữa nhiều chỉ số) mà vẫn giữ được
+  khả năng kiểm chứng cho bác sĩ.
+
+Nói ngắn gọn: đề tài không sáng tạo ra AI, mà **kiến tạo "nơi làm việc" của AI
+trong y khoa** — một khung quy trình có ranh giới rõ ràng, nơi AI được dùng đúng
+chỗ, đúng mức, và mọi đầu ra đều chịu sự kiểm soát của tri thức y khoa.
+
+### 5.1. Tính thực tiễn và đạo đức y tế
+
+So với các nghiên cứu tập trung vào hiệu năng, khung của nhóm nổi bật ở khả năng
+**giải thích và an toàn lâm sàng theo thiết kế (safety by design)** — một yếu tố
+đạo đức y tế mà nhiều mô hình hộp đen chưa giải quyết được:
+
+1. **Trách nhiệm giải trình (accountability):** mọi cảnh báo đều kèm chuỗi lý do
+   (`reason_chain`) để bác sĩ kiểm tra ngược từng bước — đáp ứng nguyên tắc
+   "right to explanation" trong các khuyến nghị về AI đáng tin cậy.
+2. **AI không quyết định thay con người:** AI chỉ là một trong bốn nguồn điểm;
+   quyết định cuối cùng là kết quả của quy trình đa lớp, con người luôn là người
+   ra quyết định cuối.
+3. **An toàn khi thiếu dữ liệu:** hệ thống không đoán bừa — trả `INSUFFICIENT_DATA`
+   khi chưa đủ dữ liệu, thay vì ép ra một kết luận.
+4. **Phù hợp điều kiện triển khai thực tế:** chi phí thấp, chạy cục bộ, không phụ
+   thuộc hạ tầng lớn — giảm rào cản tiếp cận công nghệ y tế ở quy mô nhỏ.
+
+Đây chính là điểm khác biệt về giá trị: trong khi nhiều nghiên cứu đo bằng hiệu
+năng dự báo, đề tài đo bằng **độ tin cậy và khả năng chịu trách nhiệm của hệ
+thống trong bối cảnh lâm sàng thật**.
+
+> **Lưu ý phòng thủ:** khi phát biểu ý này trước hội đồng, dùng lối so sánh *theo
+> tiêu chí* ("nổi bật ở khả năng giải thích và an toàn lâm sàng theo thiết kế")
+> thay vì khẳng định tuyệt đối ("vượt trội tất cả nghiên cứu AI khác") — tránh
+> bị hỏi ngược về bằng chứng định lượng.
+
+---
+
+## 6. Bốn lợi thế của cách định vị khung
 
 1. **Cá nhân hóa**: mọi ngưỡng, Z-Score, xu hướng đều so với chính bệnh nhân,
    không so với quần thể (khác biệt với các mô hình học theo dân số).
@@ -152,7 +198,7 @@ chỗ đề xuất một **khung cảnh báo sớm chi phí thấp, giải thíc
 
 ---
 
-## 6. Nguyên tắc viết báo cáo
+## 7. Nguyên tắc viết báo cáo
 
 - KHÔNG viết: *"mô hình của đề tài là LightGBM"*, *"chúng tôi xây dựng mô hình AI"*.
 - NÊN viết: *"hệ thống của đề tài là một khung hỗ trợ quyết định lâm sàng; mô hình
