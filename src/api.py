@@ -93,6 +93,12 @@ async def chat_file(file: UploadFile = File(...), patient_id: str = Form("P001")
     return JSONResponse(chat_agent.handle(patient_id, "", file_path=tmp_path))
 
 
+@app.get("/api/chat/patients")
+def chat_patients() -> dict:
+    """Danh sách mã bệnh nhân đang có dữ liệu trong data/chat/."""
+    return {"patients": chat_store.list_patients()}
+
+
 @app.get("/api/chat/status")
 def chat_status(patient_id: str = "P001") -> dict:
     return chat_store.status(patient_id, CONFIG.min_points)

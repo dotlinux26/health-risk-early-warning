@@ -8,50 +8,58 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    background: #0f172a; color: #e2e8f0; height: 100vh; display: flex; flex-direction: column;
+    background: #ffffff; color: #1e293b; height: 100vh; display: flex; flex-direction: column;
   }
   header {
-    padding: 14px 20px; background: #1e293b; border-bottom: 1px solid #334155;
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   }
-  header h1 { font-size: 18px; color: #38bdf8; }
-  header label { font-size: 13px; color: #94a3b8; }
-  header input {
-    background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 8px;
-    padding: 6px 10px; width: 110px; font-size: 14px;
+  header h1 { font-size: 17px; color: #0369a1; margin-right: 8px; }
+  header label { font-size: 13px; color: #64748b; display: inline-flex; align-items: center; gap: 6px; }
+  header select, header input {
+    background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 2px;
+    padding: 6px 8px; font-size: 14px;
   }
+  header select { max-width: 180px; }
+  header input { width: 90px; }
   #chat {
     flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+    background: #ffffff;
   }
-  .msg { max-width: 78%; padding: 10px 14px; border-radius: 14px; line-height: 1.55; font-size: 14px;
+  .msg { max-width: 78%; padding: 9px 12px; border-radius: 2px; line-height: 1.55; font-size: 14px;
          white-space: pre-wrap; word-break: break-word; }
-  .bot { align-self: flex-start; background: #1e293b; border: 1px solid #334155; border-bottom-left-radius: 4px; }
-  .user { align-self: flex-end; background: #0284c7; border-bottom-right-radius: 4px; }
-  .typing { color: #64748b; font-style: italic; }
+  .bot { align-self: flex-start; background: #f1f5f9; border: 1px solid #e2e8f0; }
+  .user { align-self: flex-end; background: #0284c7; color: #ffffff; }
+  .typing { color: #94a3b8; font-style: italic; }
   footer {
-    padding: 12px 16px; background: #1e293b; border-top: 1px solid #334155;
-    display: flex; gap: 10px; align-items: center;
+    padding: 12px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0;
+    display: flex; gap: 8px; align-items: center;
   }
   footer input[type=text] {
-    flex: 1; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 10px;
-    padding: 11px 14px; font-size: 14px; outline: none;
+    flex: 1; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 2px;
+    padding: 10px 12px; font-size: 14px; outline: none;
   }
   footer button, .upload-label {
-    background: #0284c7; color: #fff; border: none; border-radius: 10px; padding: 11px 16px;
+    background: #0284c7; color: #fff; border: none; border-radius: 2px; padding: 10px 14px;
     font-size: 14px; cursor: pointer; font-weight: 600;
   }
   footer button:hover, .upload-label:hover { background: #0369a1; }
   .upload-label input { display: none; }
-  .risk-badge { display:inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; }
-  .r-THAP { background:#14532d; color:#4ade80; }
-  .r-TRUNG_BINH { background:#713f12; color:#fbbf24; }
-  .r-CAO { background:#7f1d1d; color:#f87171; }
+  .risk-badge { display:inline-block; padding: 1px 8px; border-radius: 2px; font-weight: 700; font-size: 12px; }
+  .r-THAP { background:#dcfce7; color:#166534; }
+  .r-TRUNG_BINH { background:#fef9c3; color:#854d0e; }
+  .r-CAO { background:#fee2e2; color:#991b1b; }
 </style>
 </head>
 <body>
 <header>
   <h1>Chat theo dõi sức khỏe</h1>
-  <label>Bệnh nhân: <input id="pid" value="P001"></label>
+  <label>Bệnh nhân:
+    <select id="pid-select">
+      <option value="">— chọn mã có sẵn —</option>
+    </select>
+    <input id="pid" value="P001" title="Mã bệnh nhân (có thể nhập mã mới)">
+  </label>
   <span id="status-badge"></span>
 </header>
 
@@ -75,16 +83,15 @@ Lệnh: "trạng thái" • "báo cáo" • "xóa dữ liệu"</div>
 const chat = document.getElementById('chat');
 const input = document.getElementById('input');
 const pidEl = document.getElementById('pid');
+const pidSelect = document.getElementById('pid-select');
 const badge = document.getElementById('status-badge');
 
 function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 function renderMarkdown(s){
-  // bold **..** -> <b>
   s = esc(s);
   s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
   s = s.replace(/(^|\n)• /g, '$1• ');
-  // highlight risk levels
   s = s.replace(/(THAP|TRUNG_BINH|CAO)/g, m => `<span class="risk-badge r-${m}">${m}</span>`);
   return s.replace(/\n/g, '<br>');
 }
@@ -97,6 +104,21 @@ function addMsg(text, cls){
   chat.scrollTop = chat.scrollHeight;
   return d;
 }
+
+async function loadPatients(){
+  try {
+    const res = await fetch('/api/chat/patients');
+    const d = await res.json();
+    const list = d.patients || [];
+    pidSelect.innerHTML = '<option value="">— chọn mã có sẵn —</option>' +
+      list.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  } catch(e){ /* bỏ qua khi chưa có server */ }
+}
+
+pidSelect.addEventListener('change', () => {
+  if (pidSelect.value) { pidEl.value = pidSelect.value; }
+  badge.innerHTML = '';
+});
 
 async function send(text, pid){
   const res = await fetch('/api/chat', {
@@ -128,6 +150,7 @@ async function submit(text, file){
     if (d.risk_level) {
       badge.innerHTML = `<span class="risk-badge r-${d.risk_level}">${d.risk_level}</span>`;
     }
+    loadPatients();
   } catch(e){
     typing.remove();
     addMsg('Lỗi kết nối máy chủ.', 'bot');
@@ -139,6 +162,7 @@ document.getElementById('send').addEventListener('click', () => { submit(input.v
 document.getElementById('file').addEventListener('change', e => {
   if (e.target.files[0]) { submit('', e.target.files[0]); e.target.value = ''; }
 });
+loadPatients();
 </script>
 </body>
 </html>
