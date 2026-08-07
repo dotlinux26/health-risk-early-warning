@@ -57,7 +57,6 @@ Sau khi chạy `./run_api.sh start`, mở trình duyệt tại **http://127.0.0.
 | Hộp thoại chat | Kết quả đánh giá |
 |---|---|
 | ![Giao diện chat](docs/screenshots/giao_dien_chat.png) | ![Kết quả đánh giá](docs/screenshots/ket_qua_danh_gia.png) |
-
 **Cách dùng:**
 
 1. Chọn hoặc nhập **mã bệnh nhân** ở góc trên (thanh xổ liệt kê các mã đã có dữ liệu trong `data/chat/`).
@@ -68,7 +67,11 @@ Sau khi chạy `./run_api.sh start`, mở trình duyệt tại **http://127.0.0.
 3. Dữ liệu được tích lũy theo bệnh nhân; khi đủ 7 ngày đo, hệ thống đưa ra **báo cáo nguy cơ cá nhân hóa**.
 4. Lệnh điều khiển: `trạng thái` (tình trạng hiện tại), `báo cáo` (đánh giá đầy đủ), `xóa dữ liệu` (reset bệnh nhân).
 
-Kết quả đánh giá được trình bày theo thứ tự: **luật lâm sàng kích hoạt** (mỗi luật kèm link tham chiếu nguồn hướng dẫn gốc), **bảng chỉ số theo dõi** (giá trị, đường cơ sở, thay đổi, xu hướng, Z-Score, phạm vi bình thường), rồi mới đến **hỗ trợ của mô hình ML** kèm ghi chú rõ đây là suy luận bổ sung, không phải chẩn đoán chính thức — kết luận cuối do bác sĩ xác nhận. Kết quả đủ thông tin để bệnh nhân trình bác sĩ.
+Kết quả đánh giá được trình bày theo thứ tự: **luật lâm sàng kích hoạt** (mỗi luật kèm link tham chiếu nguồn hướng dẫn gốc, thêm số trang/chương/trích đoạn nếu có), **bảng chỉ số theo dõi** (giá trị, đường cơ sở, thay đổi, xu hướng, Z-Score, phạm vi bình thường), rồi mới đến **hỗ trợ của mô hình ML** kèm ghi chú rõ đây là suy luận bổ sung, không phải chẩn đoán chính thức — kết luận cuối do bác sĩ xác nhận. Kết quả đủ thông tin để bệnh nhân trình bác sĩ.
+
+### Quản lý cơ sở tri thức (`/rules`)
+
+Trang **http://127.0.0.1:8000/rules** dành cho bác sĩ: xem danh sách luật theo hệ cơ quan, **thêm/sửa/xóa luật** (nhập điều kiện chỉ số ghép AND/OR, độ nặng, chuyên khoa, link nguồn kèm số trang/chương/trích đoạn), **thêm hệ cơ quan mới** và **thêm chỉ số mới** — cơ sở tri thức mở rộng được mà không cần sửa code. Mọi thay đổi được validate trước khi ghi (sai cấu trúc, sai toán tử, độ nặng ngoài 0–1, link không hợp lệ đều bị từ chối kèm thông báo). Chi tiết: [docs/08](docs/08_Nguon_tri_thuc_va_xay_dung_luat.md).
 
 API đầy đủ: **http://127.0.0.1:8000/docs** (Swagger).
 

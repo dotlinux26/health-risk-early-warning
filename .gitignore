@@ -13,6 +13,9 @@ report/
 api.log
 *.log
 
+# Backup tự động của cơ sở tri thức
+*.json.bak
+
 # Hệ điều hành / IDE
 .DS_Store
 .idea/

@@ -100,7 +100,8 @@ theo thứ tự cố định**:
 1. **Quyết định theo luật và chỉ số (hiển thị trước):**
    - Các **luật lâm sàng được kích hoạt** — mỗi luật kèm mã luật và **link tham
      chiếu tới nguồn hướng dẫn** mà luật đó được trích ra (ESC/ESH, ADA, KDIGO,
-     WHO).
+     WHO); nếu luật khai thêm số trang, chương/mục hoặc trích đoạn thì hiển thị
+     kèm để định vị chính xác ngưỡng trong tài liệu gốc.
    - Bảng **chỉ số theo dõi**: giá trị, đường cơ sở cá nhân, thay đổi, xu hướng,
      Z-Score, phạm vi bình thường, trạng thái.
 

@@ -42,6 +42,18 @@ Mỗi luật trong file JSON đều có trường `evidence` (nguồn trích d�
 kỳ ai cũng tra ngược được gốc tri thức, đồng thời **hệ thống hiển thị link này
 trực tiếp trên cảnh báo** để người dùng tự đối chiếu nguồn.
 
+Ngoài ra, mỗi luật có thể mang thêm **metadata nguồn chi tiết** (tùy chọn — có thì
+hiển thị thêm, không có thì bỏ qua):
+
+| Trường | Ý nghĩa | Ví dụ |
+|---|---|---|
+| `source_page` | Số trang cụ thể trong hướng dẫn gốc | `trang 3021–3104` |
+| `source_section` | Chương / mục cụ thể | `Chương 4, Mục 4.1` |
+| `source_excerpt` | Trích đoạn văn bản nguồn (trích nguyên văn ngưỡng) | `HATTr ≥ 160 mmHg...` |
+
+Nhóm metadata này được hiển thị kèm link trên từng cảnh báo, giúp bác sĩ và người
+dùng định vị chính xác vị trí ngưỡng trong tài liệu gốc, không cần lật tìm.
+
 ---
 
 ## 2. Quy trình xây dựng luật (5 bước)
@@ -156,7 +168,9 @@ AI — khớp với định vị trong [docs/07](07_Dinh_vi_de_tai.md).
 Theo nguyên tắc "AI phụ trợ, luật quyết định", cảnh báo được trình bày theo thứ tự:
 
 1. **Luật lâm sàng kích hoạt** — mỗi luật kèm mã luật và **link tham chiếu nguồn**
-   (trường `source_url`) để người dùng mở ra tự đối chiếu hướng dẫn gốc.
+   (trường `source_url`) để người dùng mở ra tự đối chiếu hướng dẫn gốc; nếu luật
+   có metadata chi tiết (`source_page`, `source_section`, `source_excerpt`) thì
+   hiển thị thêm trang/chương và trích đoạn ngưỡng.
 2. **Bảng chỉ số theo dõi** — giá trị, đường cơ sở, thay đổi, xu hướng, Z-Score,
    phạm vi bình thường, trạng thái.
 3. **Hỗ trợ mô hình ML** — điểm nguy cơ kèm ghi chú rõ: đây là *suy luận bổ sung,
@@ -165,6 +179,30 @@ Theo nguyên tắc "AI phụ trợ, luật quyết định", cảnh báo đượ
 Thứ tự này đảm bảo người dùng đọc phần **kiểm chứng được, có nguồn gốc** trước,
 phần AI bổ sung sau — và phần AI luôn bị đóng khung bởi cảnh báo về bản chất
 phi-chẩn-đoán.
+
+### 5.2. Giao diện quản lý luật cho bác sĩ (`/rules`)
+
+Cơ sở tri thức được thiết kế **mở rộng được** — bác sĩ không cần sửa code hay file
+JSON thủ công để thêm kiến thức mới. Trang `/rules` cung cấp giao diện quản lý:
+
+| Chức năng | Mô tả |
+|---|---|
+| Xem danh sách luật | Lọc theo hệ cơ quan; hiển thị điều kiện, độ nặng, chuyên khoa, nguồn + metadata chi tiết |
+| Thêm / sửa / xóa luật | Nhập đầy đủ: mã luật, hệ, tên, độ nặng, chuyên khoa, nguồn, **link + trang + chương + trích đoạn**, và một hay nhiều điều kiện chỉ số (ghép AND/OR) |
+| Thêm hệ cơ quan mới | `system_key` (mã) + `label` (tên hiển thị) |
+| Thêm chỉ số mới | tên, đơn vị, phạm vi bình thường `[min, max]`, hệ, chuyên khoa — chỉ số dùng được ngay trong luật mới |
+
+Mọi thay đổi được **validate trước khi ghi** qua API (`/api/kb/rules`, `/api/kb/systems`,
+`/api/kb/metrics`): sai cấu trúc, sai toán tử, độ nặng ngoài 0–1, link không hợp lệ...
+đều bị từ chối kèm thông báo lỗi cụ thể. File JSON được ghi an toàn (backup `.bak`
+trước mỗi lần ghi) và reload ngay để hệ thống dùng luật mới mà không cần khởi động lại.
+
+**Quy trình khuyến nghị cho bác sĩ** khi thêm luật mới:
+
+1. Ghi rõ **nguồn**: link hướng dẫn gốc + số trang + chương/mục + trích đoạn ngưỡng.
+2. Khai báo chỉ số mới (nếu chưa có) trước khi tạo luật dùng nó.
+3. Đặt độ nặng phù hợp — luật độ nặng ≥ 0.7 sẽ ép mức rủi ro tối thiểu `TRUNG_BINH`.
+4. Kiểm chứng bằng ca mẫu thật (xem mục 4) trước khi coi là hoàn tất.
 
 ---
 

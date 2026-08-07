@@ -8,9 +8,10 @@ from src.config import Config
 from src.tier1_anomaly import AnomalyRecord
 from src.tier2_knowledge.rules import KnowledgeBase, RuleHit
 
-# Phạm vi tham chiếu lâm sàng (giá trị NORMAL) để trình bày báo cáo chi tiết.
-# Nguồn: hướng dẫn ESC/ESH 2018, ADA 2023, KDIGO 2022, WHO.
-REFERENCE_RANGES: dict[str, tuple[float, float]] = {
+# Phạm vi tham chiếu lâm sàng mặc định. Nếu một chỉ số được khai báo trong KB
+# (`knowledge_base.json` → `metrics`), metadata từ KB được ưu tiên — bác sĩ có
+# thể thêm chỉ số mới mà không cần sửa code.
+DEFAULT_REFERENCE_RANGES: dict[str, tuple[float, float]] = {
     "systolic_bp": (90, 140),
     "diastolic_bp": (60, 90),
     "heart_rate": (60, 100),
@@ -23,7 +24,7 @@ REFERENCE_RANGES: dict[str, tuple[float, float]] = {
     "bmi": (18.5, 25),
 }
 
-METRIC_NAMES: dict[str, str] = {
+DEFAULT_METRIC_NAMES: dict[str, str] = {
     "systolic_bp": "Huyết áp tâm thu",
     "diastolic_bp": "Huyết áp tâm trương",
     "heart_rate": "Nhịp tim",
@@ -36,7 +37,7 @@ METRIC_NAMES: dict[str, str] = {
     "bmi": "BMI",
 }
 
-METRIC_UNITS: dict[str, str] = {
+DEFAULT_METRIC_UNITS: dict[str, str] = {
     "systolic_bp": "mmHg",
     "diastolic_bp": "mmHg",
     "heart_rate": "lần/phút",
@@ -125,6 +126,18 @@ class RiskScorer:
             return "CAO"
         return "TRONG GIỚI HẠN"
 
+    def _metric_meta(self, metric: str) -> dict:
+        """Metadata chỉ số: ưu tiên từ KB (mở rộng được), fallback về mặc định."""
+        info = self.kb.metrics.get(metric, {})
+        name = info.get("name") or DEFAULT_METRIC_NAMES.get(metric, metric)
+        unit = info.get("unit") or DEFAULT_METRIC_UNITS.get(metric, "")
+        range_ = None
+        if isinstance(info.get("range"), (list, tuple)) and len(info["range"]) == 2:
+            range_ = (float(info["range"][0]), float(info["range"][1]))
+        elif metric in DEFAULT_REFERENCE_RANGES:
+            range_ = DEFAULT_REFERENCE_RANGES[metric]
+        return {"name": name, "unit": unit, "range": range_}
+
     def _build_metric_detail(
         self,
         records: list[AnomalyRecord],
@@ -146,18 +159,19 @@ class RiskScorer:
                 if baseline
                 else None
             )
-            range_ = REFERENCE_RANGES.get(metric)
+            range_ = self._metric_meta(metric)["range"]
             status = self._range_status(value, range_)
             deviation = None
             if range_ and status == "CAO":
                 deviation = round(value - range_[1], 2)
             elif range_ and status == "THẤP":
                 deviation = round(range_[0] - value, 2)
+            meta = self._metric_meta(metric)
             rows.append(
                 {
                     "metric": metric,
-                    "name": METRIC_NAMES.get(metric, metric),
-                    "unit": METRIC_UNITS.get(metric, ""),
+                    "name": meta["name"],
+                    "unit": meta["unit"],
                     "current": round(value, 2),
                     "baseline_mean": baseline,
                     "delta": delta,
@@ -223,15 +237,20 @@ class RiskScorer:
                     }
                 )
         for h in hits:
-            evidence.append(
-                {
-                    "rule_id": h.rule_id,
-                    "rule": h.name,
-                    "system": h.system_label,
-                    "message": f"Kích hoạt luật '{h.name}' ({h.evidence}) → {h.system_label}.",
-                    "source_url": h.source_url,
-                }
-            )
+            ev: dict[str, Any] = {
+                "rule_id": h.rule_id,
+                "rule": h.name,
+                "system": h.system_label,
+                "message": f"Kích hoạt luật '{h.name}' ({h.evidence}) → {h.system_label}.",
+                "source_url": h.source_url,
+            }
+            if h.source_page:
+                ev["source_page"] = h.source_page
+            if h.source_section:
+                ev["source_section"] = h.source_section
+            if h.source_excerpt:
+                ev["source_excerpt"] = h.source_excerpt
+            evidence.append(ev)
         for system_label, specialty in suggestions.items():
             evidence.append(
                 {

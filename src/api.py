@@ -38,12 +38,14 @@ app = FastAPI(
     description="Hệ thống hỗ trợ quyết định. Không thay thế chẩn đoán của bác sĩ.",
 )
 
-scorer = RiskScorer(CONFIG, kb=KnowledgeBase())
+kb = KnowledgeBase()
+scorer = RiskScorer(CONFIG, kb=kb)
 chat_store = ChatStore()
-chat_agent = ChatAgent(store=chat_store, config=CONFIG)
+chat_agent = ChatAgent(store=chat_store, config=CONFIG, scorer=scorer)
 
 TMP_DIR = Path("data/uploads")
 CHAT_PAGE = Path(__file__).parent / "chat" / "static" / "index.html"
+RULES_PAGE = Path(__file__).parent / "chat" / "static" / "rules.html"
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -112,8 +114,64 @@ def chat_reset(patient_id: str = "P001") -> JSONResponse:
 
 @app.get("/api/kb")
 def knowledge_base() -> dict:
-    kb = KnowledgeBase()
-    return {"rules": kb.rules, "system_labels": kb.system_labels}
+    return kb.to_dict()
+
+
+# --------------------------------------------------------------------------- #
+# Quản lý cơ sở tri thức (CRUD) — cho bác sĩ thêm luật / hệ / chỉ số qua giao diện
+# --------------------------------------------------------------------------- #
+@app.get("/rules", response_class=HTMLResponse)
+def rules_page() -> str:
+    """Giao diện quản lý luật lâm sàng cho bác sĩ."""
+    return RULES_PAGE.read_text(encoding="utf-8")
+
+
+@app.post("/api/kb/rules")
+def kb_add_rule(rule: dict[str, Any]) -> JSONResponse:
+    try:
+        saved = kb.add_rule(rule)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return JSONResponse({"ok": True, "rule": saved})
+
+
+@app.put("/api/kb/rules/{rule_id}")
+def kb_update_rule(rule_id: str, patch: dict[str, Any]) -> JSONResponse:
+    try:
+        saved = kb.update_rule(rule_id, patch)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return JSONResponse({"ok": True, "rule": saved})
+
+
+@app.delete("/api/kb/rules/{rule_id}")
+def kb_delete_rule(rule_id: str) -> JSONResponse:
+    try:
+        kb.delete_rule(rule_id)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return JSONResponse({"ok": True, "rule_id": rule_id})
+
+
+@app.post("/api/kb/systems")
+def kb_add_system(payload: dict[str, Any]) -> JSONResponse:
+    try:
+        system_key = str(payload.get("system_key", "")).strip()
+        label = str(payload.get("label", "")).strip()
+        saved = kb.add_system(system_key, label)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return JSONResponse({"ok": True, "system": saved})
+
+
+@app.post("/api/kb/metrics")
+def kb_add_metric(payload: dict[str, Any]) -> JSONResponse:
+    try:
+        metric = str(payload.get("metric", "")).strip()
+        saved = kb.add_metric(metric, payload.get("info", {}))
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return JSONResponse({"ok": True, "metric": {metric: saved}})
 
 
 def _assess_json(records: list[dict[str, Any]], patient_id: str) -> JSONResponse:

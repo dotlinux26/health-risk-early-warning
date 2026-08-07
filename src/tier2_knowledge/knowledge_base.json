@@ -1,8 +1,97 @@
 {
   "meta": {
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Cơ sở tri thức y khoa dạng luật (trích từ hướng dẫn lâm sàng). Chỉ dùng cho HỖ TRỢ QUYẾT ĐỊNH.",
-    "sources": ["ESC/ESH 2018", "ADA 2023", "KDIGO 2022", "WHO TRS 894", "WHO SpO2 2019", "ACC/AHA 2023"]
+    "sources": [
+      "ESC/ESH 2018",
+      "ADA 2023",
+      "KDIGO 2022",
+      "WHO TRS 894",
+      "WHO SpO2 2019",
+      "ACC/AHA 2023"
+    ]
+  },
+  "metrics": {
+    "systolic_bp": {
+      "name": "Huyết áp tâm thu",
+      "unit": "mmHg",
+      "range": [
+        90,
+        140
+      ]
+    },
+    "diastolic_bp": {
+      "name": "Huyết áp tâm trương",
+      "unit": "mmHg",
+      "range": [
+        60,
+        90
+      ]
+    },
+    "heart_rate": {
+      "name": "Nhịp tim",
+      "unit": "lần/phút",
+      "range": [
+        60,
+        100
+      ]
+    },
+    "glucose": {
+      "name": "Đường huyết (ngẫu nhiên)",
+      "unit": "mmol/L",
+      "range": [
+        3.9,
+        7.0
+      ]
+    },
+    "glucose_fasting": {
+      "name": "Đường huyết lúc đói",
+      "unit": "mmol/L",
+      "range": [
+        4.4,
+        6.1
+      ]
+    },
+    "hba1c": {
+      "name": "HbA1c",
+      "unit": "%",
+      "range": [
+        4.0,
+        6.5
+      ]
+    },
+    "creatinine": {
+      "name": "Creatinine",
+      "unit": "mg/dL",
+      "range": [
+        0.6,
+        1.3
+      ]
+    },
+    "egfr": {
+      "name": "eGFR",
+      "unit": "ml/phút/1.73m²",
+      "range": [
+        60,
+        150
+      ]
+    },
+    "spo2": {
+      "name": "SpO2",
+      "unit": "%",
+      "range": [
+        95,
+        100
+      ]
+    },
+    "bmi": {
+      "name": "BMI",
+      "unit": "kg/m²",
+      "range": [
+        18.5,
+        25
+      ]
+    }
   },
   "rules": [
     {
@@ -12,8 +101,16 @@
       "condition": {
         "logic": "and",
         "conditions": [
-          {"metric": "systolic_bp", "op": ">", "threshold": 140},
-          {"metric": "diastolic_bp", "op": ">", "threshold": 90}
+          {
+            "metric": "systolic_bp",
+            "op": ">",
+            "threshold": 140
+          },
+          {
+            "metric": "diastolic_bp",
+            "op": ">",
+            "threshold": 90
+          }
         ]
       },
       "severity": 0.8,
@@ -28,7 +125,12 @@
       "condition": {
         "logic": "and",
         "conditions": [
-          {"metric": "heart_rate", "op": ">", "threshold": 100, "window_days": 7}
+          {
+            "metric": "heart_rate",
+            "op": ">",
+            "threshold": 100,
+            "window_days": 7
+          }
         ]
       },
       "severity": 0.6,
@@ -43,7 +145,11 @@
       "condition": {
         "logic": "or",
         "conditions": [
-          {"metric": "systolic_bp", "op": ">", "threshold": 140}
+          {
+            "metric": "systolic_bp",
+            "op": ">",
+            "threshold": 140
+          }
         ]
       },
       "severity": 0.7,
@@ -58,8 +164,16 @@
       "condition": {
         "logic": "or",
         "conditions": [
-          {"metric": "glucose_fasting", "op": ">", "threshold": 7.0},
-          {"metric": "glucose", "op": ">", "threshold": 7.0}
+          {
+            "metric": "glucose_fasting",
+            "op": ">",
+            "threshold": 7.0
+          },
+          {
+            "metric": "glucose",
+            "op": ">",
+            "threshold": 7.0
+          }
         ]
       },
       "severity": 0.7,
@@ -74,7 +188,11 @@
       "condition": {
         "logic": "or",
         "conditions": [
-          {"metric": "hba1c", "op": ">", "threshold": 6.5}
+          {
+            "metric": "hba1c",
+            "op": ">",
+            "threshold": 6.5
+          }
         ]
       },
       "severity": 0.8,
@@ -89,7 +207,12 @@
       "condition": {
         "logic": "or",
         "conditions": [
-          {"metric": "creatinine", "op": ">", "threshold": 1.3, "unit": "mg/dL"}
+          {
+            "metric": "creatinine",
+            "op": ">",
+            "threshold": 1.3,
+            "unit": "mg/dL"
+          }
         ]
       },
       "severity": 0.7,
@@ -104,7 +227,11 @@
       "condition": {
         "logic": "or",
         "conditions": [
-          {"metric": "egfr", "op": "<", "threshold": 60}
+          {
+            "metric": "egfr",
+            "op": "<",
+            "threshold": 60
+          }
         ]
       },
       "severity": 0.8,
@@ -119,7 +246,11 @@
       "condition": {
         "logic": "or",
         "conditions": [
-          {"metric": "spo2", "op": "<", "threshold": 94}
+          {
+            "metric": "spo2",
+            "op": "<",
+            "threshold": 94
+          }
         ]
       },
       "severity": 0.9,
@@ -134,7 +265,11 @@
       "condition": {
         "logic": "or",
         "conditions": [
-          {"metric": "bmi", "op": ">", "threshold": 25}
+          {
+            "metric": "bmi",
+            "op": ">",
+            "threshold": 25
+          }
         ]
       },
       "severity": 0.5,

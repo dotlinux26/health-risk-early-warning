@@ -30,11 +30,16 @@ COMMANDS = {
 
 
 class ChatAgent:
-    def __init__(self, store: ChatStore | None = None, config: Config = CONFIG) -> None:
+    def __init__(
+        self,
+        store: ChatStore | None = None,
+        config: Config = CONFIG,
+        scorer: RiskScorer | None = None,
+    ) -> None:
         self.store = store or ChatStore()
         self.config = config
         self.parser = ChatParser()
-        self.scorer = RiskScorer(config, kb=KnowledgeBase())
+        self.scorer = scorer or RiskScorer(config, kb=KnowledgeBase())
 
     # ------------------------------------------------------------------ #
     def handle(self, patient_id: str, message: str, file_path: str | Path | None = None) -> dict:
@@ -196,7 +201,15 @@ class ChatAgent:
             for e in rule_ev[:5]:
                 url = e.get("source_url")
                 src = f" (nguồn: {e.get('rule_id')} — {url})" if url else ""
-                lines.append(f"  • {e['message']}{src}")
+                meta = []
+                if e.get("source_page"):
+                    meta.append(f"trang {e['source_page']}")
+                if e.get("source_section"):
+                    meta.append(e["source_section"])
+                detail = f", {', '.join(meta)}" if meta else ""
+                excerpt = e.get("source_excerpt")
+                ex = f" — trích: “{excerpt}”" if excerpt else ""
+                lines.append(f"  • {e['message']}{src}{detail}{ex}")
 
         # 2) Chỉ số theo dõi.
         detail = [r for r in result.get("metrics_detail", [])

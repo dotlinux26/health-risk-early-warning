@@ -49,7 +49,17 @@ def render_markdown(patient_id: str, result: RiskResult) -> str:
         for e in rule_ev:
             url = e.get("source_url")
             src = f" — nguồn: [{e.get('rule_id')}]({url})" if url else ""
-            lines.append(f"- **{e['rule']}**: {e['message']}{src}")
+            detail = ""
+            bits = []
+            if e.get("source_page"):
+                bits.append(f"trang {e['source_page']}")
+            if e.get("source_section"):
+                bits.append(e["source_section"])
+            if bits:
+                detail = f" ({', '.join(bits)})"
+            excerpt = e.get("source_excerpt")
+            ex = f" — trích: *{excerpt}*" if excerpt else ""
+            lines.append(f"- **{e['rule']}**: {e['message']}{src}{detail}{ex}")
     else:
         lines.append("- Không có luật lâm sàng nào kích hoạt trong cửa sổ quan sát.")
     lines.append("")

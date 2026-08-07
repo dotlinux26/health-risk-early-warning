@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý luật lâm sàng — HealthRisk</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #f8fafc; color: #1e293b; padding: 20px; line-height: 1.5;
+  }
+  h1 { font-size: 20px; color: #0369a1; margin-bottom: 4px; }
+  .sub { color: #64748b; font-size: 13px; margin-bottom: 18px; }
+  a.back { font-size: 13px; color: #0284c7; text-decoration: none; }
+  .grid { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+  .panel {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 2px;
+    padding: 16px; flex: 1; min-width: 340px;
+  }
+  .panel h2 { font-size: 15px; color: #334155; margin-bottom: 10px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tab {
+    border: 1px solid #cbd5e1; background: #ffffff; color: #334155;
+    padding: 5px 10px; border-radius: 2px; cursor: pointer; font-size: 13px;
+  }
+  .tab.active { background: #0284c7; color: #fff; border-color: #0284c7; }
+  .rule {
+    border: 1px solid #e2e8f0; border-radius: 2px; padding: 10px 12px;
+    margin-bottom: 8px; background: #fcfcfd;
+  }
+  .rule .rid { font-weight: 700; color: #0369a1; font-size: 13px; }
+  .rule .cond { color: #475569; font-size: 13px; }
+  .rule .sev { font-size: 12px; color: #64748b; }
+  .rule .src a { color: #0284c7; font-size: 12px; }
+  .rule .ops { margin-top: 6px; display: flex; gap: 6px; }
+  .btn {
+    border: none; border-radius: 2px; padding: 6px 10px; font-size: 13px;
+    cursor: pointer; background: #e2e8f0; color: #334155;
+  }
+  .btn.primary { background: #0284c7; color: #fff; }
+  .btn.danger { background: #fee2e2; color: #991b1b; }
+  .btn:hover { opacity: 0.9; }
+  form label { display: block; font-size: 13px; color: #475569; margin: 8px 0 3px; }
+  form input, form select, form textarea {
+    width: 100%; border: 1px solid #cbd5e1; border-radius: 2px;
+    padding: 7px 9px; font-size: 13px; background: #fff; color: #1e293b;
+  }
+  form textarea { resize: vertical; min-height: 52px; }
+  .cond-row { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+  .cond-row select, .cond-row input { width: auto; }
+  .cond-row .metric-w { min-width: 130px; }
+  .cond-row .op-w { min-width: 80px; }
+  .cond-row .th-w { min-width: 100px; }
+  .cond-row .rm { background: #fee2e2; color: #991b1b; border: none; border-radius: 2px; cursor: pointer; padding: 4px 8px; }
+  .err { color: #b91c1c; font-size: 13px; margin-top: 8px; white-space: pre-wrap; }
+  .ok { color: #166534; font-size: 13px; margin-top: 8px; }
+  .muted { color: #94a3b8; font-size: 12px; }
+  .meta-table td { padding: 2px 8px 2px 0; font-size: 13px; }
+  .meta-table .m { font-weight: 600; }
+  .hint { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 2px;
+          padding: 8px 10px; font-size: 12px; color: #1d4ed8; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<a class="back" href="/chat">← Về hộp thoại chat</a>
+<h1>Quản lý cơ sở tri thức y khoa (luật lâm sàng)</h1>
+<div class="sub">
+  Bác sĩ có thể thêm hệ cơ quan mới, chỉ số mới và luật mới. Mọi thay đổi được
+  kiểm tra trước khi ghi; mỗi luật có thể đính kèm link nguồn hướng dẫn lâm sàng.
+</div>
+
+<div class="grid">
+  <!-- ============ DANH SÁCH LUẬT ============ -->
+  <div class="panel">
+    <h2>Danh sách luật theo hệ</h2>
+    <div class="tabs" id="system-tabs"></div>
+    <div id="rule-list"><span class="muted">Đang tải...</span></div>
+  </div>
+
+  <!-- ============ FORM LUẬT ============ -->
+  <div class="panel">
+    <h2 id="form-title">Thêm luật mới</h2>
+    <div class="hint">
+      Cấu trúc luật: <b>điều kiện</b> (một hoặc nhiều chỉ số, ghép bằng AND/OR)
+      → khi thỏa mãn → cảnh báo theo <b>hệ cơ quan</b> với mức <b>nghiêm trọng</b>.
+      Link nguồn giúp bác sĩ và người dùng tra cứu hướng dẫn gốc.
+    </div>
+    <form id="rule-form">
+      <input type="hidden" id="edit-rule-id">
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1">
+          <label>Mã luật (tự động nếu để trống)</label>
+          <input id="f-rule-id" placeholder="R_CV_04">
+        </div>
+        <div style="flex:1">
+          <label>Hệ cơ quan</label>
+          <select id="f-system"></select>
+        </div>
+      </div>
+      <label>Tên luật</label>
+      <input id="f-name" placeholder="Ví dụ: Tăng huyết áp độ 2">
+      <label>Mức nghiêm trọng (0.0–1.0)</label>
+      <input id="f-severity" type="number" min="0" max="1" step="0.1" value="0.7">
+      <label>Chuyên khoa khuyến nghị</label>
+      <input id="f-specialty" placeholder="Ví dụ: Khoa Tim mạch">
+      <label>Nguồn (evidence)</label>
+      <input id="f-evidence" placeholder="Ví dụ: ESC/ESH 2018">
+      <label>Link nguồn (tải bản gốc hướng dẫn)</label>
+      <input id="f-source-url" type="url" placeholder="https://..." >
+      <label>Số trang (tùy chọn)</label>
+      <input id="f-source-page" placeholder="Ví dụ: trang 3021–3104">
+      <label>Chương / mục (tùy chọn)</label>
+      <input id="f-source-section" placeholder="Ví dụ: Chương 4, Mục 4.1">
+      <label>Trích đoạn văn bản nguồn (tùy chọn)</label>
+      <textarea id="f-source-excerpt" placeholder="Ví dụ: Khuyến nghị điều trị khi HATTr ≥ 160 mmHg..." ></textarea>
+      <label>Các điều kiện (nhiều điều kiện ghép bằng AND hoặc OR)</label>
+      <select id="f-logic" style="margin-bottom:4px">
+        <option value="and">Tất cả (AND)</option>
+        <option value="or">Bất kỳ (OR)</option>
+      </select>
+      <div id="cond-rows"></div>
+      <div style="margin-top:8px">
+        <button type="button" class="btn" id="add-cond">+ Thêm điều kiện</button>
+      </div>
+      <div class="err" id="rule-err"></div>
+      <div class="ok" id="rule-ok"></div>
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        <button type="submit" class="btn primary">Lưu luật</button>
+        <button type="button" class="btn" id="cancel-edit" style="display:none">Hủy sửa</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="grid" style="margin-top:18px">
+  <!-- ============ THÊM HỆ ============ -->
+  <div class="panel">
+    <h2>Thêm hệ cơ quan</h2>
+    <form id="system-form">
+      <label>Mã hệ (chữ thường, không dấu)</label>
+      <input id="sys-key" placeholder="Ví dụ: than_kinh">
+      <label>Tên hệ</label>
+      <input id="sys-label" placeholder="Ví dụ: Hệ thần kinh">
+      <div class="err" id="system-err"></div>
+      <div class="ok" id="system-ok"></div>
+      <div style="margin-top:10px"><button type="submit" class="btn primary">Thêm hệ</button></div>
+    </form>
+  </div>
+
+  <!-- ============ THÊM CHỈ SỐ ============ -->
+  <div class="panel">
+    <h2>Thêm chỉ số mới</h2>
+    <form id="metric-form">
+      <label>Tên chỉ số (metric key)</label>
+      <input id="m-key" placeholder="Ví dụ: ldl_cholesterol">
+      <label>Tên hiển thị</label>
+      <input id="m-name" placeholder="Ví dụ: LDL Cholesterol">
+      <label>Đơn vị</label>
+      <input id="m-unit" placeholder="Ví dụ: mmol/L">
+      <label>Phạm vi bình thường [min, max]</label>
+      <input id="m-range" placeholder="Ví dụ: 0.5, 3.4">
+      <label>Hệ cơ quan (mã)</label>
+      <input id="m-system" placeholder="Ví dụ: chuyen_hoa">
+      <label>Chuyên khoa</label>
+      <input id="m-specialty" placeholder="Ví dụ: Khoa Nội tiết">
+      <div class="err" id="metric-err"></div>
+      <div class="ok" id="metric-ok"></div>
+      <div style="margin-top:10px"><button type="submit" class="btn primary">Thêm chỉ số</button></div>
+    </form>
+  </div>
+
+  <!-- ============ CHỈ SỐ ĐÃ KHAI BÁO ============ -->
+  <div class="panel">
+    <h2>Chỉ số đã khai báo</h2>
+    <table class="meta-table" id="metric-table"></table>
+  </div>
+</div>
+
+<script>
+const state = { rules: [], systems: {}, metrics: {}, activeSystem: null };
+
+const $ = id => document.getElementById(id);
+
+async function api(url, opts={}) {
+  const res = await fetch(url, {
+    headers: {'Content-Type': 'application/json'},
+    ...opts,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+async function load() {
+  try {
+    const d = await api('/api/kb');
+    state.rules = d.rules || [];
+    state.systems = d.system_labels || {};
+    state.metrics = d.metrics || {};
+    renderTabs(); renderRules(); renderSystemSelect(); renderMetrics();
+  } catch(e) {
+    $('rule-list').innerHTML = '<span class="err">Lỗi tải dữ liệu: ' + e.message + '</span>';
+  }
+}
+
+function renderTabs() {
+  const tabs = $('system-tabs');
+  const keys = Object.keys(state.systems);
+  if (state.activeSystem && !keys.includes(state.activeSystem)) state.activeSystem = keys[0];
+  tabs.innerHTML = '<button class="tab' + (!state.activeSystem ? ' active' : '') + '" data-sys="">Tất cả</button>' +
+    keys.map(k => '<button class="tab' + (state.activeSystem === k ? ' active' : '') + '" data-sys="' + escAttr(k) + '">' + esc(state.systems[k]) + '</button>').join('');
+  tabs.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    state.activeSystem = t.dataset.sys || null;
+    renderTabs(); renderRules();
+  }));
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s){ return esc(s); }
+
+function fmtCond(cond) {
+  if (cond.logic) {
+    return '(' + cond.conditions.map(fmtCond).join(' ' + cond.logic.toUpperCase() + ' ') + ')';
+  }
+  let s = '<b>' + esc(cond.metric) + '</b> ' + esc(cond.op) + ' ' + esc(cond.threshold);
+  if (cond.window_days) s += ' (cửa sổ ' + cond.window_days + ' ngày)';
+  return s;
+}
+
+function renderRules() {
+  const el = $('rule-list');
+  const list = state.activeSystem
+    ? state.rules.filter(r => r.system === state.activeSystem)
+    : state.rules;
+  if (!list.length) { el.innerHTML = '<span class="muted">Chưa có luật nào cho hệ này.</span>'; return; }
+  el.innerHTML = list.map(r => {
+    const sysName = state.systems[r.system] || r.system;
+    const url = r.source_url ? ' <span class="src">· nguồn: <a href="' + escAttr(r.source_url) + '" target="_blank" rel="noopener">' + esc(r.rule_id) + '</a></span>' : '';
+    let loc = [];
+    if (r.source_page) loc.push('trang ' + esc(r.source_page));
+    if (r.source_section) loc.push(esc(r.source_section));
+    const locHtml = loc.length ? ' <span class="muted">(' + loc.join(', ') + ')</span>' : '';
+    const exHtml = r.source_excerpt ? ' <div class="cond" style="color:#64748b">Trích: “' + esc(r.source_excerpt) + '”</div>' : '';
+    return '<div class="rule">' +
+      '<span class="rid">' + esc(r.rule_id) + '</span> — ' + esc(r.name) + ' <span class="muted">(' + esc(sysName) + ')</span>' +
+      '<div class="cond">' + fmtCond(r.condition) + '</div>' +
+      '<div class="sev">Độ nặng ' + r.severity + ' · ' + esc(r.specialty) + ' · nguồn: ' + esc(r.evidence) + url + locHtml + '</div>' +
+      exHtml +
+      '<div class="ops">' +
+        '<button class="btn" onclick="editRule(\'' + escAttr(r.rule_id) + '\')">Sửa</button>' +
+        '<button class="btn danger" onclick="delRule(\'' + escAttr(r.rule_id) + '\')">Xóa</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function renderSystemSelect() {
+  const sel = $('f-system');
+  sel.innerHTML = Object.keys(state.systems)
+    .map(k => '<option value="' + escAttr(k) + '">' + esc(state.systems[k]) + ' (' + esc(k) + ')</option>')
+    .join('');
+}
+
+function renderMetrics() {
+  const t = $('metric-table');
+  const rows = Object.entries(state.metrics).map(([k, v]) => {
+    const rng = v.range ? (v.range[0] + ' – ' + v.range[1]) : '—';
+    return '<tr><td class="m">' + esc(k) + '</td><td>' + esc(v.name || '') + '</td><td>' +
+      esc(v.unit || '') + '</td><td>' + esc(rng) + '</td></tr>';
+  });
+  t.innerHTML = rows.length ? rows.join('') : '<tr><td class="muted">Chưa có chỉ số nào được khai báo thêm.</td></tr>';
+}
+
+// ---------------- FORM LUẬT ----------------
+function addCondRow(cond={}) {
+  const wrap = $('cond-rows');
+  const row = document.createElement('div');
+  row.className = 'cond-row';
+  const metricOptions = '<option value="">— chỉ số —</option>' +
+    Object.keys(state.metrics).map(m => '<option value="' + escAttr(m) + '"' + (cond.metric === m ? ' selected' : '') + '>' + esc(state.metrics[m].name || m) + ' (' + esc(m) + ')</option>').join('') +
+    '<option value="__custom__"' + (cond.metric && !state.metrics[cond.metric] ? ' selected' : '') + '>＋ chỉ số mới...</option>';
+  row.innerHTML =
+    '<select class="metric-w">' + metricOptions + '</select>' +
+    '<input class="metric-custom" placeholder="metric_key" style="display:none" value="' + escAttr(cond.metric || '') + '">' +
+    '<select class="op-w"><option value=">">></option><option value=">=">>=</option><option value="<"><</option><option value="<="><=</option><option value="==">==</option></select>'.replace('</option><option value=">="', '</option><option value=">="').split('<option value=">"><').join('<option value=">"').replace('<option value=">"', '<option value=">" selected') +
+    '<input class="th-w" type="number" step="any" placeholder="ngưỡng" value="' + (cond.threshold ?? '') + '">' +
+    '<input class="win-w" type="number" step="1" placeholder="ngày" title="cửa sổ (tùy chọn)" value="' + (cond.window_days ?? '') + '">' +
+    '<button type="button" class="rm">×</button>';
+  const mSel = row.querySelector('.metric-w');
+  const custom = row.querySelector('.metric-custom');
+  const opSel = row.querySelector('.op-w');
+  if (cond.op) opSel.value = cond.op;
+  mSel.addEventListener('change', () => {
+    custom.style.display = mSel.value === '__custom__' ? 'inline-block' : 'none';
+    if (mSel.value !== '__custom__') custom.value = mSel.value;
+  });
+  row.querySelector('.rm').addEventListener('click', () => row.remove());
+  wrap.appendChild(row);
+}
+
+$('add-cond').addEventListener('click', () => addCondRow());
+
+function collectRule() {
+  const conds = [];
+  document.querySelectorAll('#cond-rows .cond-row').forEach(row => {
+    const mSel = row.querySelector('.metric-w');
+    const custom = row.querySelector('.metric-custom');
+    const metric = mSel.value === '__custom__' ? custom.value.trim() : mSel.value;
+    const op = row.querySelector('.op-w').value;
+    const th = parseFloat(row.querySelector('.th-w').value);
+    const win = parseInt(row.querySelector('.win-w').value, 10);
+    if (!metric) return;
+    const c = { metric, op, threshold: th };
+    if (!isNaN(win) && win > 0) c.window_days = win;
+    conds.push(c);
+  });
+  return {
+    rule_id: ($('edit-rule-id').value || $('f-rule-id').value.trim()),
+    name: $('f-name').value.trim(),
+    system: $('f-system').value,
+    severity: parseFloat($('f-severity').value),
+    specialty: $('f-specialty').value.trim(),
+    evidence: $('f-evidence').value.trim(),
+    source_url: $('f-source-url').value.trim(),
+    source_page: $('f-source-page').value.trim(),
+    source_section: $('f-source-section').value.trim(),
+    source_excerpt: $('f-source-excerpt').value.trim(),
+    condition: conds.length > 1 ? { logic: $('f-logic').value, conditions: conds } : conds[0],
+  };
+}
+
+$('rule-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const errEl = $('rule-err'), okEl = $('rule-ok');
+  errEl.textContent = ''; okEl.textContent = '';
+  const rule = collectRule();
+  if (!rule.condition) { errEl.textContent = 'Cần ít nhất một điều kiện chỉ số.'; return; }
+  if (!rule.name) { errEl.textContent = 'Tên luật không được để trống.'; return; }
+  try {
+    const editing = $('edit-rule-id').value;
+    if (editing) {
+      const patch = {...rule}; delete patch.rule_id;
+      await api('/api/kb/rules/' + encodeURIComponent(editing), { method: 'PUT', body: JSON.stringify(patch) });
+    } else {
+      await api('/api/kb/rules', { method: 'POST', body: JSON.stringify(rule) });
+    }
+    okEl.textContent = 'Đã lưu luật thành công.';
+    resetForm(); await load();
+  } catch(err) { errEl.textContent = err.message; }
+});
+
+function resetForm() {
+  $('edit-rule-id').value = '';
+  $('f-rule-id').value = '';
+  $('f-name').value = '';
+  $('f-severity').value = '0.7';
+  $('f-specialty').value = '';
+  $('f-evidence').value = '';
+  $('f-source-url').value = '';
+  $('f-source-page').value = '';
+  $('f-source-section').value = '';
+  $('f-source-excerpt').value = '';
+  $('cond-rows').innerHTML = '';
+  addCondRow();
+  $('form-title').textContent = 'Thêm luật mới';
+  $('cancel-edit').style.display = 'none';
+  $('rule-ok').textContent = ''; $('rule-err').textContent = '';
+}
+
+$('cancel-edit').addEventListener('click', resetForm);
+
+async function editRule(ruleId) {
+  const r = state.rules.find(x => x.rule_id === ruleId);
+  if (!r) return;
+  $('edit-rule-id').value = r.rule_id;
+  $('f-rule-id').value = r.rule_id;
+  $('f-name').value = r.name;
+  $('f-system').value = r.system;
+  $('f-severity').value = r.severity;
+  $('f-specialty').value = r.specialty;
+  $('f-evidence').value = r.evidence;
+  $('f-source-url').value = r.source_url || '';
+  $('f-source-page').value = r.source_page || '';
+  $('f-source-section').value = r.source_section || '';
+  $('f-source-excerpt').value = r.source_excerpt || '';
+  $('cond-rows').innerHTML = '';
+  if (r.condition.logic) {
+    $('f-logic').value = r.condition.logic;
+    r.condition.conditions.forEach(c => addCondRow(c));
+  } else {
+    addCondRow(r.condition);
+  }
+  $('form-title').textContent = 'Sửa luật ' + r.rule_id;
+  $('cancel-edit').style.display = 'inline-block';
+  $('rule-err').textContent = ''; $('rule-ok').textContent = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function delRule(ruleId) {
+  if (!confirm('Xóa luật ' + ruleId + '?')) return;
+  try {
+    await api('/api/kb/rules/' + encodeURIComponent(ruleId), { method: 'DELETE' });
+    await load();
+  } catch(e) { alert('Lỗi: ' + e.message); }
+}
+
+// ---------------- FORM HỆ ----------------
+$('system-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('system-err').textContent = ''; $('system-ok').textContent = '';
+  try {
+    await api('/api/kb/systems', {
+      method: 'POST',
+      body: JSON.stringify({ system_key: $('sys-key').value.trim(), label: $('sys-label').value.trim() }),
+    });
+    $('system-ok').textContent = 'Đã thêm hệ mới.';
+    $('sys-key').value = ''; $('sys-label').value = '';
+    await load();
+  } catch(err) { $('system-err').textContent = err.message; }
+});
+
+// ---------------- FORM CHỈ SỐ ----------------
+$('metric-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('metric-err').textContent = ''; $('metric-ok').textContent = '';
+  const rng = $('m-range').value.trim();
+  let range = null;
+  if (rng) {
+    const parts = rng.split(/[,\s]+/).map(Number);
+    if (parts.length === 2 && parts.every(n => !isNaN(n))) range = parts;
+    else { $('metric-err').textContent = 'Phạm vi phải là cặp số, ví dụ: 0.5, 3.4'; return; }
+  }
+  try {
+    await api('/api/kb/metrics', {
+      method: 'POST',
+      body: JSON.stringify({
+        metric: $('m-key').value.trim(),
+        info: {
+          name: $('m-name').value.trim(),
+          unit: $('m-unit').value.trim(),
+          range,
+          system: $('m-system').value.trim(),
+          specialty: $('m-specialty').value.trim(),
+        },
+      }),
+    });
+    $('metric-ok').textContent = 'Đã thêm chỉ số mới.';
+    ['m-key','m-name','m-unit','m-range','m-system','m-specialty'].forEach(id => $(id).value = '');
+    await load();
+  } catch(err) { $('metric-err').textContent = err.message; }
+});
+
+// ---------------- KHỞI TẠO ----------------
+addCondRow();
+load();
+</script>
+</body>
+</html>

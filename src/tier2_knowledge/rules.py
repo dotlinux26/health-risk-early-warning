@@ -1,7 +1,14 @@
-"""Rule engine Tầng 2 — đối chiếu bất thường với cơ sở tri thức y khoa."""
+"""Rule engine Tầng 2 — đối chiếu bất thường với cơ sở tri thức y khoa.
+
+Cơ sở tri thức là file JSON **mở rộng được** (không khóa cứng): bác sĩ có thể
+thêm hệ cơ quan mới (`system_labels`), chỉ số mới (`metrics`) và luật mới
+(`rules`) qua API / giao diện. Tất cả thay đổi được validate trước khi ghi.
+"""
 from __future__ import annotations
 
 import json
+import re
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -10,9 +17,15 @@ from src.tier1_anomaly import AnomalyRecord
 
 DEFAULT_KB = Path(__file__).parent / "knowledge_base.json"
 
-# Bản đồ fallback: chỉ số → (hệ cơ quan, chuyên khoa) dùng khi chỉ số bất thường
-# (Tầng 1 flag) nhưng chưa vượt ngưỡng luật cứng ở Tầng 2.
-METRIC_SYSTEM_MAP: dict[str, tuple[str, str]] = {
+# Các toán tử so sánh hợp lệ trong điều kiện luật.
+SUPPORTED_OPERATORS: set[str] = {">", ">=", "<", "<=", "=="}
+
+# Định dạng mã luật gợi ý: R_<HỆ>_<SỐ> (không bắt buộc nhưng khuyến nghị).
+RULE_ID_RE = re.compile(r"^[A-Za-z0-9_\-]{2,32}$")
+
+# Bản đồ fallback mặc định: chỉ số → (hệ cơ quan, chuyên khoa) khi luật chưa
+# khai hệ. Chỉ dùng khi chỉ số chưa được khai báo trong `metrics` của KB.
+_DEFAULT_METRIC_SYSTEM: dict[str, tuple[str, str]] = {
     "systolic_bp": ("tim_manh", "Khoa Tim mạch"),
     "diastolic_bp": ("tim_manh", "Khoa Tim mạch"),
     "heart_rate": ("tim_manh", "Khoa Tim mạch"),
@@ -24,6 +37,69 @@ METRIC_SYSTEM_MAP: dict[str, tuple[str, str]] = {
     "spo2": ("ho_hap", "Khoa Hô hấp"),
     "bmi": ("chuyen_hoa", "Khoa Nội tiết"),
 }
+
+
+def validate_condition(condition: Any, errors: list[str], prefix: str = "condition") -> None:
+    """Validate cấu trúc điều kiện luật (đệ quy, chấp nhận and/or lồng nhau).
+
+    Chỉ số (metric) KHÔNG bị giới hạn bởi danh sách cố định — cho phép mở rộng;
+    chỉ kiểm tra cấu trúc và kiểu dữ liệu để tránh lỗi chạy thời điểm thực thi.
+    """
+    if not isinstance(condition, dict):
+        errors.append(f"{prefix}: phải là object điều kiện")
+        return
+    if "logic" in condition:
+        logic = condition.get("logic")
+        if logic not in {"and", "or"}:
+            errors.append(f"{prefix}.logic: chỉ nhận 'and' hoặc 'or'")
+        conds = condition.get("conditions")
+        if not isinstance(conds, list) or not conds:
+            errors.append(f"{prefix}.conditions: cần ít nhất một điều kiện con")
+            return
+        for i, c in enumerate(conds):
+            validate_condition(c, errors, f"{prefix}.conditions[{i}]")
+        return
+    metric = condition.get("metric")
+    if not isinstance(metric, str) or not metric.strip():
+        errors.append(f"{prefix}.metric: cần khai báo tên chỉ số")
+    op = condition.get("op")
+    if op not in SUPPORTED_OPERATORS:
+        errors.append(f"{prefix}.op: toán tử phải thuộc {sorted(SUPPORTED_OPERATORS)}")
+    threshold = condition.get("threshold")
+    if not isinstance(threshold, (int, float)):
+        errors.append(f"{prefix}.threshold: cần là số")
+    for extra in ("window_days", "unit"):
+        if extra in condition and not isinstance(condition[extra], (str, int, float)):
+            errors.append(f"{prefix}.{extra}: giá trị không hợp lệ")
+
+
+def validate_rule(rule: dict[str, Any]) -> list[str]:
+    """Validate một luật trước khi lưu. Trả về danh sách lỗi (rỗng = hợp lệ)."""
+    errors: list[str] = []
+    rule_id = rule.get("rule_id")
+    if not isinstance(rule_id, str) or not RULE_ID_RE.match(rule_id):
+        errors.append("rule_id: cần chuỗi 2-32 ký tự (chữ, số, _ , -)")
+    if not isinstance(rule.get("name"), str) or not rule["name"].strip():
+        errors.append("name: không được để trống")
+    if not isinstance(rule.get("system"), str) or not rule["system"].strip():
+        errors.append("system: cần khai báo hệ cơ quan")
+    severity = rule.get("severity")
+    if not isinstance(severity, (int, float)) or not (0.0 <= severity <= 1.0):
+        errors.append("severity: cần số trong khoảng 0.0-1.0")
+    if not isinstance(rule.get("specialty"), str) or not rule["specialty"].strip():
+        errors.append("specialty: không được để trống")
+    if not isinstance(rule.get("evidence"), str) or not rule["evidence"].strip():
+        errors.append("evidence: cần ghi nguồn trích dẫn")
+    source_url = rule.get("source_url")
+    if source_url and not (isinstance(source_url, str) and source_url.startswith(("http://", "https://"))):
+        errors.append("source_url: cần link http/https hợp lệ")
+    # Metadata nguồn chi tiết — tùy chọn, có thì hiện thêm, không thì bỏ qua.
+    for field in ("source_page", "source_section", "source_excerpt"):
+        val = rule.get(field)
+        if val is not None and not isinstance(val, str):
+            errors.append(f"{field}: cần là chuỗi văn bản")
+    validate_condition(rule.get("condition"), errors)
+    return errors
 
 
 @dataclass
@@ -39,9 +115,12 @@ class RuleHit:
     evidence: str
     matched_metrics: list[str] = field(default_factory=list)
     source_url: str = ""
+    source_page: str = ""
+    source_section: str = ""
+    source_excerpt: str = ""
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "rule_id": self.rule_id,
             "name": self.name,
             "system": self.system,
@@ -52,17 +131,59 @@ class RuleHit:
             "matched_metrics": self.matched_metrics,
             "source_url": self.source_url,
         }
+        if self.source_page:
+            d["source_page"] = self.source_page
+        if self.source_section:
+            d["source_section"] = self.source_section
+        if self.source_excerpt:
+            d["source_excerpt"] = self.source_excerpt
+        return d
 
 
 class KnowledgeBase:
-    """Nạp cơ sở tri thức JSON và đánh giá luật."""
+    """Nạp cơ sở tri thức JSON, đánh giá luật, và cho phép cập nhật (CRUD).
+
+    Cấu trúc file:
+        meta            metadata (version, nguồn)
+        metrics         metadata chỉ số: metric -> {name, unit, range}
+        system_labels   bản đồ mã hệ -> tên hệ (mở rộng được)
+        rules           danh sách luật
+    """
 
     def __init__(self, path: str | Path = DEFAULT_KB) -> None:
-        with open(path, encoding="utf-8") as f:
-            self.data: dict[str, Any] = json.load(f)
-        self.rules = self.data["rules"]
-        self.system_labels = self.data.get("system_labels", {})
+        self.path = Path(path)
+        self.reload()
 
+    def reload(self) -> None:
+        """(Đ)ọc lại file — dùng sau khi API ghi đè để scorer/agent nhận luật mới."""
+        with open(self.path, encoding="utf-8") as f:
+            self.data: dict[str, Any] = json.load(f)
+        self.rules: list[dict[str, Any]] = self.data["rules"]
+        self.system_labels: dict[str, str] = self.data.get("system_labels", {})
+        self.metrics: dict[str, dict[str, Any]] = self.data.get("metrics", {})
+
+    # ------------------------------------------------------------------ #
+    # Trợ giúp metadata chỉ số (mở rộng)
+    # ------------------------------------------------------------------ #
+    def metric_info(self, metric: str) -> dict[str, Any]:
+        """Trả metadata của một chỉ số; fallback về bản đồ mặc định."""
+        info = self.metrics.get(metric) or {}
+        if metric in _DEFAULT_METRIC_SYSTEM:
+            sys_key, specialty = _DEFAULT_METRIC_SYSTEM[metric]
+            info.setdefault("system", sys_key)
+            info.setdefault("specialty", specialty)
+        return info
+
+    def metric_system_fallback(self, metric: str) -> tuple[str, str] | None:
+        """(hệ_key, chuyên_khoa) fallback khi chỉ số bị flag chưa có luật cứng."""
+        info = self.metrics.get(metric)
+        if info and info.get("system") and info.get("specialty"):
+            return info["system"], info["specialty"]
+        return _DEFAULT_METRIC_SYSTEM.get(metric)
+
+    # ------------------------------------------------------------------ #
+    # Đánh giá luật
+    # ------------------------------------------------------------------ #
     def _compare(self, value: float, op: str, threshold: float) -> bool:
         if value is None:
             return False
@@ -107,6 +228,9 @@ class KnowledgeBase:
                         evidence=rule["evidence"],
                         matched_metrics=metrics,
                         source_url=rule.get("source_url", ""),
+                        source_page=rule.get("source_page", ""),
+                        source_section=rule.get("source_section", ""),
+                        source_excerpt=rule.get("source_excerpt", ""),
                     )
                 )
         return sorted(hits, key=lambda h: -h.severity)
@@ -124,8 +248,120 @@ class KnowledgeBase:
         """
         suggestions: dict[str, str] = {}
         for r in records:
-            if r.flagged and r.metric in METRIC_SYSTEM_MAP:
-                sys_key, specialty = METRIC_SYSTEM_MAP[r.metric]
+            if not r.flagged:
+                continue
+            fallback = self.metric_system_fallback(r.metric)
+            if fallback:
+                sys_key, specialty = fallback
                 label = self.system_labels.get(sys_key, sys_key)
                 suggestions[label] = specialty
         return suggestions
+
+    # ------------------------------------------------------------------ #
+    # Cập nhật (CRUD) — kháng lỗi, ghi an toàn
+    # ------------------------------------------------------------------ #
+    def save(self) -> None:
+        """Ghi file JSON an toàn: validate cấu trúc, backup bản cũ trước khi ghi."""
+        if not isinstance(self.data, dict) or not isinstance(self.rules, list):
+            raise ValueError("Dữ liệu cơ sở tri thức không hợp lệ — từ chối ghi.")
+        self.data["rules"] = self.rules
+        self.data["system_labels"] = self.system_labels
+        self.data["metrics"] = self.metrics
+        if self.path.exists():
+            backup = self.path.with_suffix(".json.bak")
+            shutil.copy2(self.path, backup)
+        tmp = self.path.with_suffix(".json.tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(self.data, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        tmp.replace(self.path)
+        self.reload()
+
+    def add_rule(self, rule: dict[str, Any]) -> dict[str, Any]:
+        """Thêm luật mới. Ném ValueError kèm thông báo lỗi nếu không hợp lệ."""
+        errors = validate_rule(rule)
+        if errors:
+            raise ValueError("; ".join(errors))
+        if any(r["rule_id"] == rule["rule_id"] for r in self.rules):
+            raise ValueError(f"rule_id '{rule['rule_id']}' đã tồn tại.")
+        clean = {k: rule[k] for k in (
+            "rule_id", "name", "system", "condition", "severity",
+            "specialty", "evidence", "source_url",
+        )}
+        for k in ("source_page", "source_section", "source_excerpt"):
+            v = rule.get(k)
+            if isinstance(v, str) and v.strip():
+                clean[k] = v.strip()
+        self.rules.append(clean)
+        self.save()
+        return rule
+
+    def update_rule(self, rule_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        """Cập nhật luật theo rule_id. rule_id cũ giữ nguyên."""
+        for i, rule in enumerate(self.rules):
+            if rule["rule_id"] != rule_id:
+                continue
+            merged = dict(rule)
+            for k in ("name", "system", "condition", "severity",
+                      "specialty", "evidence", "source_url"):
+                if k in patch:
+                    merged[k] = patch[k]
+            for k in ("source_page", "source_section", "source_excerpt"):
+                if k in patch:
+                    v = patch[k]
+                    if isinstance(v, str) and v.strip():
+                        merged[k] = v.strip()
+                    else:
+                        merged.pop(k, None)
+            errors = validate_rule(merged)
+            if errors:
+                raise ValueError("; ".join(errors))
+            self.rules[i] = merged
+            self.save()
+            return merged
+        raise ValueError(f"Không tìm thấy luật '{rule_id}'.")
+
+    def delete_rule(self, rule_id: str) -> None:
+        before = len(self.rules)
+        self.rules = [r for r in self.rules if r["rule_id"] != rule_id]
+        if len(self.rules) == before:
+            raise ValueError(f"Không tìm thấy luật '{rule_id}'.")
+        self.save()
+
+    def add_system(self, system_key: str, label: str) -> dict[str, str]:
+        """Thêm hệ cơ quan mới: system_key -> label."""
+        system_key = (system_key or "").strip()
+        label = (label or "").strip()
+        if not system_key or not label:
+            raise ValueError("system_key và label không được để trống.")
+        if system_key in self.system_labels:
+            raise ValueError(f"Hệ '{system_key}' đã tồn tại.")
+        self.system_labels[system_key] = label
+        self.save()
+        return {system_key: label}
+
+    def add_metric(self, metric: str, info: dict[str, Any]) -> dict[str, Any]:
+        """Thêm chỉ số mới kèm metadata (name, unit, range, system, specialty)."""
+        metric = (metric or "").strip()
+        if not metric:
+            raise ValueError("Tên chỉ số không được để trống.")
+        info = {
+            "name": (info.get("name") or metric).strip(),
+            "unit": (info.get("unit") or "").strip(),
+            "range": info.get("range"),
+            "system": (info.get("system") or "").strip() or None,
+            "specialty": (info.get("specialty") or "").strip() or None,
+        }
+        if info["range"] is not None:
+            if (not isinstance(info["range"], (list, tuple))
+                    or len(info["range"]) != 2
+                    or not all(isinstance(v, (int, float)) for v in info["range"])):
+                raise ValueError("range phải là cặp số [min, max].")
+            info["range"] = [float(info["range"][0]), float(info["range"][1])]
+        self.metrics[metric] = info
+        self.save()
+        return self.metrics[metric]
+
+    def to_dict(self) -> dict[str, Any]:
+        """Toàn bộ KB dạng dict (cho API /api/kb)."""
+        return self.data
