@@ -2,6 +2,11 @@
 
 **Nguyên tắc cốt lõi:** *Không so sánh bệnh nhân với quần thể — so sánh họ với chính họ trong quá khứ, rồi chiếu lên tri thức y khoa, cuối cùng lượng hóa thành điểm rủi ro giải thích được.*
 
+> **Định vị:** sơ đồ dưới đây là **khung hỗ trợ quyết định lâm sàng (CDSF)** của
+> đề tài. Mô hình học máy (LightGBM) chỉ là một module trong Tầng 3 và **có thể
+> thay thế** bằng LSTM/GRU hoặc foundation model mà kiến trúc khung không đổi.
+> Xem thêm [docs/07](07_Dinh_vi_de_tai.md).
+
 ---
 
 ## 1. Sơ đồ tổng thể

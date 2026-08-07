@@ -1,5 +1,10 @@
 # 05. Nâng cấp mô hình & Mô hình con trích xuất dữ liệu tài liệu
 
+> **Định vị:** lộ trình dưới đây nâng cấp **các thành phần mô hình bên trong
+> khung CDSF** (Tầng 1 và Tầng 3), không thay đổi kiến trúc khung — minh chứng
+> cho tính "cắm – thay được" của mô hình. Xem thêm
+> [docs/07](07_Dinh_vi_de_tai.md).
+
 ## 1. Trạng thái triển khai hiện tại
 
 | Thành phần | Trạng thái | Ghi chú |

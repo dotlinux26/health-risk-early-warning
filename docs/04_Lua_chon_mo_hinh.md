@@ -1,6 +1,13 @@
 # 04. Lựa chọn & So sánh mô hình
 
-**Câu hỏi then chốt:** *Với đề tài "cảnh báo sớm + giải thích được + dữ liệu nhỏ", mô hình nào là tối ưu?*
+**Câu hỏi then chốt:** *Với bài toán "cảnh báo sớm + giải thích được + dữ liệu nhỏ", thành phần mô hình học máy nào là tối ưu cho khung hỗ trợ quyết định của đề tài?*
+
+> **Lưu ý định vị (quan trọng):** tài liệu này so sánh các **mô hình học máy**
+> ở Tầng 3 — tức là so sánh **thành phần**, không so sánh toàn hệ thống. Đề tài
+> xây dựng một **khung CDSF**, trong đó LightGBM là mô hình hiện tại nhưng **có
+> thể thay thế**; việc so sánh dưới đây giúp chọn và báo cáo về thành phần đó,
+> không tuyên bố "mô hình của đề tài chính xác hơn Delphi". Xem thêm
+> [docs/07](07_Dinh_vi_de_tai.md).
 
 ---
 
@@ -52,7 +59,10 @@ TẦNG 3 (điểm rủi ro):       LightGBM (đặc trưng time-series) + SHAP  
 
 ---
 
-## 4. Ba cải tiến so với các mô hình trong các công bố
+## 4. Ba cải tiến của khung so với các công bố (ở cấp kiến trúc)
+
+> Đây là các cải tiến của **khung CDSF** (toàn hệ thống), không phải cải tiến
+> của riêng mô hình ML — cần phân biệt rõ khi trình bày với hội đồng.
 
 ### 4.1. Cá nhân hóa bằng dữ liệu của chính người đó (thay vì ngưỡng cộng đồng)
 - **Trong báo cáo:** Z-Score/ngưỡng thường tính theo *quần thể* (chuẩn hóa theo dân số) → sai với cá thể bình thường nhưng khác phân phối chung.

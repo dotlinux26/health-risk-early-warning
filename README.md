@@ -16,6 +16,7 @@
 - [04. Lựa chọn & so sánh mô hình](docs/04_Lua_chon_mo_hinh.md)
 - [05. Nâng cấp mô hình & Mô hình con trích xuất dữ liệu](docs/05_Mo_hinh_nang_cap_va_ingest.md)
 - [06. Báo cáo huấn luyện: kết quả, giới hạn, hướng chuẩn mực hóa](docs/06_Bao_cao_huong_train_va_gioi_han.md)
+- [07. Định vị đề tài: Khung hỗ trợ quyết định lâm sàng](docs/07_Dinh_vi_de_tai.md)
 
 ## Kiến trúc 3 tầng
 
@@ -30,6 +31,10 @@ Mô hình ML hiện tại: LightGBM được huấn luyện trên **dữ liệu 
 (CDC)** — 4949 người, nhãn tăng huyết áp/đái tháo đường (AUC 5-fold 0.9436) — và
 được đối chứng trên Pima Diabetes (AUC 0.8116) và Cleveland Heart Disease (AUC
 0.8906). Chi tiết kết quả, giới hạn và lộ trình: [docs/06](docs/06_Bao_cao_huong_train_va_gioi_han.md).
+
+> **Định vị:** đề tài xây dựng một **khung hỗ trợ quyết định lâm sàng** (CDSF),
+> không xây dựng một mô hình AI mới. Mô hình học máy (LightGBM) là một thành phần
+> có thể thay thế trong khung. Chi tiết: [docs/07](docs/07_Dinh_vi_de_tai.md).
 
 ## Cài đặt
 

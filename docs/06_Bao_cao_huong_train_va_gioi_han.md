@@ -4,6 +4,12 @@
 > thẳng thắn nêu các giới hạn của quy trình và đề xuất hướng đi để mô hình
 > thông minh hơn, tin cậy hơn và có thể công bố.
 
+> **Định vị:** các chỉ số AUC/AUPRC dưới đây là của **thành phần mô hình ML
+> (LightGBM, Tầng 3)** trong khung CDSF — không phải "độ chính xác" của toàn hệ
+> thống, và không dùng để tuyên bố mô hình "chính xác hơn" các hệ thống tạo sinh
+> như Delphi. Đề tài đóng góp ở cấp khung. Xem thêm
+> [docs/07](07_Dinh_vi_de_tai.md).
+
 ---
 
 ## 1. Tổng quan

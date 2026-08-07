@@ -31,7 +31,13 @@ Từ tổng hợp 5 bài báo, nổi lên **4 khoảng trống** mà đề tài 
 
 ## 3. Vị thế của đề tài trong bản đồ nghiên cứu
 
-Đề tài đề xuất là **thiết kế lai (hybrid)** nằm giữa 2 cực:
+> **Lưu ý định vị:** đề tài không tạo ra một mô hình AI mới, mà đề xuất một
+> **khung hỗ trợ quyết định lâm sàng (CDSF)** — trong đó mô hình học máy
+> (LightGBM) chỉ là một thành phần có thể thay thế. Các so sánh trong mục này
+> là so sánh **ở cấp kiến trúc khung**, không phải cấp mô hình. Xem thêm
+> [docs/07](07_Dinh_vi_de_tai.md).
+
+Đề tài đề xuất là **khung thiết kế lai (hybrid framework)** nằm giữa 2 cực:
 
 ```
 [Polar 1: Đơn giản, minh bạch]          [Polar 2: Hiệu năng, hộp đen]
