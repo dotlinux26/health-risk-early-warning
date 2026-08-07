@@ -17,25 +17,25 @@ tế công bố. Vai trò của nhóm là: đọc, chọn lọc, chuẩn hóa th
 
 | Hướng dẫn | Tổ chức | Dùng cho |
 |---|---|---|
-| ESC/ESH 2018 | ESC & ESH (châu Âu) | Tăng huyết áp — ngưỡng 140/90, tăng huyết áp tâm thu đơn độc |
-| ADA 2023 | American Diabetes Association | Đái tháo đường — đường huyết đói 7.0, HbA1c 6.5% |
-| KDIGO 2022 | KDIGO (quốc tế) | Bệnh thận — creatinine, eGFR < 60 |
-| WHO | Tổ chức Y tế Thế giới | BMI thừa cân ≥ 25, bão hòa oxy |
-| Hướng dẫn nhịp tim 2023 | Hội Tim mạch (ACC/AHA) | Nhịp tim nhanh/chậm kéo dài |
+| ESC/ESH 2018 [1] | ESC & ESH (châu Âu) | Tăng huyết áp — ngưỡng 140/90, tăng huyết áp tâm thu đơn độc |
+| ADA 2023 [2] | American Diabetes Association | Đái tháo đường — đường huyết đói 7.0, HbA1c 6.5% |
+| KDIGO 2022 [3] | KDIGO (quốc tế) | Bệnh thận — creatinine, eGFR < 60 |
+| WHO [4][6] | Tổ chức Y tế Thế giới | BMI thừa cân ≥ 25, bão hòa oxy |
+| Hướng dẫn nhịp tim 2023 [5] | Hội Tim mạch (ACC/AHA) | Nhịp tim nhanh/chậm kéo dài |
 
 ### 1.1. Trích dẫn từng luật hiện tại
 
 | Luật | Ý nghĩa | Ngưỡng | Nguồn |
 |---|---|---|---|
-| R_CV_01 | Tăng huyết áp | HA ≥ 140/90 mmHg | ESC/ESH 2018 |
-| R_CV_02 | Nhịp tim nhanh kéo dài | nhịp tim > 100 / 7 ngày | Hướng dẫn nhịp tim 2023 |
-| R_CV_03 | Tăng huyết áp tâm thu đơn độc | HATT > 140 mmHg | ESC/ESH 2018 |
-| R_END_01 | Tăng đường huyết lúc đói | glucose đói > 7.0 mmol/L | ADA 2023 |
-| R_END_02 | HbA1c vượt ngưỡng tiểu đường | HbA1c > 6.5% | ADA 2023 |
-| R_KID_01 | Creatinine tăng — nghi suy thận | creatinine > 1.3 mg/dL | KDIGO 2022 |
-| R_KID_02 | eGFR giảm | eGFR < 60 | KDIGO 2022 |
-| R_RES_01 | Giảm bão hòa oxy | SpO2 < 94% | Hướng dẫn lâm sàng SpO2 |
-| R_MET_01 | BMI vượt ngưỡng thừa cân | BMI > 25 | WHO |
+| R_CV_01 | Tăng huyết áp | HA ≥ 140/90 mmHg | ESC/ESH 2018 [1] |
+| R_CV_02 | Nhịp tim nhanh kéo dài | nhịp tim > 100 / 7 ngày | Hướng dẫn nhịp tim ACC/AHA [5] |
+| R_CV_03 | Tăng huyết áp tâm thu đơn độc | HATT > 140 mmHg | ESC/ESH 2018 [1] |
+| R_END_01 | Tăng đường huyết lúc đói | glucose đói > 7.0 mmol/L | ADA 2023 [2] |
+| R_END_02 | HbA1c vượt ngưỡng tiểu đường | HbA1c > 6.5% | ADA 2023 [2] |
+| R_KID_01 | Creatinine tăng — nghi suy thận | creatinine > 1.3 mg/dL | KDIGO 2022 [3] |
+| R_KID_02 | eGFR giảm | eGFR < 60 | KDIGO 2022 [3] |
+| R_RES_01 | Giảm bão hòa oxy | SpO2 < 94% | WHO [6] |
+| R_MET_01 | BMI vượt ngưỡng thừa cân | BMI > 25 | WHO [4] |
 
 Mỗi luật trong file JSON đều có trường `evidence` ghi nguồn trích dẫn và
 `specialty` ghi chuyên khoa phụ trách — để bất kỳ ai cũng tra ngược được gốc
@@ -170,6 +170,52 @@ AI — khớp với định vị trong [docs/07](07_Dinh_vi_de_tai.md).
 - Ghi rõ nguồn trích dẫn từng luật để **kiểm toán được** — nếu ngưỡng sai, tìm được
   ngay gốc rễ và phiên bản.
 - Không đưa luật tự suy diễn ngoài hướng dẫn vào hệ thống sản xuất.
+
+---
+
+## 8. Tài liệu tham khảo (căn cứ xây dựng luật)
+
+### 8.1. Hướng dẫn lâm sàng (nguồn tri thức luật Tầng 2)
+
+1. Williams, B., Mancia, G., Spiering, W., et al. (2018). 2018 ESC/ESH Guidelines
+   for the management of arterial hypertension. *European Heart Journal*, 39(33),
+   3021–3104. https://doi.org/10.1093/eurheartj/ehy339
+2. American Diabetes Association Professional Practice Committee. (2023).
+   Standards of Care in Diabetes — 2023. *Diabetes Care*, 46(Suppl 1), S1–S291.
+   https://doi.org/10.2337/dc23-Sint
+3. KDIGO 2022 Clinical Practice Guideline for Diabetes Management in Chronic
+   Kidney Disease. *Kidney International*, 102(5S), S1–S127 (2022).
+   https://doi.org/10.1016/j.kint.2022.06.008
+4. World Health Organization. (2000). *Obesity: preventing and managing the global
+   epidemic* (WHO Technical Report Series 894) — ngưỡng BMI ≥ 25 (thừa cân),
+   ≥ 30 (béo phì). https://www.who.int/publications/i/item/WHO-TRS-894
+5. Writing Committee Members et al. (2023). 2023 ACC/AHA/ACCP/HRS Guideline for
+   the Diagnosis and Management of Atrial Fibrillation — và các tài liệu ACC/AHA
+   về nhịp tim trong lâm sàng (ngưỡng nhịp nhanh > 100 lần/phút kéo dài).
+6. World Health Organization. (2019). *Guideline on use of pulse oximetry for
+   monitoring of patients* — ngưỡng bão hòa oxy SpO2 < 94% cần đánh giá lâm sàng.
+   https://www.who.int/publications/i/item/9789241550482
+
+### 8.2. Bộ dữ liệu (nguồn huấn luyện/đối chứng mô hình ML)
+
+7. Centers for Disease Control and Prevention, National Center for Health
+   Statistics. (2020). *National Health and Nutrition Examination Survey
+   (NHANES) 2017–2018*. Các bảng dữ liệu: DEMO_J, BPX_J, BPQ_J, BMX_J, GHB_J,
+   GLU_J, BIOPRO_J. https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2017
+8. UCI Machine Learning Repository. *Pima Indians Diabetes Database*.
+   https://archive.ics.uci.edu/dataset/34/diabetes
+9. UCI Machine Learning Repository. *Heart Disease (Cleveland) Data Set*.
+   https://archive.ics.uci.edu/dataset/45/heart+disease
+
+### 8.3. Tiêu chuẩn tham chiếu bổ sung
+
+- JNC-8 (James et al., 2014, *JAMA* 311(5):507–520) — ngưỡng huyết áp theo nhóm tuổi.
+- ACC/AHA 2017 (Whelton et al., 2018, *Hypertension* 71(6):e13–e115) — ngưỡng 130/80
+  (phiên bản chặt hơn, đang cân nhắc cập nhật cho luật R_CV_01/R_CV_03).
+
+> Cách dùng trong báo cáo: trích theo số [n] gắn vào từng luật ở cột `evidence`
+> (ví dụ "R_CV_01 — theo [1]"), đồng thời liệt kê đầy đủ ở mục Tài liệu tham khảo
+> để hội đồng tra cứu được từng ngưỡng.
 
 ---
 
