@@ -31,7 +31,7 @@ class Config:
     risk_level_thresholds: tuple[float, float] = (0.33, 0.66)  # Low/Medium/High
     # An toàn lâm sàng: nếu có luật nghiêm trọng (severity >= ngưỡng này) kích hoạt
     # thì điểm rủi ro ít nhất được nâng lên mức TRUNG_BINH (floor).
-    critical_rule_severity: float = 0.8
+    critical_rule_severity: float = 0.7
     critical_rule_floor: float = 0.5
 
     # Mô hình

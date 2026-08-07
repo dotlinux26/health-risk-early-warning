@@ -1,0 +1,7 @@
+patient_id,timestamp,metric,value
+NHTN0001,2025-06-15,systolic_bp,202.0
+NHTN0001,2025-06-15,diastolic_bp,62.0
+NHTN0001,2025-06-15,heart_rate,52.0
+NHTN0001,2025-06-15,hba1c,6.2
+NHTN0001,2025-06-15,creatinine,0.92
+NHTN0001,2025-06-15,bmi,31.7

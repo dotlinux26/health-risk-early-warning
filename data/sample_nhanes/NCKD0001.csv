@@ -1,0 +1,8 @@
+patient_id,timestamp,metric,value
+NCKD0001,2025-06-15,systolic_bp,152.0
+NCKD0001,2025-06-15,diastolic_bp,71.0
+NCKD0001,2025-06-15,heart_rate,62.0
+NCKD0001,2025-06-15,glucose_fasting,4.6
+NCKD0001,2025-06-15,hba1c,5.0
+NCKD0001,2025-06-15,creatinine,11.46
+NCKD0001,2025-06-15,bmi,35.1

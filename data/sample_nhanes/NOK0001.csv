@@ -1,0 +1,8 @@
+patient_id,timestamp,metric,value
+NOK0001,2025-06-15,systolic_bp,119.0
+NOK0001,2025-06-15,diastolic_bp,65.0
+NOK0001,2025-06-15,heart_rate,60.0
+NOK0001,2025-06-15,glucose_fasting,5.1
+NOK0001,2025-06-15,hba1c,5.1
+NOK0001,2025-06-15,creatinine,0.81
+NOK0001,2025-06-15,bmi,24.5

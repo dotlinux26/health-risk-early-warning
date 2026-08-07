@@ -35,6 +35,20 @@
       "evidence": "Hướng dẫn nhịp tim 2023"
     },
     {
+      "rule_id": "R_CV_03",
+      "name": "Tăng huyết áp tâm thu đơn độc",
+      "system": "tim_manh",
+      "condition": {
+        "logic": "or",
+        "conditions": [
+          {"metric": "systolic_bp", "op": ">", "threshold": 140}
+        ]
+      },
+      "severity": 0.7,
+      "specialty": "Khoa Tim mạch",
+      "evidence": "ESC/ESH 2018"
+    },
+    {
       "rule_id": "R_END_01",
       "name": "Tăng đường huyết lúc đói",
       "system": "noi_tiet",
