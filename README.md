@@ -44,6 +44,28 @@ pip install -r requirements.txt
 python -m src.main --input <file.csv> --output report/
 ```
 
+## Giao diện & cách dùng ứng dụng
+
+Sau khi chạy `./run_api.sh start`, mở trình duyệt tại **http://127.0.0.1:8000/chat**.
+
+| Hộp thoại chat | Kết quả đánh giá |
+|---|---|
+| ![Giao diện chat](docs/screenshots/giao_dien_chat.png) | ![Kết quả đánh giá](docs/screenshots/ket_qua_danh_gia.png) |
+
+**Cách dùng:**
+
+1. Chọn hoặc nhập **mã bệnh nhân** ở góc trên (thanh xổ liệt kê các mã đã có dữ liệu trong `data/chat/`).
+2. Nhập nhật ký sức khỏe hàng ngày — mỗi ngày một dòng, ví dụ:
+   - `Huyết áp 135/85, nhịp tim 80`
+   - `Đường huyết lúc đói 6.9, cân nặng 77`
+   - Hoặc **đính kèm file PDF/DOCX** báo cáo khám (đọc được cả báo cáo thật xuất từ NHANES trong `data/sample_nhanes/`).
+3. Dữ liệu được tích lũy theo bệnh nhân; khi đủ 7 ngày đo, hệ thống đưa ra **báo cáo nguy cơ cá nhân hóa**.
+4. Lệnh điều khiển: `trạng thái` (tình trạng hiện tại), `báo cáo` (đánh giá đầy đủ), `xóa dữ liệu` (reset bệnh nhân).
+
+Kết quả đánh giá gồm: mức rủi ro (THAP / TRUNG_BINH / CAO), điểm tổng hợp từ 4 thành phần (thống kê, tri thức y khoa, mô hình ML NHANES, xu hướng), bảng chi tiết từng chỉ số (giá trị, đường cơ sở, thay đổi, xu hướng, phạm vi bình thường) và khuyến nghị chuyên khoa — đủ thông tin để bệnh nhân trình bác sĩ.
+
+API đầy đủ: **http://127.0.0.1:8000/docs** (Swagger).
+
 ## Huấn luyện mô hình
 
 ```bash

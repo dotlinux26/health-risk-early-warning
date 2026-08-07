@@ -209,7 +209,70 @@ python scripts/download_datasets.py
 
 # 5. Train + đánh giá LightGBM trên dữ liệu thật (kết quả -> report/train_real_results.json)
 python scripts/train_real_datasets.py
+
+# 6. Xuất file mẫu từ dữ liệu thật NHANES -> data/sample_nhanes/ (DOCX/PDF/CSV)
+python scripts/export_nhanes_samples.py
 ```
+
+---
+
+## 7. Báo cáo ứng dụng (demo)
+
+### 7.1. Giao diện
+
+| Hộp thoại chat | Kết quả đánh giá |
+|---|---|
+| ![Giao diện chat](screenshots/giao_dien_chat.png) | ![Kết quả đánh giá](screenshots/ket_qua_danh_gia.png) |
+
+Giao diện nền sáng, bo góc 2px, thanh xổ trên cùng liệt kê các mã bệnh nhân đã
+có dữ liệu trong `data/chat/` (từ API `/api/chat/patients`); vẫn nhập được mã
+mới bằng ô kế bên.
+
+### 7.2. Cách dùng
+
+1. Khởi động: `./run_api.sh start`, mở **http://127.0.0.1:8000/chat**.
+2. Chọn/nhập mã bệnh nhân, nhập nhật ký hàng ngày:
+   - `Huyết áp 135/85, nhịp tim 80`
+   - `Đường huyết lúc đói 6.9, cân nặng 77`
+   - Hoặc đính kèm file PDF/DOCX (hệ thống đọc cả file thật xuất từ NHANES:
+     `data/sample_nhanes/NHTN0001.pdf` — ca tăng huyết áp 202/62, v.v.)
+3. Tin nhắn không khớp định dạng chỉ số/lệnh sẽ KHÔNG được phản hồi (giữ giao
+   diện sạch); hệ thống không nhận diện bằng AI ngôn ngữ mà bằng mẫu regex.
+4. Lệnh: `trạng thái` · `báo cáo` · `xóa dữ liệu`.
+5. Đủ 7 ngày đo → hệ thống tự đưa báo cáo nguy cơ cá nhân hóa; báo cáo markdown
+   đầy đủ cũng xuất qua `python -m src.main --input ...`.
+
+### 7.3. Luồng xử lý một đánh giá
+
+```
+File / tin nhắn → ingest (regex PDF/DOCX) hoặc parser chat
+  → tích lũy vào data/chat/{pid}.jsonl
+  → assess_patient:
+      Tầng 1  Z-Score cá nhân + Isolation Forest + sai số dự báo (EWMA)
+      Tầng 2  Rule engine tri thức y khoa (9 luật / 5 hệ cơ quan)
+      Tầng 3  RiskScorer: stat + knowledge + ml (LightGBM NHANES) + trend
+  → báo cáo: mức rủi ro, điểm, bảng chi tiết chỉ số, khuyến nghị chuyên khoa
+```
+
+### 7.4. Kết quả thử nghiệm trên dữ liệu thật NHANES (file mẫu)
+
+| File mẫu (dữ liệu thật CDC) | Mô tả | Kết quả | ml_score |
+|---|---|---|---|
+| `NOK0001` | Khỏe mạnh, 22 tuổi, HA 118/72 | THAP | 0.04 |
+| `NHTN0001` | Tăng huyết áp tâm thu đơn độc 202/62 | TRUNG_BINH | 0.999 |
+| `NDM0001` | Đái tháo đường, HbA1c ≥ 7% | TRUNG_BINH | 1.0 |
+| `NCKD0001` | Creatinine ≥ 1.5, nghi suy thận | TRUNG_BINH | 0.999 |
+
+### 7.5. Giới hạn của ứng dụng hiện tại
+
+1. **Chat không dùng LLM** — chỉ regex + từ khóa; câu viết lệch mẫu bị bỏ qua
+   (im lặng thay vì trả lời sai).
+2. **Model ML là cắt ngang** (NHANES 1 kỳ khám) — Tầng 1 chuỗi thời gian vẫn
+   dựa thống kê + dữ liệu tổng hợp.
+3. **Nhãn phụ thuộc chỉ số** — AUC 0.94 của model NHANES cần đọc đúng ngữ cảnh
+   (mục 2.3).
+4. **Chưa có xác thực lâm sàng** — chỉ là công cụ hỗ trợ quyết định, không thay
+   thế bác sĩ; mọi kết luận cần bác sĩ xác nhận.
 
 ---
 
