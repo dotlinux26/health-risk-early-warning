@@ -68,7 +68,7 @@ Sau khi chạy `./run_api.sh start`, mở trình duyệt tại **http://127.0.0.
 3. Dữ liệu được tích lũy theo bệnh nhân; khi đủ 7 ngày đo, hệ thống đưa ra **báo cáo nguy cơ cá nhân hóa**.
 4. Lệnh điều khiển: `trạng thái` (tình trạng hiện tại), `báo cáo` (đánh giá đầy đủ), `xóa dữ liệu` (reset bệnh nhân).
 
-Kết quả đánh giá gồm: mức rủi ro (THAP / TRUNG_BINH / CAO), điểm tổng hợp từ 4 thành phần (thống kê, tri thức y khoa, mô hình ML NHANES, xu hướng), bảng chi tiết từng chỉ số (giá trị, đường cơ sở, thay đổi, xu hướng, phạm vi bình thường) và khuyến nghị chuyên khoa — đủ thông tin để bệnh nhân trình bác sĩ.
+Kết quả đánh giá được trình bày theo thứ tự: **luật lâm sàng kích hoạt** (mỗi luật kèm link tham chiếu nguồn hướng dẫn gốc), **bảng chỉ số theo dõi** (giá trị, đường cơ sở, thay đổi, xu hướng, Z-Score, phạm vi bình thường), rồi mới đến **hỗ trợ của mô hình ML** kèm ghi chú rõ đây là suy luận bổ sung, không phải chẩn đoán chính thức — kết luận cuối do bác sĩ xác nhận. Kết quả đủ thông tin để bệnh nhân trình bác sĩ.
 
 API đầy đủ: **http://127.0.0.1:8000/docs** (Swagger).
 

@@ -38,6 +38,7 @@ class RuleHit:
     specialty: str
     evidence: str
     matched_metrics: list[str] = field(default_factory=list)
+    source_url: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -49,6 +50,7 @@ class RuleHit:
             "specialty": self.specialty,
             "evidence": self.evidence,
             "matched_metrics": self.matched_metrics,
+            "source_url": self.source_url,
         }
 
 
@@ -104,6 +106,7 @@ class KnowledgeBase:
                         specialty=rule["specialty"],
                         evidence=rule["evidence"],
                         matched_metrics=metrics,
+                        source_url=rule.get("source_url", ""),
                     )
                 )
         return sorted(hits, key=lambda h: -h.severity)

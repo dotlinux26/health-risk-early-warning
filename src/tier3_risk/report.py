@@ -29,7 +29,11 @@ def _fmt_range(row: dict[str, Any]) -> str:
 
 
 def render_markdown(patient_id: str, result: RiskResult) -> str:
-    """Xuất báo cáo markdown chuẩn hóa cho một bệnh nhân."""
+    """Xuất báo cáo markdown chuẩn hóa cho một bệnh nhân.
+
+    Thứ tự trình bày cố ý đặt quyết định theo luật và chỉ số TRƯỚC, sau đó mới
+    đến hỗ trợ của mô hình ML — vì AI chỉ là nguồn bổ sung, không phải chẩn đoán.
+    """
     lines: list[str] = []
     lines.append(f"# Báo cáo đánh giá nguy cơ sức khỏe — Bệnh nhân {patient_id}")
     lines.append("")
@@ -38,6 +42,19 @@ def render_markdown(patient_id: str, result: RiskResult) -> str:
                  + (", ".join(result.affected_systems) if result.affected_systems else "Chưa xác định"))
     lines.append("")
 
+    # 1) Luật lâm sàng được kích hoạt (quyết định theo tri thức y khoa).
+    rule_ev = [e for e in result.evidence if e.get("rule_id")]
+    lines.append("## Cảnh báo theo luật lâm sàng")
+    if rule_ev:
+        for e in rule_ev:
+            url = e.get("source_url")
+            src = f" — nguồn: [{e.get('rule_id')}]({url})" if url else ""
+            lines.append(f"- **{e['rule']}**: {e['message']}{src}")
+    else:
+        lines.append("- Không có luật lâm sàng nào kích hoạt trong cửa sổ quan sát.")
+    lines.append("")
+
+    # 2) Chỉ số theo dõi (minh chứng dữ liệu thô).
     if result.metrics_detail:
         lines.append("## Chi tiết các chỉ số theo dõi")
         lines.append("")
@@ -53,7 +70,6 @@ def render_markdown(patient_id: str, result: RiskResult) -> str:
                 f"{trend} | {z} | {_fmt_range(row)} | {row['range_status']}{flag} |"
             )
         lines.append("")
-        # Ghi chú cụ thể cho từng chỉ số lệch
         notes = []
         for row in result.metrics_detail:
             if row["range_status"] not in ("CAO", "THẤP"):
@@ -81,13 +97,31 @@ def render_markdown(patient_id: str, result: RiskResult) -> str:
             lines.extend(notes)
             lines.append("")
 
+    # 3) Minh chứng thống kê cá nhân hóa (Tầng 1) còn lại.
+    stat_ev = [e for e in result.evidence if not e.get("rule_id")]
     lines.append("## Giải thích thông số (minh chứng dữ liệu)")
-    if result.evidence:
-        for e in result.evidence:
+    if stat_ev:
+        for e in stat_ev:
             lines.append(f"- {e['message']}")
     else:
         lines.append("- Không có bất thường đáng kể trong cửa sổ quan sát.")
     lines.append("")
+
+    # 4) Hỗ trợ của mô hình ML — nêu rõ đây chỉ là suy luận bổ sung.
+    lines.append("## Hỗ trợ của mô hình học máy (bổ sung)")
+    if result.components.get("ml", 0.0) > 0:
+        lines.append(
+            f"- Điểm nguy cơ mô hình ML: **{result.components['ml']:.2f}** — "
+            f"{'có xu hướng cảnh báo' if result.components['ml'] >= 0.5 else 'thấp'}."
+        )
+    else:
+        lines.append("- Mô hình ML chưa đóng góp (chưa đủ dữ liệu hoặc chưa kích hoạt).")
+    lines.append(
+        "- Đây là **suy luận bổ sung dựa trên tình trạng bệnh lý**, không phải "
+        "chẩn đoán chính thức; kết luận cuối phải do bác sĩ xác nhận."
+    )
+    lines.append("")
+
     lines.append("## Khuyến nghị chuyên khoa")
     if result.recommendations:
         for s in result.recommendations:

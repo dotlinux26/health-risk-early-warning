@@ -92,6 +92,26 @@ luận giải dựa trên luật**: AI không tự sinh kết luận, mà chỉ 
 luật và thống kê. Đầu ra cuối cùng luôn là một chuỗi lý do có thể kiểm chứng —
 đúng chuẩn của một công cụ hỗ trợ quyết định, không phải của một mô hình hộp đen.
 
+### 2.3. Cách hệ thống trình bày kết quả cho người dùng
+
+Khi đưa ra câu trả lời/cảnh báo, hệ thống trình bày theo **hai nhóm nội dung,
+theo thứ tự cố định**:
+
+1. **Quyết định theo luật và chỉ số (hiển thị trước):**
+   - Các **luật lâm sàng được kích hoạt** — mỗi luật kèm mã luật và **link tham
+     chiếu tới nguồn hướng dẫn** mà luật đó được trích ra (ESC/ESH, ADA, KDIGO,
+     WHO).
+   - Bảng **chỉ số theo dõi**: giá trị, đường cơ sở cá nhân, thay đổi, xu hướng,
+     Z-Score, phạm vi bình thường, trạng thái.
+
+2. **Hỗ trợ của AI (hiển thị sau, đúng vai trò phụ trợ):**
+   - Điểm nguy cơ từ mô hình ML kèm ghi chú: *"suy luận dựa trên tình trạng bệnh
+     lý, không phải chẩn đoán chính thức; kết luận cuối do bác sĩ xác nhận"*.
+
+Ý nghĩa của thứ tự này: người dùng đọc được trước tiên **luật và dữ liệu thô**
+(những thứ tra cứu được, kiểm chứng được, có nguồn gốc), sau đó mới thấy phần AI
+bổ sung — và phần AI luôn bị đóng khung bởi cảnh báo về bản chất phi-chẩn-đoán.
+
 ---
 
 ## 3. Phép so sánh ĐÚNG và SAI

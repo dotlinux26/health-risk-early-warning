@@ -229,6 +229,7 @@ class RiskScorer:
                     "rule": h.name,
                     "system": h.system_label,
                     "message": f"Kích hoạt luật '{h.name}' ({h.evidence}) → {h.system_label}.",
+                    "source_url": h.source_url,
                 }
             )
         for system_label, specialty in suggestions.items():

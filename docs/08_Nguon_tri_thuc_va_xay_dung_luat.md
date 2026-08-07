@@ -25,21 +25,22 @@ tế công bố. Vai trò của nhóm là: đọc, chọn lọc, chuẩn hóa th
 
 ### 1.1. Trích dẫn từng luật hiện tại
 
-| Luật | Ý nghĩa | Ngưỡng | Nguồn |
-|---|---|---|---|
-| R_CV_01 | Tăng huyết áp | HA ≥ 140/90 mmHg | ESC/ESH 2018 [1] |
-| R_CV_02 | Nhịp tim nhanh kéo dài | nhịp tim > 100 / 7 ngày | Hướng dẫn nhịp tim ACC/AHA [5] |
-| R_CV_03 | Tăng huyết áp tâm thu đơn độc | HATT > 140 mmHg | ESC/ESH 2018 [1] |
-| R_END_01 | Tăng đường huyết lúc đói | glucose đói > 7.0 mmol/L | ADA 2023 [2] |
-| R_END_02 | HbA1c vượt ngưỡng tiểu đường | HbA1c > 6.5% | ADA 2023 [2] |
-| R_KID_01 | Creatinine tăng — nghi suy thận | creatinine > 1.3 mg/dL | KDIGO 2022 [3] |
-| R_KID_02 | eGFR giảm | eGFR < 60 | KDIGO 2022 [3] |
-| R_RES_01 | Giảm bão hòa oxy | SpO2 < 94% | WHO [6] |
-| R_MET_01 | BMI vượt ngưỡng thừa cân | BMI > 25 | WHO [4] |
+| Luật | Ý nghĩa | Ngưỡng | Nguồn | Link tải bản gốc |
+|---|---|---|---|---|
+| R_CV_01 | Tăng huyết áp | HA ≥ 140/90 mmHg | ESC/ESH 2018 [1] | [Download.pdf](https://www.eshonline.org/esh-content/uploads/2018/10/Download.pdf) |
+| R_CV_02 | Nhịp tim nhanh kéo dài | nhịp tim > 100 / 7 ngày | ACC/AHA 2023 [5] | [doi:10.1161/CIR.0000000000001193](https://doi.org/10.1161/CIR.0000000000001193) |
+| R_CV_03 | Tăng huyết áp tâm thu đơn độc | HATT > 140 mmHg | ESC/ESH 2018 [1] | [Download.pdf](https://www.eshonline.org/esh-content/uploads/2018/10/Download.pdf) |
+| R_END_01 | Tăng đường huyết lúc đói | glucose đói > 7.0 mmol/L | ADA 2023 [2] | [Supplement 1](https://diabetesjournals.org/care/issue/46/Supplement_1) |
+| R_END_02 | HbA1c vượt ngưỡng tiểu đường | HbA1c > 6.5% | ADA 2023 [2] | [Supplement 1](https://diabetesjournals.org/care/issue/46/Supplement_1) |
+| R_KID_01 | Creatinine tăng — nghi suy thận | creatinine > 1.3 mg/dL | KDIGO 2022 [3] | [Guideline PDF](https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf) |
+| R_KID_02 | eGFR giảm | eGFR < 60 | KDIGO 2022 [3] | [Guideline PDF](https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf) |
+| R_RES_01 | Giảm bão hòa oxy | SpO2 < 94% | WHO SpO2 2019 [6] | [iris.who.int/10665/345392](https://iris.who.int/handle/10665/345392) |
+| R_MET_01 | BMI vượt ngưỡng thừa cân | BMI > 25 | WHO TRS 894 [4] | [iris.who.int/10665/42330](https://iris.who.int/handle/10665/42330) |
 
-Mỗi luật trong file JSON đều có trường `evidence` ghi nguồn trích dẫn và
-`specialty` ghi chuyên khoa phụ trách — để bất kỳ ai cũng tra ngược được gốc
-tri thức.
+Mỗi luật trong file JSON đều có trường `evidence` (nguồn trích dẫn), `specialty`
+(chuyên khoa phụ trách) và `source_url` (link tải bản gốc của hướng dẫn) — để bất
+kỳ ai cũng tra ngược được gốc tri thức, đồng thời **hệ thống hiển thị link này
+trực tiếp trên cảnh báo** để người dùng tự đối chiếu nguồn.
 
 ---
 
@@ -150,6 +151,21 @@ Tri thức y khoa là **lớp tham chiếu chuẩn**: nó bắt buộc mọi k�
 Đây là lý do hệ thống luôn ra quyết định **theo luật**, kể cả khi không có mô hình
 AI — khớp với định vị trong [docs/07](07_Dinh_vi_de_tai.md).
 
+### 5.1. Cách hiển thị cảnh báo cho người dùng
+
+Theo nguyên tắc "AI phụ trợ, luật quyết định", cảnh báo được trình bày theo thứ tự:
+
+1. **Luật lâm sàng kích hoạt** — mỗi luật kèm mã luật và **link tham chiếu nguồn**
+   (trường `source_url`) để người dùng mở ra tự đối chiếu hướng dẫn gốc.
+2. **Bảng chỉ số theo dõi** — giá trị, đường cơ sở, thay đổi, xu hướng, Z-Score,
+   phạm vi bình thường, trạng thái.
+3. **Hỗ trợ mô hình ML** — điểm nguy cơ kèm ghi chú rõ: đây là *suy luận bổ sung,
+   không phải chẩn đoán chính thức; kết luận cuối do bác sĩ xác nhận*.
+
+Thứ tự này đảm bảo người dùng đọc phần **kiểm chứng được, có nguồn gốc** trước,
+phần AI bổ sung sau — và phần AI luôn bị đóng khung bởi cảnh báo về bản chất
+phi-chẩn-đoán.
+
 ---
 
 ## 6. Lộ trình nâng cao chất lượng luật
@@ -175,26 +191,48 @@ AI — khớp với định vị trong [docs/07](07_Dinh_vi_de_tai.md).
 
 ## 8. Tài liệu tham khảo (căn cứ xây dựng luật)
 
+### 8.0. Bản gốc đã tải về repo
+
+Các file gốc (PDF chính thống) đã được tải về thư mục `data/guidelines/` để lưu
+trữ và đối chiếu trực tiếp khi cần:
+
+| File | Bản gốc của | Kích thước |
+|---|---|---|
+| `data/guidelines/ESC_ESH_2018_arterial_hypertension.pdf` | ESC/ESH 2018 — Tăng huyết áp | 3.6 MB |
+| `data/guidelines/ADA_2023_Abridged.pdf` | ADA 2023 — Standards of Care (bản tóm tắt chính thức) | 2.3 MB |
+| `data/guidelines/KDIGO_2022_Diabetes_in_CKD.pdf` | KDIGO 2022 — Đái tháo đường & CKD | 8.2 MB |
+| `data/guidelines/WHO_TRS_894_Obesity.pdf` | WHO TRS 894 — Béo phì (BMI) | 9.9 MB |
+| `data/guidelines/WHO_Pulse_Oximetry_Guideline.pdf` | WHO — Sử dụng SpO2 trong giám sát | 0.8 MB |
+
+> Ghi chú bản quyền: ADA cho phép tải miễn phí bản **Abridged** để phổ biến y khoa;
+> KDIGO phát hành open-access (CC BY-NC-ND); WHO TRS 894 và WHO pulse oximetry là
+> tài liệu công của WHO. Bản full ADA 2023 yêu cầu đăng nhập `professional.diabetes.org`
+> nên repo lưu bản Abridged chính thức (28 trang, đủ các ngưỡng chẩn đoán dùng trong luật).
+
 ### 8.1. Hướng dẫn lâm sàng (nguồn tri thức luật Tầng 2)
 
 1. Williams, B., Mancia, G., Spiering, W., et al. (2018). 2018 ESC/ESH Guidelines
    for the management of arterial hypertension. *European Heart Journal*, 39(33),
-   3021–3104. https://doi.org/10.1093/eurheartj/ehy339
+   3021–3104. https://doi.org/10.1093/eurheartj/ehy339 — bản PDF chính thống:
+   https://www.eshonline.org/esh-content/uploads/2018/10/Download.pdf
 2. American Diabetes Association Professional Practice Committee. (2023).
    Standards of Care in Diabetes — 2023. *Diabetes Care*, 46(Suppl 1), S1–S291.
-   https://doi.org/10.2337/dc23-Sint
+   https://doi.org/10.2337/dc23-Sint — bản Abridged chính thức (đã lưu repo):
+   https://diabetesjournals.org/clinical/article/41/1/4/148029/Standards-of-Care-in-Diabetes-2023-Abridged-for
 3. KDIGO 2022 Clinical Practice Guideline for Diabetes Management in Chronic
    Kidney Disease. *Kidney International*, 102(5S), S1–S127 (2022).
-   https://doi.org/10.1016/j.kint.2022.06.008
+   https://doi.org/10.1016/j.kint.2022.06.008 — bản PDF chính thống (đã lưu repo):
+   https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf
 4. World Health Organization. (2000). *Obesity: preventing and managing the global
    epidemic* (WHO Technical Report Series 894) — ngưỡng BMI ≥ 25 (thừa cân),
-   ≥ 30 (béo phì). https://www.who.int/publications/i/item/WHO-TRS-894
+   ≥ 30 (béo phì). Bản PDF chính thống (đã lưu repo):
+   https://iris.who.int/handle/10665/42330
 5. Writing Committee Members et al. (2023). 2023 ACC/AHA/ACCP/HRS Guideline for
    the Diagnosis and Management of Atrial Fibrillation — và các tài liệu ACC/AHA
    về nhịp tim trong lâm sàng (ngưỡng nhịp nhanh > 100 lần/phút kéo dài).
 6. World Health Organization. (2019). *Guideline on use of pulse oximetry for
    monitoring of patients* — ngưỡng bão hòa oxy SpO2 < 94% cần đánh giá lâm sàng.
-   https://www.who.int/publications/i/item/9789241550482
+   Bản PDF chính thống (đã lưu repo): https://iris.who.int/handle/10665/345392
 
 ### 8.2. Bộ dữ liệu (nguồn huấn luyện/đối chứng mô hình ML)
 

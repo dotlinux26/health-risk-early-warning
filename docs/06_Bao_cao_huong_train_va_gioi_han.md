@@ -257,7 +257,10 @@ File / tin nhắn → ingest (regex PDF/DOCX) hoặc parser chat
       Tầng 1  Z-Score cá nhân + Isolation Forest + sai số dự báo (EWMA)
       Tầng 2  Rule engine tri thức y khoa (9 luật / 5 hệ cơ quan)
       Tầng 3  RiskScorer: stat + knowledge + ml (LightGBM NHANES) + trend
-  → báo cáo: mức rủi ro, điểm, bảng chi tiết chỉ số, khuyến nghị chuyên khoa
+  → báo cáo trình bày theo thứ tự:
+      1) Luật lâm sàng kích hoạt — kèm link tham chiếu nguồn (source_url)
+      2) Bảng chỉ số theo dõi (giá trị, đường cơ sở, xu hướng, Z-Score, phạm vi)
+      3) Hỗ trợ mô hình ML — kèm ghi chú "suy luận bổ sung, không phải chẩn đoán"
 ```
 
 ### 7.4. Kết quả thử nghiệm trên dữ liệu thật NHANES (file mẫu)

@@ -188,10 +188,17 @@ class ChatAgent:
         lines = [head, f"- Mức rủi ro: **{result['risk_level']}** (điểm {result['risk_score']:.3f})"]
         lines.append(f"- Hệ cơ quan có khả năng ảnh hưởng: "
                      f"{', '.join(result['affected_systems']) if result['affected_systems'] else 'chưa xác định'}")
-        if result.get("ml_score") is not None:
-            lines.append(f"- Điểm dự đoán mô hình ML: **{result['ml_score']:.2f}** "
-                         f"({'cảnh báo' if result['ml_score'] >= 0.5 else 'thấp'})")
 
+        # 1) Luật lâm sàng được kích hoạt — quyết định theo tri thức y khoa.
+        rule_ev = [e for e in result.get("evidence", []) if e.get("rule_id")]
+        if rule_ev:
+            lines.append("\n*Cảnh báo theo luật lâm sàng:*")
+            for e in rule_ev[:5]:
+                url = e.get("source_url")
+                src = f" (nguồn: {e.get('rule_id')} — {url})" if url else ""
+                lines.append(f"  • {e['message']}{src}")
+
+        # 2) Chỉ số theo dõi.
         detail = [r for r in result.get("metrics_detail", [])
                   if r["range_status"] in ("CAO", "THẤP") or r["flagged"]]
         if detail:
@@ -207,9 +214,20 @@ class ChatAgent:
                     seg += f" — {r['delta']:+.1f}{unit} so với đường cơ sở {r['baseline_mean']:.1f}, xu hướng {r['trend_name']}"
                 lines.append(f"  • {seg}")
 
-        lines.append("\n*Minh chứng:*")
-        for e in result["evidence"][:6]:
-            lines.append(f"  • {e['message']}")
+        # 3) Minh chứng thống kê còn lại.
+        stat_ev = [e for e in result.get("evidence", []) if not e.get("rule_id")]
+        if stat_ev:
+            lines.append("\n*Minh chứng dữ liệu:*")
+            for e in stat_ev[:4]:
+                lines.append(f"  • {e['message']}")
+
+        # 4) Hỗ trợ mô hình ML — nêu rõ chỉ là suy luận bổ sung.
+        ml = result.get("components", {}).get("ml", 0.0) if isinstance(result.get("components"), dict) else None
+        if ml:
+            lines.append(f"\n*Hỗ trợ mô hình ML (bổ sung):* điểm {ml:.2f} — "
+                         f"{'có xu hướng cảnh báo' if ml >= 0.5 else 'thấp'}")
+            lines.append("  _Suy luận dựa trên tình trạng bệnh lý, không phải chẩn đoán chính thức; "
+                         "kết luận cuối do bác sĩ xác nhận._")
         if not ready:
             lines.append("\n_Đánh giá theo tri thức y khoa; chưa đủ lịch sử để cá nhân hóa._")
         return "\n".join(lines)

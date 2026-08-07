@@ -2,7 +2,7 @@
   "meta": {
     "version": "0.1.0",
     "description": "Cơ sở tri thức y khoa dạng luật (trích từ hướng dẫn lâm sàng). Chỉ dùng cho HỖ TRỢ QUYẾT ĐỊNH.",
-    "sources": ["ESC/ESH 2018", "ADA 2023", "KDIGO 2022", "WHO"]
+    "sources": ["ESC/ESH 2018", "ADA 2023", "KDIGO 2022", "WHO TRS 894", "WHO SpO2 2019", "ACC/AHA 2023"]
   },
   "rules": [
     {
@@ -18,7 +18,8 @@
       },
       "severity": 0.8,
       "specialty": "Khoa Tim mạch",
-      "evidence": "ESC/ESH 2018"
+      "evidence": "ESC/ESH 2018",
+      "source_url": "https://www.eshonline.org/esh-content/uploads/2018/10/Download.pdf"
     },
     {
       "rule_id": "R_CV_02",
@@ -32,7 +33,8 @@
       },
       "severity": 0.6,
       "specialty": "Khoa Tim mạch",
-      "evidence": "Hướng dẫn nhịp tim 2023"
+      "evidence": "Hướng dẫn nhịp tim 2023",
+      "source_url": "https://doi.org/10.1161/CIR.0000000000001193"
     },
     {
       "rule_id": "R_CV_03",
@@ -46,7 +48,8 @@
       },
       "severity": 0.7,
       "specialty": "Khoa Tim mạch",
-      "evidence": "ESC/ESH 2018"
+      "evidence": "ESC/ESH 2018",
+      "source_url": "https://www.eshonline.org/esh-content/uploads/2018/10/Download.pdf"
     },
     {
       "rule_id": "R_END_01",
@@ -61,7 +64,8 @@
       },
       "severity": 0.7,
       "specialty": "Khoa Nội tiết",
-      "evidence": "ADA 2023"
+      "evidence": "ADA 2023",
+      "source_url": "https://diabetesjournals.org/care/issue/46/Supplement_1"
     },
     {
       "rule_id": "R_END_02",
@@ -75,7 +79,8 @@
       },
       "severity": 0.8,
       "specialty": "Khoa Nội tiết",
-      "evidence": "ADA 2023"
+      "evidence": "ADA 2023",
+      "source_url": "https://diabetesjournals.org/care/issue/46/Supplement_1"
     },
     {
       "rule_id": "R_KID_01",
@@ -89,7 +94,8 @@
       },
       "severity": 0.7,
       "specialty": "Khoa Thận",
-      "evidence": "KDIGO 2022"
+      "evidence": "KDIGO 2022",
+      "source_url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf"
     },
     {
       "rule_id": "R_KID_02",
@@ -103,7 +109,8 @@
       },
       "severity": 0.8,
       "specialty": "Khoa Thận",
-      "evidence": "KDIGO 2022"
+      "evidence": "KDIGO 2022",
+      "source_url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf"
     },
     {
       "rule_id": "R_RES_01",
@@ -117,7 +124,8 @@
       },
       "severity": 0.9,
       "specialty": "Khoa Hô hấp",
-      "evidence": "Hướng dẫn SpO2 lâm sàng"
+      "evidence": "WHO — Hướng dẫn sử dụng SpO2",
+      "source_url": "https://iris.who.int/handle/10665/345392"
     },
     {
       "rule_id": "R_MET_01",
@@ -131,7 +139,8 @@
       },
       "severity": 0.5,
       "specialty": "Khoa Nội tiết",
-      "evidence": "WHO"
+      "evidence": "WHO TRS 894",
+      "source_url": "https://iris.who.int/handle/10665/42330"
     }
   ],
   "system_labels": {
