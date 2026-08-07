@@ -16,10 +16,13 @@ trọng số `ml` trong điểm rủi ro luôn bằng 0, mọi cảnh báo đề
    có bệnh lý ẩn, đặc trưng 60 ngày đầu dự đoán sự kiện trong 30 ngày tiếp theo.
 2. **Huấn luyện LightGBM thật** (`src/models/train.py`) — model đã được train và
    đưa vào điểm rủi ro (`ml_score`) trong `assess_patient`.
-3. **Tải dataset chính thống** (`scripts/download_datasets.py`) — Pima Diabetes
+3. **Dữ liệu thật NHANES (CDC)** (`scripts/build_nhanes_dataset.py`) — dựng
+   dataset thật 4949 người, train lại LightGBM (`scripts/train_nhanes.py`) và
+   **thay thế bản synthetic thành model sản xuất** (`data/models/risk_lgbm_real.joblib`).
+4. **Tải dataset chính thống** (`scripts/download_datasets.py`) — Pima Diabetes
    và Cleveland Heart Disease từ kho UCI, và đánh giá mô hình trên đó
    (`scripts/train_real_datasets.py`).
-4. **Phát hiện bất thường theo sai số dự báo** (`src/tier1_anomaly/forecast.py`)
+5. **Phát hiện bất thường theo sai số dự báo** (`src/tier1_anomaly/forecast.py`)
    — so giá trị thực với dự báo một bước (EWMA offline, sẵn sàng nâng cấp
    Chronos/TimesFM), phần bổ sung của hướng time-series foundation model.
 
@@ -58,6 +61,31 @@ bmi, age — khớp với y văn.
 Nhận xét: mức AUC này là **thực tế** (0.81–0.89), ngang bằng với kết quả các
 nghiên cứu công bố trên cùng bộ dữ liệu. Điều này xác nhận pipeline huấn luyện
 (đặc trưng hóa → LightGBM → đánh giá CV) hoạt động đúng trên dữ liệu thật.
+
+### 2.3. Trên dữ liệu NHANES (CDC) — model sản xuất hiện tại
+
+Từ giai đoạn này, **model đang chạy trong hệ thống được train trên dữ liệu thật**
+NHANES 2017-2018 (CDC/NCHS, khảo sát lâm sàng toàn dân Mỹ, 4949 người trưởng
+thành, 50.6% có tăng huyết áp hoặc đái tháo đường).
+
+Đặc trưng dùng TRÙNG schema hệ thống: systolic_bp, diastolic_bp, heart_rate,
+glucose_fasting, hba1c, creatinine, bmi. Nhãn: tăng huyết áp (HA ≥ 140/90 hoặc
+đang dùng thuốc) HOẶC đái tháo đường (HbA1c ≥ 6.5% hoặc đường huyết lúc đói ≥
+7.0 mmol/L).
+
+| Tham số | Giá trị |
+|---|---|
+| N | 4949 (dương tính 2503) |
+| AUC (5-fold CV) | **0.9436 ± 0.0041** |
+| AUPRC (5-fold CV) | **0.9580 ± 0.0032** |
+| Đặc trưng quan trọng nhất | hba1c, diastolic_bp, systolic_bp, creatinine |
+| Model sản xuất | `data/models/risk_lgbm_real.joblib` |
+
+> Cảnh báo khoa học: nhãn "tăng huyết áp" được định nghĩa một phần bằng chính
+> huyết áp đo được (cùng dấu hiệu dùng làm đặc trưng), nên AUC cao (0.94) là
+> kỳ vọng và KHÔNG phải là độ chính xác chẩn đoán trên lâm sàng. Điểm cốt lõi
+> của bước này: hệ thống giờ dùng model học từ dữ liệu thực của CDC thay vì
+> dữ liệu tổng hợp.
 
 ---
 
@@ -149,23 +177,37 @@ ghép 2–4 kỳ khám theo người tham gia, nhãn = xuất hiện bệnh ở 
 
 | Giai đoạn | Việc cần làm | Đầu ra mong đợi |
 |---|---|---|
-| G1 (1–2 tuần) | Xây dataset longitudinal từ NHANES (huyết áp, đường huyết, creatinine, eGFR theo kỳ khám) | `data/datasets/nhanes_*` + bộ tiền xử lý chuẩn |
-| G2 | Huấn luyện LightGBM trên NHANES với `GroupKFold` + temporal split, calibration, ngưỡng tối ưu | Báo cáo AUC/AUPRC/calibration trên test thật |
-| G3 | Tích hợp Chronos/TimesFM vào Tầng 1, benchmark lỗi dự báo vs Z-Score | Báo cáo so sánh 2 phương pháp |
-| G4 | Tối ưu trọng số tổng hợp bằng dữ liệu; phiên bản hoá + TRIPOD-AI | Báo cáo mô hình chuẩn hoá, tái lập được |
+| G1 ✅ | Xây dataset longitudinal từ NHANES (huyết áp, đường huyết, creatinine, eGFR theo kỳ khám) | `data/datasets/nhanes_2017_2018.csv` — đã xong |
+| G2 ✅ | Huấn luyện LightGBM trên NHANES với 5-fold CV, median-fill khi thiếu chỉ số | `data/models/risk_lgbm_real.joblib` — đã xong, đang là model sản xuất |
+| G3 | Ghép nhiều kỳ NHANES (1999–2020) thành chuỗi thời gian theo từng người; thêm eGFR (CKD-EPI) và tuổi/giới | Dataset longitudinal + model cảnh báo sớm thực sự |
+| G4 | Tích hợp Chronos/TimesFM vào Tầng 1, benchmark lỗi dự báo vs Z-Score | Báo cáo so sánh 2 phương pháp |
+| G5 | Tối ưu trọng số tổng hợp bằng dữ liệu; calibration; báo cáo TRIPOD-AI | Mô hình chuẩn hoá, tái lập được |
+
+Ghi chú NHANES: bản chất NHANES là khảo sát cắt ngang — mỗi người thường chỉ
+được khám một kỳ. Để có chuỗi thời gian thật cần (a) ghép các kỳ 1999–2020,
+hoặc (b) dùng nguồn dọc có đăng ký như MIMIC/OhioT1DM/UK Biobank. Hiện tại
+`risk_lgbm_real` là model cắt ngang đánh giá rủi ro từ ảnh chụp chỉ số gần nhất —
+chạy được và dùng dữ liệu thật, nhưng chưa khai thác hết khía cạnh chuỗi thời
+gian của Tầng 1.
 
 ---
 
 ## 6. Cách chạy lại các script
 
 ```bash
-# 1. Train LightGBM trên dữ liệu tổng hợp có nhãn (model -> data/models/risk_lgbm.joblib)
+# 1. Dựng dataset thật NHANES 2017-2018 (CDC) -> data/datasets/nhanes_2017_2018.csv
+python scripts/build_nhanes_dataset.py
+
+# 2. Train LightGBM trên NHANES -> data/models/risk_lgbm_real.joblib (model sản xuất)
+python scripts/train_nhanes.py
+
+# 3. Train LightGBM trên dữ liệu tổng hợp có nhãn (tham khảo)
 python -m src.models.train --n-per-condition 120 --seed 42
 
-# 2. Tải dataset chính thống (UCI) về data/datasets/
+# 4. Tải dataset chính thống (UCI) về data/datasets/
 python scripts/download_datasets.py
 
-# 3. Train + đánh giá LightGBM trên dữ liệu thật (kết quả -> report/train_real_results.json)
+# 5. Train + đánh giá LightGBM trên dữ liệu thật (kết quả -> report/train_real_results.json)
 python scripts/train_real_datasets.py
 ```
 

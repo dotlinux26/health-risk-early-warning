@@ -26,10 +26,10 @@ Tầng 2  Ánh xạ tri thức y khoa (rule engine trên JSON)
 Tầng 3  Tổng hợp rủi ro & hỗ trợ quyết định (LightGBM + SHAP + báo cáo chi tiết từng chỉ số)
 ```
 
-Mô hình ML hiện tại: LightGBM được huấn luyện trên dữ liệu tổng hợp có nhãn
-(`data/models/risk_lgbm.joblib`, AUC 0.9874) và được đối chứng trên dữ liệu thật
-Pima Diabetes (AUC 0.8116) và Cleveland Heart Disease (AUC 0.8906). Chi tiết
-kết quả, giới hạn và lộ trình: [docs/06](docs/06_Bao_cao_huong_train_va_gioi_han.md).
+Mô hình ML hiện tại: LightGBM được huấn luyện trên **dữ liệu thật NHANES 2017-2018
+(CDC)** — 4949 người, nhãn tăng huyết áp/đái tháo đường (AUC 5-fold 0.9436) — và
+được đối chứng trên Pima Diabetes (AUC 0.8116) và Cleveland Heart Disease (AUC
+0.8906). Chi tiết kết quả, giới hạn và lộ trình: [docs/06](docs/06_Bao_cao_huong_train_va_gioi_han.md).
 
 ## Cài đặt
 
@@ -47,9 +47,10 @@ python -m src.main --input <file.csv> --output report/
 ## Huấn luyện mô hình
 
 ```bash
-python -m src.models.train --n-per-condition 120 --seed 42   # train trên dữ liệu tổng hợp
-python scripts/download_datasets.py                           # tải dataset chính thống (UCI)
-python scripts/train_real_datasets.py                         # đánh giá trên dữ liệu thật
+python scripts/build_nhanes_dataset.py   # dựng dataset thật NHANES (CDC)
+python scripts/train_nhanes.py           # train model sản xuất trên NHANES
+python scripts/download_datasets.py      # tải dataset chính thống (UCI)
+python scripts/train_real_datasets.py    # đánh giá trên dữ liệu thật UCI
 ```
 
 ## Schema dữ liệu đầu vào

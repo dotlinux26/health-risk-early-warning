@@ -1,0 +1,28 @@
+{
+  "feature_names": [
+    "systolic_bp",
+    "diastolic_bp",
+    "heart_rate",
+    "glucose_fasting",
+    "hba1c",
+    "creatinine",
+    "bmi"
+  ],
+  "feature_medians": {
+    "systolic_bp": 124.0,
+    "diastolic_bp": 72.66666666666667,
+    "heart_rate": 70.0,
+    "glucose_fasting": 5.772646536412079,
+    "hba1c": 5.6,
+    "creatinine": 0.85,
+    "bmi": 28.7
+  },
+  "label": "tăng huyết áp HOẶC đái tháo đường (NHANES 2017-2018)",
+  "n": 4949,
+  "positive": 2503,
+  "auc_cv": 0.9435923496773407,
+  "auc_cv_std": 0.004132505874478565,
+  "auprc_cv": 0.957999586079319,
+  "data_source": "NHANES 2017-2018 (CDC/NCHS)",
+  "trained_at": "2026-08-07T16:58:40.132221"
+}

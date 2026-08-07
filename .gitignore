@@ -8,6 +8,7 @@ venv/
 # Dữ liệu runtime (sinh khi chạy)
 data/chat/
 data/uploads/
+data/datasets/_nhanes_cache/
 report/
 api.log
 *.log

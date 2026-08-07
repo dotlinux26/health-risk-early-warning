@@ -28,6 +28,7 @@ class RiskModel:
         self.config = config
         self.name = name or config.model_name
         self.feature_names: list[str] | None = None
+        self.feature_medians: dict[str, float] | None = None
         if not _HAS_LGBM:
             raise RuntimeError("Chưa cài lightgbm. Chạy: pip install lightgbm")
         self.model = LGBMClassifier(
@@ -47,9 +48,19 @@ class RiskModel:
         self.model.fit(X, y)
 
     def predict_proba_score(self, X: pd.DataFrame) -> np.ndarray:
-        """Trả xác suất (điểm) rủi ro trong [0, 1]."""
+        """Trả xác suất (điểm) rủi ro trong [0, 1].
+
+        Cột thiếu được điền median theo tập huấn luyện (feature_medians) thay vì
+        0 — tránh làm giá trị lâm sàng bị coi là "bất thường cực thấp".
+        """
         if self.feature_names:
-            X = X.reindex(columns=self.feature_names).fillna(0.0)
+            X = X.reindex(columns=self.feature_names)
+            for col in self.feature_names:
+                X[col] = pd.to_numeric(X[col], errors="coerce")
+            if self.feature_medians:
+                X = X.fillna(self.feature_medians)
+            else:
+                X = X.fillna(0.0)
         return self.model.predict_proba(X)[:, 1]
 
     def predict_features(self, features: pd.DataFrame) -> float:
@@ -82,5 +93,7 @@ class RiskModel:
         if meta_path.exists():
             import json
 
-            obj.feature_names = json.loads(meta_path.read_text(encoding="utf-8")).get("feature_names")
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            obj.feature_names = meta.get("feature_names")
+            obj.feature_medians = meta.get("feature_medians")
         return obj
