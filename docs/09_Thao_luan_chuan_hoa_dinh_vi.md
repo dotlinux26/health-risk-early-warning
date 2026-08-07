@@ -1,9 +1,5 @@
 # 09. Thảo luận & chuẩn hóa định vị đề tài (ghi chép nội bộ)
 
-> Ghi chép cuộc thảo luận nhóm để **chuẩn hóa cách nói chung cho cả đội**
-> (Cảnh, Khánh, An) trước hội đồng. Chỉ giữ phần cốt lõi. Khi trình bày,
-> hãy dùng đúng thuật ngữ dưới đây — tránh bị hội đồng bắt bẻ.
-
 ---
 
 ## 1. Đề tài là gì — khẳng định dứt khoát
