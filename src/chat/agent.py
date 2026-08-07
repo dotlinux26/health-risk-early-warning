@@ -16,8 +16,10 @@ from src.tier3_risk.scoring import RiskScorer
 
 COMMANDS = {
     "trạng thái": "status",
-    "status": "status",
     "trang thai": "status",
+    "tình trạng": "status",
+    "tinh trang": "status",
+    "status": "status",
     "báo cáo": "report",
     "bao cao": "report",
     "report": "report",
@@ -84,21 +86,23 @@ class ChatAgent:
         if action == "status":
             st = self.store.status(pid, self.config.min_points)
             lines = [self._fmt_status(st)]
+            quick = self._quick_snapshot(pid)
+            if quick["risk_level"] != "KHONG_PHAT_HIEN":
+                lines.append(f"Đánh giá sơ bộ hiện tại: **{quick['risk_level']}** — {quick['summary']}")
             if st["ready"]:
                 lines.append("Gửi lệnh \"báo cáo\" để thực hiện đánh giá.")
             return {"reply": "\n".join(lines), "ready": st["ready"], "collected": st}
 
         if action == "report":
+            st = self.store.status(pid, self.config.min_points)
             df = self.store.load(pid)
             if df.empty:
                 return {"reply": "Chưa có dữ liệu. Gửi nhật ký sức khỏe hàng ngày để tích lũy.",
-                        "ready": False, "collected": self.store.status(pid, self.config.min_points)}
+                        "ready": False, "collected": st}
             result = self._assess_df(df)
-            result["reply"] = self._fmt_assessment(pid, result["risk_level"],
-                                                   result["risk_score"],
-                                                   result["affected_systems"],
-                                                   result["evidence"],
-                                                   ready=False, forced=True)
+            result["reply"] = self._fmt_assessment(pid, result, ready=st["ready"], forced=True)
+            result["ready"] = st["ready"]
+            result["collected"] = st
             return result
 
         if action == "reset":
@@ -122,10 +126,7 @@ class ChatAgent:
         if status["ready"]:
             df = self.store.load(pid)
             result = self._assess_df(df)
-            lines.append(self._fmt_assessment(pid, result["risk_level"],
-                                              result["risk_score"],
-                                              result["affected_systems"],
-                                              result["evidence"], ready=True))
+            lines.append(self._fmt_assessment(pid, result, ready=True))
             result["reply"] = "\n".join(lines)
             result["ready"] = True
             return result
@@ -182,28 +183,42 @@ class ChatAgent:
             f"Ưu tiên theo dõi: {hints}."
         )
 
-    def _fmt_assessment(self, pid, level, score, systems, evidence, ready, forced=False) -> str:
+    def _fmt_assessment(self, pid: str, result: dict, ready: bool, forced: bool = False) -> str:
         head = f"**BÁO CÁO ĐẦY ĐỦ** ({pid})" if ready else f"**BÁO CÁO SƠ BỘ** ({pid})"
-        lines = [head, f"- Mức rủi ro: **{level}** (điểm {score:.3f})"]
-        lines.append(f"- Hệ cơ quan có khả năng ảnh hưởng: {', '.join(systems) if systems else 'chưa xác định'}")
+        lines = [head, f"- Mức rủi ro: **{result['risk_level']}** (điểm {result['risk_score']:.3f})"]
+        lines.append(f"- Hệ cơ quan có khả năng ảnh hưởng: "
+                     f"{', '.join(result['affected_systems']) if result['affected_systems'] else 'chưa xác định'}")
+        if result.get("ml_score") is not None:
+            lines.append(f"- Điểm dự đoán mô hình ML: **{result['ml_score']:.2f}** "
+                         f"({'cảnh báo' if result['ml_score'] >= 0.5 else 'thấp'})")
+
+        detail = [r for r in result.get("metrics_detail", [])
+                  if r["range_status"] in ("CAO", "THẤP") or r["flagged"]]
+        if detail:
+            lines.append("\n*Chỉ số theo dõi:*")
+            for r in detail:
+                unit = f" {r['unit']}" if r["unit"] else ""
+                seg = f"{r['name']}: **{r['current']:.1f}{unit}** ({r['range_status']}"
+                if r["deviation"] is not None:
+                    seg += f", vượt {r['deviation']:.1f}{unit})"
+                else:
+                    seg += ")"
+                if r["baseline_mean"] is not None and r["delta"] is not None:
+                    seg += f" — {r['delta']:+.1f}{unit} so với đường cơ sở {r['baseline_mean']:.1f}, xu hướng {r['trend_name']}"
+                lines.append(f"  • {seg}")
+
         lines.append("\n*Minh chứng:*")
-        for e in evidence[:6]:
+        for e in result["evidence"][:6]:
             lines.append(f"  • {e['message']}")
         if not ready:
             lines.append("\n_Đánh giá theo tri thức y khoa; chưa đủ lịch sử để cá nhân hóa._")
         return "\n".join(lines)
 
     def _guide(self, pid: str) -> dict:
-        st = self.store.status(pid, self.config.min_points)
+        """Không khớp lệnh cũng không khớp chỉ số nào -> KHÔNG phản hồi gì."""
         return {
-            "reply": (
-                "Không phát hiện chỉ số nào trong tin nhắn.\n"
-                "Định dạng nhật ký sức khỏe (mỗi ngày một dòng), ví dụ:\n"
-                "• \"Huyết áp 135/85, nhịp tim 80\"\n"
-                "• \"Đường huyết lúc đói 6.9, cân nặng 77\"\n"
-                "• Hoặc đính kèm file PDF/DOCX báo cáo khám.\n\n"
-                "Lệnh: \"trạng thái\", \"báo cáo\", \"xóa dữ liệu\"."
-            ),
-            "ready": st["ready"],
-            "collected": st,
+            "reply": "",
+            "silent": True,
+            "ready": False,
+            "collected": self.store.status(pid, self.config.min_points),
         }

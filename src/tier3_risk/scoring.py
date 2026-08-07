@@ -1,12 +1,60 @@
 """Tổng hợp điểm rủi ro từ 3 nguồn (thống kê, tri thức, ML, xu hướng)."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from src.config import Config
 from src.tier1_anomaly import AnomalyRecord
 from src.tier2_knowledge.rules import KnowledgeBase, RuleHit
+
+# Phạm vi tham chiếu lâm sàng (giá trị NORMAL) để trình bày báo cáo chi tiết.
+# Nguồn: hướng dẫn ESC/ESH 2018, ADA 2023, KDIGO 2022, WHO.
+REFERENCE_RANGES: dict[str, tuple[float, float]] = {
+    "systolic_bp": (90, 140),
+    "diastolic_bp": (60, 90),
+    "heart_rate": (60, 100),
+    "glucose": (3.9, 7.0),
+    "glucose_fasting": (4.4, 6.1),
+    "hba1c": (4.0, 6.5),
+    "creatinine": (0.6, 1.3),
+    "egfr": (60, 150),
+    "spo2": (95, 100),
+    "bmi": (18.5, 25),
+}
+
+METRIC_NAMES: dict[str, str] = {
+    "systolic_bp": "Huyết áp tâm thu",
+    "diastolic_bp": "Huyết áp tâm trương",
+    "heart_rate": "Nhịp tim",
+    "glucose": "Đường huyết (ngẫu nhiên)",
+    "glucose_fasting": "Đường huyết lúc đói",
+    "hba1c": "HbA1c",
+    "creatinine": "Creatinine",
+    "egfr": "eGFR",
+    "spo2": "SpO2",
+    "bmi": "BMI",
+}
+
+METRIC_UNITS: dict[str, str] = {
+    "systolic_bp": "mmHg",
+    "diastolic_bp": "mmHg",
+    "heart_rate": "lần/phút",
+    "glucose": "mmol/L",
+    "glucose_fasting": "mmol/L",
+    "hba1c": "%",
+    "creatinine": "mg/dL",
+    "egfr": "ml/phút/1.73m²",
+    "spo2": "%",
+    "bmi": "kg/m²",
+}
+
+TREND_NAMES: dict[str, str] = {
+    "rising": "đang tăng",
+    "falling": "đang giảm",
+    "stable": "ổn định",
+    "unknown": "chưa rõ",
+}
 
 
 @dataclass
@@ -19,6 +67,7 @@ class RiskResult:
     evidence: list[dict[str, Any]]
     recommendations: list[str]
     components: dict[str, float]
+    metrics_detail: list[dict[str, Any]] = field(default_factory=list)
     disclaimer: str = (
         "Hệ thống chỉ HỖ TRỢ QUYẾT ĐỊNH, không thay thế chẩn đoán của bác sĩ."
     )
@@ -31,6 +80,7 @@ class RiskResult:
             "evidence": self.evidence,
             "recommendations": self.recommendations,
             "components": self.components,
+            "metrics_detail": self.metrics_detail,
             "disclaimer": self.disclaimer,
         }
 
@@ -64,6 +114,65 @@ class RiskScorer:
             return 0.0
         rising = sum(1 for r in records if r.trend == "rising" and r.flagged)
         return min(1.0, rising / max(1, len(records)) * 2)
+
+    def _range_status(self, value: float, range_: tuple[float, float] | None) -> str:
+        if range_ is None:
+            return "CHƯA XÁC ĐỊNH"
+        lo, hi = range_
+        if value < lo:
+            return "THẤP"
+        if value > hi:
+            return "CAO"
+        return "TRONG GIỚI HẠN"
+
+    def _build_metric_detail(
+        self,
+        records: list[AnomalyRecord],
+        snapshot: dict[str, float],
+    ) -> list[dict[str, Any]]:
+        """Bảng chi tiết từng chỉ số để báo cáo cho bác sĩ.
+
+        Mỗi dòng: giá trị hiện tại, đường cơ sở cá nhân, mức thay đổi (tuyệt
+        đối + %), xu hướng, Z-score, phạm vi bình thường và trạng thái.
+        """
+        by_metric = {r.metric: r for r in records}
+        rows: list[dict[str, Any]] = []
+        for metric, value in snapshot.items():
+            rec = by_metric.get(metric)
+            baseline = round(rec.baseline_mean, 2) if rec else None
+            delta = round(value - baseline, 2) if baseline is not None else None
+            pct = (
+                round((value - baseline) / abs(baseline) * 100, 1)
+                if baseline
+                else None
+            )
+            range_ = REFERENCE_RANGES.get(metric)
+            status = self._range_status(value, range_)
+            deviation = None
+            if range_ and status == "CAO":
+                deviation = round(value - range_[1], 2)
+            elif range_ and status == "THẤP":
+                deviation = round(range_[0] - value, 2)
+            rows.append(
+                {
+                    "metric": metric,
+                    "name": METRIC_NAMES.get(metric, metric),
+                    "unit": METRIC_UNITS.get(metric, ""),
+                    "current": round(value, 2),
+                    "baseline_mean": baseline,
+                    "delta": delta,
+                    "pct_change": pct,
+                    "trend": rec.trend if rec else None,
+                    "trend_name": TREND_NAMES.get(rec.trend, "chưa rõ") if rec else None,
+                    "z_score": rec.z_score if rec else None,
+                    "flagged": bool(rec.flagged) if rec else False,
+                    "range_lo": range_[0] if range_ else None,
+                    "range_hi": range_[1] if range_ else None,
+                    "range_status": status,
+                    "deviation": deviation,
+                }
+            )
+        return rows
 
     def score(
         self,
@@ -140,4 +249,5 @@ class RiskScorer:
             evidence=evidence,
             recommendations=recommendations,
             components=components,
+            metrics_detail=self._build_metric_detail(records, snapshot or {}),
         )

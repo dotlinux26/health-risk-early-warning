@@ -1,10 +1,11 @@
-"""Bộ điều phối Tầng 1 — gộp Z-Score + Isolation Forest + xu hướng."""
+"""Bộ điều phối Tầng 1 — gộp Z-Score + Isolation Forest + xu hướng + dự báo."""
 from __future__ import annotations
 
 import pandas as pd
 
 from src.config import Config
 from src.tier1_anomaly import AnomalyRecord
+from src.tier1_anomaly.forecast import detect_forecast_anomaly
 from src.tier1_anomaly.isolation_forest import detect_isolation_forest
 from src.tier1_anomaly.trend import detect_ewma_crossing
 from src.tier1_anomaly.zscore import detect_zscore
@@ -20,6 +21,7 @@ def run_tier1(
     - Z-Score cá nhân hóa: gắn cờ bất thường.
     - Isolation Forest: gắn cờ thay đổi đồng thời nhiều chỉ số.
     - EWMA: gán nhãn xu hướng cho từng chỉ số.
+    - Sai số dự báo (EWMA/Chronos): gắn cờ đột biến so với dự báo.
     """
     if len(df) < config.min_points:
         return []
@@ -42,14 +44,26 @@ def run_tier1(
         elif r.metric in trends and r.trend == "stable" and trends[r.metric] != "stable":
             r.trend = trends[r.metric]
 
+    # Bất thường theo sai số dự báo: lệch dự báo vượt ngưỡng -> gắn cờ
+    forecast = detect_forecast_anomaly(df, value_cols, config)
+    for r in by_metric.values():
+        f = forecast.get(r.metric)
+        if f:
+            r.forecast_z = f["z"]
+            r.forecast_flagged = f["flagged"]
+            if f["flagged"]:
+                r.flagged = True
+
     return sorted(by_metric.values(), key=lambda r: -abs(r.z_score or 0.0))
 
 
 def tier1_summary(records: list[AnomalyRecord]) -> dict:
     """Tóm tắt Tầng 1 để đưa vào báo cáo."""
     flagged = [r for r in records if r.flagged]
+    forecast_flagged = [r for r in records if r.forecast_flagged]
     return {
         "total_metrics": len(records),
         "flagged_metrics": [r.metric for r in flagged],
         "max_zscore": max((abs(r.z_score or 0) for r in records), default=0.0),
+        "forecast_flagged_metrics": [r.metric for r in forecast_flagged],
     }

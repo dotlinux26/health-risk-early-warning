@@ -37,6 +37,14 @@ class Config:
     # Mô hình
     model_name: str = "lightgbm"
     random_state: int = 42
+    use_ml: bool = True                     # bật điểm ML (LightGBM) trong Tầng 3
+    ml_model_path: Path = Path("data/models/risk_lgbm.joblib")
+    ml_min_days: int = 7                    # cần ít nhất bấy nhiêu ngày mới chạy ML
+
+    # Phát hiện bất thường theo sai số dự báo (Tầng 1, tùy chọn)
+    forecast_backend: str = "ewma"          # "ewma" (offline) | "chronos" (nếu cài)
+    forecast_alpha: float = 0.3
+    forecast_z_threshold: float = 2.5
 
     # Đầu ra
     output_dir: Path = Path("report")

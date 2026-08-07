@@ -27,6 +27,7 @@ class RiskModel:
     def __init__(self, config: Config = Config(), name: str | None = None) -> None:
         self.config = config
         self.name = name or config.model_name
+        self.feature_names: list[str] | None = None
         if not _HAS_LGBM:
             raise RuntimeError("Chưa cài lightgbm. Chạy: pip install lightgbm")
         self.model = LGBMClassifier(
@@ -42,11 +43,19 @@ class RiskModel:
 
     def train(self, X: pd.DataFrame, y: pd.Series | np.ndarray) -> None:
         """Huấn luyện trên ma trận đặc trưng."""
+        self.feature_names = list(X.columns)
         self.model.fit(X, y)
 
     def predict_proba_score(self, X: pd.DataFrame) -> np.ndarray:
         """Trả xác suất (điểm) rủi ro trong [0, 1]."""
+        if self.feature_names:
+            X = X.reindex(columns=self.feature_names).fillna(0.0)
         return self.model.predict_proba(X)[:, 1]
+
+    def predict_features(self, features: pd.DataFrame) -> float:
+        """Dự đoán từ một dòng đặc trưng (row cuối) -> điểm rủi ro [0, 1]."""
+        probs = self.predict_proba_score(features)
+        return float(probs[0])
 
     def evaluate(self, X: pd.DataFrame, y: pd.Series | np.ndarray) -> dict[str, float]:
         y_pred = self.predict_proba_score(X)
@@ -57,9 +66,21 @@ class RiskModel:
 
     def save(self, path: Path) -> None:
         joblib.dump(self.model, path)
+        meta_path = path.with_name(path.stem + "_meta.json")
+        import json
+
+        meta_path.write_text(
+            json.dumps({"feature_names": self.feature_names}, ensure_ascii=False),
+            encoding="utf-8",
+        )
 
     @classmethod
     def load(cls, path: Path, config: Config = Config()) -> "RiskModel":
         obj = cls(config)
         obj.model = joblib.load(path)
+        meta_path = path.with_name(path.stem + "_meta.json")
+        if meta_path.exists():
+            import json
+
+            obj.feature_names = json.loads(meta_path.read_text(encoding="utf-8")).get("feature_names")
         return obj

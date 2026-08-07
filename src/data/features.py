@@ -23,7 +23,7 @@ def rolling_features(
             df[f"{col}_mean_{w}d"] = s.rolling(w, min_periods=2).mean()
             df[f"{col}_std_{w}d"] = s.rolling(w, min_periods=2).std()
         df[f"{col}_delta_1"] = s.diff()
-        df[f"{col}_pct_1"] = s.pct_change()
+        df[f"{col}_pct_1"] = s.pct_change(fill_method=None)
     return df.reset_index()
 
 

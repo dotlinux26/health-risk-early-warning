@@ -17,14 +17,16 @@ start() {
     fi
     cd "$(dirname "$0")"
     setsid nohup python3 -m uvicorn src.api:app --host 0.0.0.0 --port "${PORT}" > "${LOG}" 2>&1 < /dev/null &
-    sleep 3
-    if curl -s -m 5 "http://127.0.0.1:${PORT}/api/health" >/dev/null 2>&1; then
-        echo "OK — Server chạy tại http://127.0.0.1:${PORT}"
-        echo "Swagger: http://127.0.0.1:${PORT}/docs"
-    else
-        echo "Lỗi khởi động. Xem log: tail -50 ${LOG}"
-        exit 1
-    fi
+    for _ in $(seq 1 20); do
+        sleep 1
+        if curl -s -m 3 "http://127.0.0.1:${PORT}/api/health" >/dev/null 2>&1; then
+            echo "OK — Server chạy tại http://127.0.0.1:${PORT}"
+            echo "Swagger: http://127.0.0.1:${PORT}/docs"
+            return 0
+        fi
+    done
+    echo "Lỗi khởi động. Xem log: tail -50 ${LOG}"
+    exit 1
 }
 
 stop() {

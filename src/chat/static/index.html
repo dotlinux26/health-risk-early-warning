@@ -124,7 +124,7 @@ async function submit(text, file){
     if (file) addMsg(`Đã gửi file: ${file.name}`, 'user');
     else if (text) addMsg(text, 'user');
     typing.remove();
-    addMsg(d.reply || '...', 'bot');
+    if (!d.silent && d.reply) addMsg(d.reply, 'bot');
     if (d.risk_level) {
       badge.innerHTML = `<span class="risk-badge r-${d.risk_level}">${d.risk_level}</span>`;
     }

@@ -19,6 +19,8 @@ class AnomalyRecord:
     direction: str          # "up" | "down"
     trend: str              # "rising" | "falling" | "stable"
     flagged: bool
+    forecast_z: float | None = None   # Z của sai số dự báo (nếu bật)
+    forecast_flagged: bool = False    # bất thường theo sai số dự báo
 
     def to_dict(self) -> dict:
         return {
@@ -30,4 +32,6 @@ class AnomalyRecord:
             "direction": self.direction,
             "trend": self.trend,
             "flagged": self.flagged,
+            "forecast_z": self.forecast_z,
+            "forecast_flagged": self.forecast_flagged,
         }

@@ -15,6 +15,7 @@ from src.config import Config, CONFIG
 from src.data.features import build_feature_matrix
 from src.data.loader import load_csv, load_long_df
 from src.data.preprocess import build_baseline, impute_missing, resample_to_daily
+from src.models.risk_model import RiskModel
 from src.tier1_anomaly.detector import run_tier1, tier1_summary
 from src.tier2_knowledge.rules import KnowledgeBase
 from src.tier3_risk.report import render_json, render_markdown, save_report
@@ -24,6 +25,40 @@ VALUE_COLUMNS = [
     "systolic_bp", "diastolic_bp", "heart_rate", "glucose",
     "glucose_fasting", "hba1c", "creatinine", "egfr", "spo2", "bmi",
 ]
+
+# Nạp mô hình ML một lần (lazy singleton). Không có model -> ml_score = 0.
+_ML_MODEL: RiskModel | None = None
+_ML_TRIED = False
+
+
+def load_ml_model(config: Config) -> RiskModel | None:
+    """Nạp LightGBM đã huấn luyện (dữ liệu/models/risk_lgbm.joblib)."""
+    global _ML_MODEL, _ML_TRIED
+    if _ML_TRIED:
+        return _ML_MODEL
+    _ML_TRIED = True
+    path = config.ml_model_path
+    if not path.exists():
+        return None
+    try:
+        _ML_MODEL = RiskModel.load(path, config)
+    except Exception:
+        _ML_MODEL = None
+    return _ML_MODEL
+
+
+def _ml_score_for(df: pd.DataFrame, value_cols: list[str], config: Config) -> float | None:
+    """Điểm rủi ro dự đoán từ LightGBM trên đặc trưng chuỗi hiện tại."""
+    if not config.use_ml or len(df) < config.ml_min_days:
+        return None
+    model = load_ml_model(config)
+    if model is None:
+        return None
+    fm = build_feature_matrix(df, config, value_cols=value_cols)
+    fm = fm.drop(columns=[c for c in ("timestamp", "patient_id") if c in fm.columns])
+    if fm.empty:
+        return None
+    return model.predict_features(fm.tail(1))
 
 
 def assess_patient(
@@ -57,12 +92,14 @@ def assess_patient(
         tier1_note = "Chưa đủ lịch sử để phân tích chuỗi thời gian (cần ≥ 7 điểm); đánh giá theo tri thức y khoa."
 
     # 3) Tầng 2 — tri thức y khoa (luôn chạy từ snapshot giá trị hiện tại)
-    # 4) Tầng 3 — tổng hợp rủi ro
-    result = scorer.score(records, snapshot=snapshot)
+    # 4) Tầng 3 — tổng hợp rủi ro (thống kê + tri thức + ML + xu hướng)
+    ml_score = _ml_score_for(df, value_cols, config)
+    result = scorer.score(records, ml_score=ml_score, snapshot=snapshot)
 
     return {
         "tier1_summary": tier1_summary(records),
         "tier1_note": tier1_note,
+        "ml_score": round(ml_score, 4) if ml_score is not None else None,
         **result.to_dict(),
     }
 
@@ -99,6 +136,7 @@ def main() -> None:
             evidence=result["evidence"],
             recommendations=result["recommendations"],
             components=result["components"],
+            metrics_detail=result["metrics_detail"],
         )
         path = save_report(pid, risk_result, out_dir)
         print(f"[{pid}] Rủi ro: {result['risk_level']} (điểm {result['risk_score']}) -> {path}")
