@@ -43,22 +43,52 @@ Các yêu cầu của bài toán:
 
 ---
 
-## 3. Hai nhóm mô hình khả dĩ
+## 3. Các mô hình khả dĩ — bảng so sánh để quan sát, lựa chọn
 
-### Nhóm A — Mô hình học có giám sát cổ điển / dựa trên cây
+Dưới đây liệt kê các ứng viên phù hợp với đầu vào dạng bảng / chuỗi thời gian.
+Cột **Độ phù hợp** đánh giá trong bối cảnh đề tài (dữ liệu NHANES quy mô ~5.000
+mẫu, yêu cầu giải thích được).
+
+### 3.1. Bảng so sánh tổng quan
+
+| Mô hình | Nhóm | Quy mô tham số | Mạnh khi | Yếu khi | Giải thích được | Độ phù hợp |
+|---|---|---|---|---|---|---|
+| **LightGBM** | Cây | thấp | dữ liệu bảng vừa/nhỏ, huấn luyện nhanh | khó nắm quan hệ phi tuyến rất phức tạp | Cao (feature importance, SHAP) | ★★★★★ — mặc định hiện tại |
+| **XGBoost** | Cây | thấp | giống LightGBM, tiêu chuẩn vàng | chậm hơn LightGBM ở quy mô lớn | Cao | ★★★★☆ — thay thế dự phòng |
+| **Random Forest** | Cây | thấp | chống overfit tốt, chạy ổn định | kém hơn boosting trên dữ liệu nhỏ | Cao | ★★★☆☆ — đối chứng baseline |
+| **Logistic Regression** | Cổ điển | rất thấp | đơn giản, minh bạch tuyệt đối | giả định tuyến tính, sức học hạn chế | Rất cao | ★★★☆☆ — baseline + đối chiếu |
+| **MLP (2–3 lớp)** | Nơ-ron | ~10K–100K | học phi tuyến cơ bản | kém khi dữ liệu nhỏ, dễ overfit | Trung bình (SHAP) | ★★☆☆☆ — thử nghiệm |
+| **TabNet** | Nơ-ron | ~1M–5M | attention trên bảng, hiện đại | cần dữ liệu lớn hơn, tinh chỉnh khó | Trung bình–Cao (attention mask) | ★★★☆☆ — thử nghiệm so sánh |
+| **FT-Transformer** | Nơ-ron | ~1M–5M | transformer cho bảng, mạnh trên dữ liệu đủ lớn | nhạy cảm dữ liệu nhỏ, có thể kém LightGBM | Trung bình (SHAP) | ★★★☆☆ — thử nghiệm so sánh |
+| **TabPFN** | Foundation | ~1M | học in-context, zero/few-shot tốt cho dữ liệu nhỏ | mới, ít tài liệu tiếng Việt | Trung bình | ★★★☆☆ — thử nghiệm |
+
+### 3.2. Nhóm A — Mô hình dựa trên cây / học có giám sát cổ điển
 
 - **Đặc điểm:** mạnh trên dữ liệu dạng bảng quy mô vừa và nhỏ; huấn luyện nhanh;
   giải thích được bằng mức độ quan trọng của đặc trưng.
-- **Đại diện:** Gradient Boosting (LightGBM), Random Forest, XGBoost.
+- **Đại diện:** LightGBM (đang dùng), XGBoost, Random Forest, Logistic Regression.
 - **Phù hợp:** làm mô hình chính khi cần độ tin cậy cao, chi phí tính toán thấp.
 
-### Nhóm B — Mô hình dựa trên mạng nơ-ron cho dữ liệu bảng
+### 3.3. Nhóm B — Mô hình dựa trên mạng nơ-ron cho dữ liệu bảng
 
 - **Đặc điểm:** dùng cơ chế attention để học quan hệ giữa các đặc trưng; linh
   hoạt hơn khi có dữ liệu lớn; nhưng **nhạy cảm với quy mô dữ liệu nhỏ**.
-- **Đại diện:** TabNet, FT-Transformer, MLP nhiều lớp.
+- **Đại diện:** TabNet, FT-Transformer, MLP nhiều lớp, TabPFN.
 - **Phù hợp:** thử nghiệm, so sánh; hoặc khi muốn mở rộng khả năng học đặc trưng
   phức tạp hơn.
+
+### 3.4. Tiêu chí chọn lựa
+
+Khi đối chiếu để chọn mô hình, đánh giá theo thứ tự ưu tiên:
+
+1. **Độ chính xác** — AUC trên tập kiểm định riêng (cùng dữ liệu, cùng đặc trưng).
+2. **Khả năng giải thích** — có trả về được đặc trưng nào đóng góp chính không.
+3. **Chi phí** — thời gian huấn luyện, tài nguyên chạy dự đoán (đo tại nhà / nhẹ).
+4. **Độ ổn định** — kết quả có dao động nhiều khi thay đổi seed / tái chạy không.
+5. **Độ phức tạp tích hợp** — có khớp giao diện `RiskModel` hiện tại không.
+
+> Mô hình được **đánh dấu phù hợp cao nhất** chưa hẳn là lựa chọn cuối — con số
+> AUC thực tế trên cùng bộ dữ liệu mới là quyết định.
 
 ---
 
