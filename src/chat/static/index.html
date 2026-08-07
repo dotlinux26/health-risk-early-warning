@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat Sức khỏe — HealthRisk</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #0f172a; color: #e2e8f0; height: 100vh; display: flex; flex-direction: column;
+  }
+  header {
+    padding: 14px 20px; background: #1e293b; border-bottom: 1px solid #334155;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 18px; color: #38bdf8; }
+  header label { font-size: 13px; color: #94a3b8; }
+  header input {
+    background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 8px;
+    padding: 6px 10px; width: 110px; font-size: 14px;
+  }
+  #chat {
+    flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .msg { max-width: 78%; padding: 10px 14px; border-radius: 14px; line-height: 1.55; font-size: 14px;
+         white-space: pre-wrap; word-break: break-word; }
+  .bot { align-self: flex-start; background: #1e293b; border: 1px solid #334155; border-bottom-left-radius: 4px; }
+  .user { align-self: flex-end; background: #0284c7; border-bottom-right-radius: 4px; }
+  .typing { color: #64748b; font-style: italic; }
+  footer {
+    padding: 12px 16px; background: #1e293b; border-top: 1px solid #334155;
+    display: flex; gap: 10px; align-items: center;
+  }
+  footer input[type=text] {
+    flex: 1; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 10px;
+    padding: 11px 14px; font-size: 14px; outline: none;
+  }
+  footer button, .upload-label {
+    background: #0284c7; color: #fff; border: none; border-radius: 10px; padding: 11px 16px;
+    font-size: 14px; cursor: pointer; font-weight: 600;
+  }
+  footer button:hover, .upload-label:hover { background: #0369a1; }
+  .upload-label input { display: none; }
+  .risk-badge { display:inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; }
+  .r-THAP { background:#14532d; color:#4ade80; }
+  .r-TRUNG_BINH { background:#713f12; color:#fbbf24; }
+  .r-CAO { background:#7f1d1d; color:#f87171; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Chat theo dõi sức khỏe</h1>
+  <label>Bệnh nhân: <input id="pid" value="P001"></label>
+  <span id="status-badge"></span>
+</header>
+
+<div id="chat">
+  <div class="msg bot">Nhập nhật ký sức khỏe hàng ngày, ví dụ:
+• "Huyết áp 135/85, nhịp tim 80"
+• "Đường huyết lúc đói 6.9, cân nặng 77"
+• Hoặc đính kèm file PDF/DOCX báo cáo khám.
+
+Dữ liệu được tích lũy theo bệnh nhân. Khi đủ 7 ngày đo, hệ thống đưa ra báo cáo nguy cơ cá nhân hóa.
+Lệnh: "trạng thái" • "báo cáo" • "xóa dữ liệu"</div>
+</div>
+
+<footer>
+  <label class="upload-label">File<input type="file" id="file" accept=".pdf,.docx,.doc,.txt"></label>
+  <input type="text" id="input" placeholder="Nhập nhật ký sức khỏe hoặc lệnh..." autocomplete="off">
+  <button id="send">Gửi</button>
+</footer>
+
+<script>
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+const pidEl = document.getElementById('pid');
+const badge = document.getElementById('status-badge');
+
+function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderMarkdown(s){
+  // bold **..** -> <b>
+  s = esc(s);
+  s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  s = s.replace(/(^|\n)• /g, '$1• ');
+  // highlight risk levels
+  s = s.replace(/(THAP|TRUNG_BINH|CAO)/g, m => `<span class="risk-badge r-${m}">${m}</span>`);
+  return s.replace(/\n/g, '<br>');
+}
+
+function addMsg(text, cls){
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.innerHTML = renderMarkdown(text);
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  return d;
+}
+
+async function send(text, pid){
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({patient_id: pid, message: text})
+  });
+  return res.json();
+}
+
+async function sendFile(file, pid){
+  const fd = new FormData();
+  fd.append('patient_id', pid);
+  fd.append('file', file);
+  const res = await fetch('/api/chat_file', {method: 'POST', body: fd});
+  return res.json();
+}
+
+async function submit(text, file){
+  if (!text && !file) return;
+  const pid = pidEl.value.trim() || 'P001';
+  const typing = addMsg('… đang xử lý', 'bot typing');
+  try {
+    const d = file ? await sendFile(file, pid) : await send(text, pid);
+    if (file) addMsg(`Đã gửi file: ${file.name}`, 'user');
+    else if (text) addMsg(text, 'user');
+    typing.remove();
+    addMsg(d.reply || '...', 'bot');
+    if (d.risk_level) {
+      badge.innerHTML = `<span class="risk-badge r-${d.risk_level}">${d.risk_level}</span>`;
+    }
+  } catch(e){
+    typing.remove();
+    addMsg('Lỗi kết nối máy chủ.', 'bot');
+  }
+}
+
+input.addEventListener('keydown', e => { if (e.key === 'Enter') { submit(input.value); input.value = ''; } });
+document.getElementById('send').addEventListener('click', () => { submit(input.value); input.value = ''; });
+document.getElementById('file').addEventListener('change', e => {
+  if (e.target.files[0]) { submit('', e.target.files[0]); e.target.value = ''; }
+});
+</script>
+</body>
+</html>

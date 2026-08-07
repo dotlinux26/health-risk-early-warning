@@ -1,0 +1,50 @@
+{
+  "systolic_bp": {
+    "aliases": ["huyết áp tâm thu", "hatt", "huyết ap tam thu", "systolic bp", "systolic"],
+    "unit": "mmHg"
+  },
+  "diastolic_bp": {
+    "aliases": ["huyết áp tâm trương", "hattr", "huyết ap tam truong", "diastolic bp", "diastolic"],
+    "unit": "mmHg"
+  },
+  "heart_rate": {
+    "aliases": ["nhịp tim", "nhip tim", "heart rate", "pulse", "mạch"],
+    "unit": "bpm"
+  },
+  "glucose": {
+    "aliases": ["glucose", "đường huyết", "duong huyet", "blood sugar", "glucose máu"],
+    "unit": "mmol/L"
+  },
+  "glucose_fasting": {
+    "aliases": ["glucose lúc đói", "duong huyet luc doi", "glucose fasting", "fasting glucose", "fasting blood sugar", "fbs"],
+    "unit": "mmol/L"
+  },
+  "hba1c": {
+    "aliases": ["hba1c", "a1c", "hemoglobin a1c", "glycated hemoglobin"],
+    "unit": "%"
+  },
+  "creatinine": {
+    "aliases": ["creatinine", "creatinin", "creat"],
+    "unit": "mg/dL"
+  },
+  "egfr": {
+    "aliases": ["egfr", "e-gfr", "mức lọc cầu thận", "muc loc cau than"],
+    "unit": "mL/min/1.73m2"
+  },
+  "spo2": {
+    "aliases": ["spo2", "sp02", "bão hòa oxy", "bao hoa oxy", "oxygen saturation", "saO2"],
+    "unit": "%"
+  },
+  "bmi": {
+    "aliases": ["bmi", "chỉ số khối cơ thể", "chi so khoi co the"],
+    "unit": "kg/m2"
+  },
+  "weight": {
+    "aliases": ["cân nặng", "can nang", "weight", "trọng lượng"],
+    "unit": "kg"
+  },
+  "height": {
+    "aliases": ["chiều cao", "chieu cao", "height"],
+    "unit": "cm"
+  }
+}

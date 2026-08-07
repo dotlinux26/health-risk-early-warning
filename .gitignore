@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Dữ liệu chạy & báo cáo sinh ra
+data/
+report/
+*.log
+
+# Hệ điều hành / IDE
+.DS_Store
+.idea/
+.vscode/

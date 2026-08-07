@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "version": "0.1.0",
+    "description": "Cơ sở tri thức y khoa dạng luật (trích từ hướng dẫn lâm sàng). Chỉ dùng cho HỖ TRỢ QUYẾT ĐỊNH.",
+    "sources": ["ESC/ESH 2018", "ADA 2023", "KDIGO 2022", "WHO"]
+  },
+  "rules": [
+    {
+      "rule_id": "R_CV_01",
+      "name": "Tăng huyết áp",
+      "system": "tim_manh",
+      "condition": {
+        "logic": "and",
+        "conditions": [
+          {"metric": "systolic_bp", "op": ">", "threshold": 140},
+          {"metric": "diastolic_bp", "op": ">", "threshold": 90}
+        ]
+      },
+      "severity": 0.8,
+      "specialty": "Khoa Tim mạch",
+      "evidence": "ESC/ESH 2018"
+    },
+    {
+      "rule_id": "R_CV_02",
+      "name": "Nhịp tim nhanh kéo dài",
+      "system": "tim_manh",
+      "condition": {
+        "logic": "and",
+        "conditions": [
+          {"metric": "heart_rate", "op": ">", "threshold": 100, "window_days": 7}
+        ]
+      },
+      "severity": 0.6,
+      "specialty": "Khoa Tim mạch",
+      "evidence": "Hướng dẫn nhịp tim 2023"
+    },
+    {
+      "rule_id": "R_END_01",
+      "name": "Tăng đường huyết lúc đói",
+      "system": "noi_tiet",
+      "condition": {
+        "logic": "or",
+        "conditions": [
+          {"metric": "glucose_fasting", "op": ">", "threshold": 7.0},
+          {"metric": "glucose", "op": ">", "threshold": 7.0}
+        ]
+      },
+      "severity": 0.7,
+      "specialty": "Khoa Nội tiết",
+      "evidence": "ADA 2023"
+    },
+    {
+      "rule_id": "R_END_02",
+      "name": "HbA1c vượt ngưỡng tiểu đường",
+      "system": "noi_tiet",
+      "condition": {
+        "logic": "or",
+        "conditions": [
+          {"metric": "hba1c", "op": ">", "threshold": 6.5}
+        ]
+      },
+      "severity": 0.8,
+      "specialty": "Khoa Nội tiết",
+      "evidence": "ADA 2023"
+    },
+    {
+      "rule_id": "R_KID_01",
+      "name": "Creatinine tăng - nghi ngờ suy thận",
+      "system": "than",
+      "condition": {
+        "logic": "or",
+        "conditions": [
+          {"metric": "creatinine", "op": ">", "threshold": 1.3, "unit": "mg/dL"}
+        ]
+      },
+      "severity": 0.7,
+      "specialty": "Khoa Thận",
+      "evidence": "KDIGO 2022"
+    },
+    {
+      "rule_id": "R_KID_02",
+      "name": "eGFR giảm",
+      "system": "than",
+      "condition": {
+        "logic": "or",
+        "conditions": [
+          {"metric": "egfr", "op": "<", "threshold": 60}
+        ]
+      },
+      "severity": 0.8,
+      "specialty": "Khoa Thận",
+      "evidence": "KDIGO 2022"
+    },
+    {
+      "rule_id": "R_RES_01",
+      "name": "Giảm bão hòa oxy",
+      "system": "ho_hap",
+      "condition": {
+        "logic": "or",
+        "conditions": [
+          {"metric": "spo2", "op": "<", "threshold": 94}
+        ]
+      },
+      "severity": 0.9,
+      "specialty": "Khoa Hô hấp",
+      "evidence": "Hướng dẫn SpO2 lâm sàng"
+    },
+    {
+      "rule_id": "R_MET_01",
+      "name": "BMI vượt ngưỡng thừa cân",
+      "system": "chuyen_hoa",
+      "condition": {
+        "logic": "or",
+        "conditions": [
+          {"metric": "bmi", "op": ">", "threshold": 25}
+        ]
+      },
+      "severity": 0.5,
+      "specialty": "Khoa Nội tiết",
+      "evidence": "WHO"
+    }
+  ],
+  "system_labels": {
+    "tim_manh": "Hệ tim mạch",
+    "noi_tiet": "Hệ nội tiết",
+    "than": "Chức năng thận",
+    "ho_hap": "Hệ hô hấp",
+    "chuyen_hoa": "Chuyển hóa"
+  }
+}

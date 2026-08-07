@@ -1,0 +1,10 @@
+# **PHÂN TÍCH CHI TIẾT BÀI BÁO**
+
+## **2\. The Use of Deep Learning and Machine Learning on Longitudinal Electronic Health Records for the Early Detection and Prevention of Diseases: Scoping Review**
+
+Swinckels, L., Bennis, F. C., Ziesemer, K. A., Scheerman, J. F. M., Bijwaard, H., de Keijzer, A., & Bruers, J. J. (2024). The Use of Deep Learning and Machine Learning on Longitudinal Electronic Health Records for the Early Detection and Prevention of Diseases: Scoping Review. Journal of Medical Internet Research, 26, e48320.   
+**\- Dữ liệu sử dụng:** Tổng hợp từ 20 nghiên cứu (chủ yếu công bố từ 2018-2022) sử dụng dữ liệu dọc từ hồ sơ sức khỏe điện tử (EHR) với kích thước mẫu từ hàng ngàn đến hàng triệu bệnh nhân. Dữ liệu chủ yếu là nhân khẩu học, triệu chứng, thủ thuật, xét nghiệm, chẩn đoán, thuốc và BMI.   
+**\- Phương pháp nghiên cứu:** Đánh giá phạm vi (Scoping review) tuân theo hướng dẫn PRISMA-ScR để tìm hiểu cách sử dụng học máy (ML) và học sâu (DL) trên dữ liệu EHR dọc nhằm phát hiện sớm và phòng ngừa bệnh.   
+**\- Kết quả chính:** Các bệnh được dự đoán hiệu quả nhất bao gồm tiểu đường, bệnh thận, bệnh tim mạch và rối loạn tâm thần/hành vi. Các kỹ thuật Recurrent Neural Network (RNN) và Long Short-Term Memory (LSTM) là phổ biến và hiệu quả nhất để phân tích EHR theo thời gian. Các mô hình này có khả năng chẩn đoán chính xác và phát hiện bệnh sớm hơn chẩn đoán lâm sàng hiện tại.   
+**\- Giá trị đối với bài báo:** Khẳng định tiềm năng của dữ liệu EHR theo thời gian trong việc hỗ trợ sàng lọc sơ bộ, ưu tiên bệnh nhân nguy cơ cao và mở ra cơ hội chăm sóc sức khỏe cá nhân hóa thông qua các can thiệp phòng ngừa có mục tiêu.   
+**\- Hạn chế cần lưu ý:** Phần lớn các mô hình vẫn ở giai đoạn phát triển hoặc nguyên mẫu, thiếu xác thực trên tập dữ liệu ngoại vi (chỉ 10% nghiên cứu có external validation). Các vấn đề về tính minh bạch, chất lượng dữ liệu (thiếu sót, không đồng nhất) và sự thiên lệch vẫn là rào cản lớn để đưa vào thực tiễn lâm sàng. 

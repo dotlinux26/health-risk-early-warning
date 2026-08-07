@@ -1,0 +1,10 @@
+# **PHÂN TÍCH CHI TIẾT BÀI BÁO**
+
+## **3\. Foresight-a generative pretrained transformer for modelling of patient timelines using electronic health records: A retrospective modelling study**
+
+Kraljevic, Z., Bean, D., Shek, A., Bendayan, R., Hemingway, H., Au Yeung, J., Deng, A., Baston, A., Ross, J., Idowu, E., Teo, J. T., & Dobson, R. J. (2024). Foresight-a generative pretrained transformer for modelling of patient timelines using electronic health records: A retrospective modelling study. The Lancet Digital Health, 6(4), e281-e290.   
+**\- Dữ liệu sử dụng:** Hồ sơ sức khỏe điện tử của 811.336 bệnh nhân từ ba bộ dữ liệu bệnh viện (King's College Hospital, South London and Maudsley, và MIMIC-III), bao gồm cả dữ liệu có cấu trúc và văn bản lâm sàng tự do.   
+**\- Phương pháp nghiên cứu:** Sử dụng công cụ nhận dạng và liên kết thực thể (MedCAT) để chuyển đổi văn bản lâm sàng thành chuỗi khái niệm y sinh được mã hóa; sau đó áp dụng mô hình Generative Transformer (Foresight dựa trên GPT-2) để dự báo các sự kiện y tế tiếp theo như chẩn đoán, thuốc, thủ thuật và phát hiện.   
+**\- Kết quả chính:** Precision@10 khi dự báo bệnh tiếp theo đạt từ 0,68 đến 0,88 tùy thuộc vào bộ dữ liệu; đối với dự báo khái niệm y sinh tiếp theo, precision@10 đạt từ 0,80 đến 0,91. Trong đánh giá độc lập của 5 bác sĩ lâm sàng trên các dòng thời gian tổng hợp, 97% dự báo hàng đầu được đánh giá là phù hợp lâm sàng.   
+**\- Giá trị đối với bài báo:** Cung cấp một mô hình đa dụng có khả năng lập mô hình khái niệm y sinh từ cả dữ liệu cấu trúc và phi cấu trúc, cho phép mô phỏng dòng thời gian bệnh nhân, hỗ trợ nghiên cứu thử nghiệm ảo và ứng dụng trong đào tạo y khoa.   
+**\- Hạn chế cần lưu ý:** Được thiết kế dựa trên dữ liệu hồi cứu do đó phụ thuộc vào độ chính xác của việc mã hóa khái niệm từ văn bản; mô hình có thể ưu tiên xác suất xuất hiện thay vì tính cấp bách của bệnh, chưa phù hợp để dùng trực tiếp như một hệ thống hỗ trợ quyết định lâm sàng hiện tại.

@@ -1,0 +1,10 @@
+# **PHÂN TÍCH CHI TIẾT BÀI BÁO**
+
+## **1\. A multi-center study on the adaptability of a shared foundation model for electronic health records**
+
+Guo, L. L., Fries, J., Steinberg, E., Fleming, S. L., Morse, K., Aftandilian, C., Posada, J., Shah, N., & Sung, L. (2024). A multi-center study on the adaptability of a shared foundation model for electronic health records. npj Digital Medicine, 7(171).   
+**\- Dữ liệu sử dụng:** Dữ liệu hồ sơ sức khỏe điện tử (EHR) có cấu trúc từ 2,57 triệu bệnh nhân từ Stanford Medicine để huấn luyện mô hình gốc. \[cite: 1\] Quá trình đánh giá được thực hiện trên dữ liệu từ The Hospital for Sick Children (SickKids, n=37.960) và Medical Information Mart for Intensive Care (MIMIC-IV, n=44.055).   
+**\- Phương pháp nghiên cứu:** Đánh giá đa trung tâm về khả năng thích ứng của mô hình ngôn ngữ cho EHR (CLMBR-T-base, 141 triệu tham số). Nhóm tác giả so sánh hiệu suất của mô hình này (chạy trực tiếp và tiếp tục pretrain) với các mô hình Gradient Boosting Machines (GBM) và mô hình foundation cục bộ được huấn luyện từ đầu trên 8 tác vụ dự đoán lâm sàng.   
+**\- Kết quả chính:** Mô hình foundation ngoại vi đạt hiệu suất tương đương GBM huấn luyện trên toàn bộ dữ liệu, đồng thời cải thiện 13% trong thiết lập ít nhãn (few-shot). Khi tiếp tục pretrain trên dữ liệu cục bộ, mô hình chỉ cần dưới 1% dữ liệu mẫu để đạt hiệu suất ngang với GBM, và hiệu quả lấy mẫu cao hơn 60-90% so với huấn luyện từ đầu.   
+**\- Giá trị đối với bài báo:** Chứng minh việc chia sẻ và tinh chỉnh mô hình EHR foundation giúp cải thiện dự đoán với chi phí thấp hơn, giảm lượng dữ liệu và nhãn cần thiết, thúc đẩy phát triển AI y tế quy mô lớn.   
+**\- Hạn chế cần lưu ý:** Nghiên cứu bị giới hạn ở một số tập dữ liệu và tác vụ nhất định. Đòi hỏi dữ liệu phải tuân thủ chuẩn mô hình dữ liệu chung (OMOP CDM). Chưa đánh giá đầy đủ tính công bằng (fairness) và nguy cơ thiên lệch (bias) khi chia sẻ mô hình. 
