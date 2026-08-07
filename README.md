@@ -1,4 +1,4 @@
-# Hệ thống cảnh báo sớm nguy cơ sức khỏe dựa trên phân tích chuỗi thời gian cá nhân hóa
+# Hệ thống cảnh báo sớm nguy cơ sức khỏe cá nhân hóa dựa trên khung hỗ trợ quyết định lâm sàng tích hợp học máy
 
 ## Đội ngũ thực hiện
 

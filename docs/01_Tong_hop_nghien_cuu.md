@@ -1,6 +1,6 @@
 # 01. Tổng hợp nghiên cứu khoa học
 
-**Đề tài:** *Nghiên cứu và xây dựng hệ thống cảnh báo sớm nguy cơ sức khỏe dựa trên phân tích chuỗi thời gian cá nhân hóa và ánh xạ tri thức y khoa.*
+**Đề tài:** *Nghiên cứu và xây dựng hệ thống cảnh báo sớm nguy cơ sức khỏe cá nhân hóa dựa trên khung hỗ trợ quyết định lâm sàng tích hợp học máy.*
 
 ---
 
