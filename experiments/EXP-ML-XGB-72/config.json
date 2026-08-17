@@ -1,0 +1,17 @@
+{
+  "model_key": "xgb",
+  "seed": 72,
+  "dataset": "data/datasets/nhanes_2017_2018.csv",
+  "features": [
+    "systolic_bp",
+    "diastolic_bp",
+    "heart_rate",
+    "glucose_fasting",
+    "hba1c",
+    "creatinine",
+    "bmi"
+  ],
+  "train_ratio": 0.7,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15
+}

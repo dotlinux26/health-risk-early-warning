@@ -23,6 +23,8 @@
 |---|---|
 | Dataset | `data/datasets/nhanes_2017_2018.csv` (NHANES CDC), Pima, Cleveland |
 | Model sản xuất | `data/models/risk_lgbm_real.joblib` (LightGBM) |
+| Benchmark (thực nghiệm) | `src/experiments/` — 6 model × 5 seed, split 70/15/15, evidence package ra `experiments/` |
+| Giao diện xem kết quả | `/benchmark` — bảng tổng hợp + so sánh luận giải từng model |
 | Đánh giá hiện tại | `scripts/train_nhanes.py`: Stratified 5-fold CV, báo AUC + AUPRC |
 | Feature | `src/data/features.py`: rolling, slope, z-score, EWMA |
 | Pipeline hệ thống | 3 tầng: stat (Tầng 1) → rule (Tầng 2) → ML + fusion (Tầng 3) |
@@ -74,17 +76,20 @@ Quyết định ban đầu:
   báo cáo.
 - Lập **feature dictionary** (bảng: feature, ý nghĩa, loại, nguồn) cho NHANES.
 
-### Bước 4 — Pipeline thực nghiệm so sánh 5 model
+### Bước 4 — Pipeline thực nghiệm so sánh các model
 
-Phase 1 (bắt buộc): Logistic Regression, Random Forest, XGBoost, LightGBM, MLP —
-cùng feature, cùng split, cùng metrics → bảng so sánh.
+Phase 1 (bắt buộc, **đã xong — xem `notes/03`**): Logistic Regression, Random
+Forest, XGBoost, LightGBM, MLP, FT-Transformer — cùng feature, cùng split, cùng
+metrics → bảng so sánh. Chi tiết protocol: `notes/02`.
 
-Phase 2 (khi tài nguyên cho phép): TabNet, FT-Transformer, TabPFN.
+Phase 2 (tùy chọn): TabNet, TabPFN, bản FT-Transformer đầy đủ hơn.
 
 ### Bước 5 — Evidence package
 
-Mỗi model sinh ra thư mục `experiments/EXP-ML-XXX/` chứa: config, metrics.json,
-predictions.csv, confusion matrix, ROC/PR curve, feature importance, SHAP.
+Mỗi model sinh ra thư mục `experiments/EXP-ML-<MODEL>-<SEED>/` chứa: config,
+metrics.json, predictions.csv, ROC/PR curve, feature importance, model.joblib.
+Kèm `summary.json/md/csv` tổng hợp mean ± std theo model (**đã triển khai** —
+xem `experiments/`, trang `/benchmark`).
 Mỗi lần chạy là một record → trả lời được câu hỏi "con số này lấy ở đâu" cho
 hội đồng.
 

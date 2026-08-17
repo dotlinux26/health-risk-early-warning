@@ -46,6 +46,7 @@ chat_agent = ChatAgent(store=chat_store, config=CONFIG, scorer=scorer)
 TMP_DIR = Path("data/uploads")
 CHAT_PAGE = Path(__file__).parent / "chat" / "static" / "index.html"
 RULES_PAGE = Path(__file__).parent / "chat" / "static" / "rules.html"
+BENCH_PAGE = Path(__file__).parent / "chat" / "static" / "benchmark.html"
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -172,6 +173,52 @@ def kb_add_metric(payload: dict[str, Any]) -> JSONResponse:
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
     return JSONResponse({"ok": True, "metric": {metric: saved}})
+
+
+# --------------------------------------------------------------------------- #
+# Benchmark đa mô hình — xem kết quả thực nghiệm + so sánh luận giải
+# --------------------------------------------------------------------------- #
+@app.get("/benchmark", response_class=HTMLResponse)
+def benchmark_page() -> str:
+    """Giao diện xem kết quả benchmark + so sánh các mô hình."""
+    return BENCH_PAGE.read_text(encoding="utf-8")
+
+
+@app.get("/api/benchmark")
+def benchmark_summary() -> dict:
+    from src.experiments.view import build_summary, list_experiments
+
+    return {"summary": build_summary(), "experiments": list_experiments()}
+
+
+@app.get("/api/benchmark/exp/{experiment_id}/curves")
+def benchmark_curves(experiment_id: str):
+    """Ảnh ROC/PR/Calibration của một experiment (evidence package)."""
+    from fastapi.responses import FileResponse
+
+    import src.experiments.view as v
+
+    path = v.EXPERIMENTS_DIR / experiment_id / "curves.png"
+    if not path.exists():
+        return JSONResponse({"error": "Không tìm thấy curves.png"}, status_code=404)
+    return FileResponse(path, media_type="image/png")
+
+
+@app.post("/api/benchmark/explain")
+def benchmark_explain(payload: dict[str, Any]) -> JSONResponse:
+    """Body: {"metrics": {"systolic_bp": 202, ...}} -> so sánh luận giải các model."""
+    from src.experiments.view import explain_patient
+
+    values = payload.get("metrics") or {}
+    model_keys = payload.get("models") or None
+    if not isinstance(values, dict) or not values:
+        return JSONResponse({"error": "Cần truyền metrics"}, status_code=400)
+    try:
+        values = {k: float(v) for k, v in values.items()}
+    except (TypeError, ValueError):
+        return JSONResponse({"error": "Giá trị metrics phải là số"}, status_code=400)
+    results = explain_patient(values, model_keys=model_keys)
+    return JSONResponse({"results": results})
 
 
 def _assess_json(records: list[dict[str, Any]], patient_id: str) -> JSONResponse:
