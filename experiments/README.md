@@ -13,7 +13,8 @@ python scripts/run_benchmark.py --seeds 42 52 62         # chọn seed
 python scripts/run_benchmark.py --out experiments/run1   # thư mục riêng
 ```
 
-- Dataset mặc định: `data/datasets/nhanes_2017_2018.csv` (NHANES CDC).
+- Dataset mặc định: `data/datasets/nhanes_merged.csv` (NHANES 3 chu kỳ
+  2015–2016, 2017–2018, 2021–2023; n = 16.314, positive ~49%).
 - Split: 70 / 15 / 15 (train / val / test), test khóa lại.
 - Seeds: 42, 52, 62, 72, 82 → kết quả báo `mean ± std`.
 - Preprocessing (imputer median) fit trên **train** để tránh data leakage.

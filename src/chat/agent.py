@@ -1,6 +1,7 @@
 """Chat agent: tích lũy dữ liệu nhật ký sức khỏe, đánh giá khi đủ dữ liệu, yêu cầu bổ sung khi thiếu."""
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -73,14 +74,25 @@ class ChatAgent:
         self._last_message = ""
 
     # ------------------------------------------------------------------ #
-    def handle(self, patient_id: str, message: str, file_path: str | Path | None = None) -> dict:
-        """Xử lý một tin nhắn chat. Trả về dict chứa `reply` và dữ liệu cấu trúc."""
+    def handle(self, patient_id: str, message: str, file_path: str | Path | None = None,
+               day: str | None = None) -> dict:
+        """Xử lý một tin nhắn chat. Trả về dict chứa `reply` và dữ liệu cấu trúc.
+
+        day: ngày ghi nhận (YYYY-MM-DD) do người dùng chọn trên giao diện. Nếu
+        không truyền, dùng ngày trong tin nhắn (nếu có) hoặc ngày hiện tại.
+        """
         message = (message or "").strip()
         pid = (patient_id or "P001").strip()
         self._last_message = message
+        record_day: date | None = None
+        if day:
+            try:
+                record_day = pd.Timestamp(day).date()
+            except Exception:
+                record_day = None
 
         if file_path is not None:
-            return self._handle_file(pid, file_path)
+            return self._handle_file(pid, file_path, record_day)
 
         # Lệnh điều khiển
         for kw, action in COMMANDS.items():
@@ -88,7 +100,7 @@ class ChatAgent:
                 return self._run_command(pid, action)
 
         # Nếu không nhận được chỉ số nào -> trả lời hướng dẫn
-        records = self.parser.parse(message)
+        records = self.parser.parse(message, day=record_day)
         if not records:
             return self._guide(pid)
 
@@ -97,7 +109,7 @@ class ChatAgent:
         return self._reply_after_record(pid, records, added, status, message)
 
     # ------------------------------------------------------------------ #
-    def _handle_file(self, pid: str, file_path: str | Path) -> dict:
+    def _handle_file(self, pid: str, file_path: str | Path, day: date | None = None) -> dict:
         df = ingest_file(file_path, patient_id=pid)
         if df.empty:
             return {
@@ -110,7 +122,7 @@ class ChatAgent:
 
         records = [
             ParsedRecord(metric=r.metric, value=float(r.value), unit=str(r.unit),
-                         date=pd.Timestamp(r.timestamp).date())
+                         date=day or pd.Timestamp(r.timestamp).date())
             for r in df.itertuples()
         ]
         added = self.store.append(pid, records)

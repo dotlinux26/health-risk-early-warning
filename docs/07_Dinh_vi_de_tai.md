@@ -123,7 +123,7 @@ bổ sung — và phần AI luôn bị đóng khung bởi cảnh báo về bản
 |---|---|
 | "So sánh mô hình của nhóm với Delphi" | Delphi là một **mô hình**; hệ thống của nhóm là một **khung nhiều tầng** → khác cấp độ, so được là phi phạm trù |
 | "So sánh hệ thống của nhóm với LSTM" | LSTM chỉ là một lựa chọn ở Tầng 3, không phải là đối thủ của cả khung |
-| "Mô hình chúng tôi chính xác hơn Delphi" | Chưa có benchmark trực tiếp cùng dữ liệu → không được khẳng định |
+| "Mô hình nhóm nghiên cứu chính xác hơn Delphi" | Chưa có benchmark trực tiếp cùng dữ liệu → không được khẳng định |
 
 ### 3.2. Cách so sánh ĐÚNG
 
@@ -221,7 +221,7 @@ thống trong bối cảnh lâm sàng thật**.
 
 ## 7. Nguyên tắc viết báo cáo
 
-- KHÔNG viết: *"mô hình của đề tài là LightGBM"*, *"chúng tôi xây dựng mô hình AI"*.
+- KHÔNG viết: *"mô hình của đề tài là LightGBM"*, *"nhóm nghiên cứu xây dựng mô hình AI"*.
 - NÊN viết: *"hệ thống của đề tài là một khung hỗ trợ quyết định lâm sàng; mô hình
   học máy hiện tại trong khung là LightGBM..."*.
 - Khi báo cáo AUC/AUPRC: nói rõ đó là kết quả của **thành phần ML (Tầng 3)**
@@ -232,7 +232,7 @@ thống trong bối cảnh lâm sàng thật**.
 
 > **Hỏi:** "Đây có phải là mô hình AI không?"
 >
-> **Trả lời:** "Đề tài của chúng tôi xây dựng một khung hỗ trợ quyết định lâm sàng.
+> **Trả lời:** "Đề tài của nhóm nghiên cứu xây dựng một khung hỗ trợ quyết định lâm sàng.
 > AI — cụ thể là mô hình học máy LightGBM — chỉ là một thành phần trong khung,
 > đảm nhiệm việc ước lượng điểm nguy cơ. Quyết định cuối cùng được tổng hợp từ ba
 > nguồn: phân tích thống kê cá nhân hóa, tri thức y khoa dạng luật, và mô hình học
@@ -242,10 +242,10 @@ thống trong bối cảnh lâm sàng thật**.
 >
 > **Trả lời:** "Delphi giải bài toán dự đoán bệnh tiếp theo từ bệnh án triệu bệnh
 > nhân; LSTM là một lựa chọn mô hình học sâu cho chuỗi thời gian. Hai hệ thống này
-> không cùng cấp với khung của chúng tôi. Chúng tôi so sánh ở hai cấp: ở cấp khung,
-> so về khả năng cá nhân hóa, giải thích và chi phí triển khai; ở cấp mô hình, chúng
-> tôi benchmark LightGBM với LSTM trên cùng bộ dữ liệu để chọn thành phần phù hợp.
-> Khung của chúng tôi không phụ thuộc một mô hình cố định — LightGBM hôm nay hoàn
+> không cùng cấp với khung của nhóm nghiên cứu. Nhóm nghiên cứu so sánh ở hai cấp: ở cấp khung,
+> so về khả năng cá nhân hóa, giải thích và chi phí triển khai; ở cấp mô hình, nhóm
+> nghiên cứu benchmark LightGBM với LSTM trên cùng bộ dữ liệu để chọn thành phần phù hợp.
+> Khung của nhóm nghiên cứu không phụ thuộc một mô hình cố định — LightGBM hôm nay hoàn
 > toàn có thể thay bằng LSTM hoặc foundation model khi dữ liệu cho phép."
 
 > **Hỏi:** "Nếu bỏ mô hình AI đi thì hệ thống còn gì?"
@@ -253,7 +253,7 @@ thống trong bối cảnh lâm sàng thật**.
 > **Trả lời:** "Hệ thống vẫn hoạt động đầy đủ như một phần mềm ra quyết định dựa
 > trên toán thống kê và hệ luật y khoa. AI chỉ là một nguồn điểm nguy cơ bổ sung
 > học từ dữ liệu; lõi quyết định là luật + thống kê, nên hệ thống luôn chạy được
-> kể cả khi chưa có dữ liệu huấn luyện. Điều này chứng tỏ đóng góp của chúng tôi
+> kể cả khi chưa có dữ liệu huấn luyện. Điều này chứng tỏ đóng góp của nhóm nghiên cứu
 > nằm ở kiến trúc khung, không phải ở một mô hình cụ thể."
 
 ---

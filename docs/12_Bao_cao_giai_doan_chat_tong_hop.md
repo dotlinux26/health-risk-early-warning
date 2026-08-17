@@ -1,18 +1,19 @@
 # 12. Báo cáo giai đoạn: trợ lý chat tích lũy dữ liệu + đánh giá đa mô hình
 
-> Tôi ghi lại những gì tôi vừa làm và đo được trong giai đoạn này: hoàn thiện
+> Báo cáo này ghi lại công việc và kết quả đo được trong giai đoạn: hoàn thiện
 > giao diện trò chuyện với bệnh nhân, đưa báo cáo rủi ro lên kênh chat, gắn
 > luận giải đa mô hình ML ngay trong hội thoại, và chạy lại benchmark trên bộ
-> dữ liệu NHANES mở rộng. Tôi cố gắng nói đúng những gì đo được, nêu thẳng giới
+> dữ liệu NHANES mở rộng. Nội dung nêu đúng những gì đo được, thẳng thắn về giới
 > hạn, không thổi phồng — đúng tinh thần các báo cáo trước.
 
 ---
 
-## 1. Tóm tắt những gì tôi đã làm
+## 1. Tóm tắt công việc đã thực hiện
 
 | Hạng mục | Nội dung |
 |---|---|
 | Trợ lý chat | UI `/chat` mới: header gradient, sidebar "Cấu hình suy luận" chọn model, bong bóng hội thoại, khối luận giải ML gắn trong chat |
+| Nhập liệu | Kéo-thả file (drag & drop) + dán (Ctrl+V), nút 📎, chọn ngày đo (date picker) cho lần ghi nhận — xem mục 6 |
 | Đánh giá trong chat | Lệnh `trạng thái` / `báo cáo` / `xóa dữ liệu`, ghi nhận nhật ký theo ngày, đủ 7 ngày → BÁO CÁO ĐẦY ĐỦ (phân tích chuỗi thời gian cá nhân hóa) |
 | Luận giải đa mô hình | Mỗi mô hình ML cho **điểm tổng hợp 3 tầng riêng** (thống kê + tri thức y khoa + model đó + xu hướng) để so sánh mức khác biệt; hiển thị tiếng Việt, gom chi tiết vào thẻ ấn/xem `<details>` |
 | Data completeness | Đánh dấu mức độ đầy đủ dữ liệu của từng ca, theo chế độ chẩn đoán; nhấn mạnh đây là độ bao phủ, không phải mức rủi ro |
@@ -122,13 +123,30 @@ Tôi thử chạy Qwen2.5-0.5B qua llama.cpp trên máy (i3-4005U, 2 lõi, khôn
 - Chất lượng kém: trả lời sai kiến thức y khoa ("huyết áp 150/95 không nguy
   hiểm"), thậm chí bịa nội dung ung thư.
 
-Anh quyết định gỡ bỏ hoàn toàn — tôi đã xóa `models/llm/`, `scripts/llm_server.sh`,
+Nhóm quyết định gỡ bỏ hoàn toàn — đã xóa `models/llm/`, `scripts/llm_server.sh`,
 `src/chat/llm_client.py` và toàn bộ code gọi LLM trong agent. Hướng đi tương
 lai hợp lý hơn: gọi một API model bên ngoài (OpenAI-compatible) thay vì chạy
 local. Hệ thống vẫn giữ sẵn `src/ingest/llm_extractor.py` (dùng API ngoài cho
 trích xuất file khi regex không đủ mạnh, có fallback regex an toàn).
 
-## 6. Dữ liệu thử nghiệm
+## 6. Ghi nhận theo thời gian: chọn ngày + kéo-thả file
+
+Sau khi ra mắt chat, hai tính năng được bổ sung cho trải nghiệm nhập liệu:
+
+**Chọn ngày đo (date picker).** Dưới khung nhập có ô "Ngày đo": người dùng bật
+toggle và chọn ngày (mặc định hôm nay) thì mọi bản ghi gửi trong lần đó được gán
+đúng ngày — hữu ích khi nhập lại nhật ký cũ hoặc nộp báo cáo khám đo nhiều ngày
+trước. Nếu **không** bật, hệ thống dùng ngày hôm nay (hoặc ngày ghi ngay trong
+tin nhắn, ví dụ "Huyết áp 135/85 ngày 12/8"). Backend nhận tham số `date`
+(YYYY-MM-DD): `/api/chat` qua JSON payload, `/api/chat_file` qua form field — khi
+có `date`, nó ghi đè ngày của tin nhắn/file. Điều này không làm thay đổi ngày của
+các bản ghi đã lưu (dedup theo cặp `metric + date`).
+
+**Kéo-thả file (drag & drop).** Ngoài nút 📎, người dùng có thể kéo file PDF/DOCX
+vào bất kỳ đâu trên trang (overlay nét đứt hiện khi đang kéo) hoặc dán (Ctrl+V)
+để tải lên — cùng luồng `ingest_file` như nút chọn file.
+
+## 7. Dữ liệu thử nghiệm
 
 Tôi đã tạo bệnh nhân demo `P1000` — 7 ngày liên tục (2026-08-10 → 2026-08-16),
 35 bản ghi gồm systolic_bp, diastolic_bp, heart_rate, glucose_fasting, bmi.

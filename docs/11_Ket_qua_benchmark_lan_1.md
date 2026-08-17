@@ -35,15 +35,15 @@
 | **Logistic Regression** | Baseline tuyến tính | 0.918±0.008 | 0.930±0.007 | 0.822±0.012 | 0.841±0.017 | 0.798±0.011 | 0.845±0.020 | 0.819±0.011 | 0.116±0.006 |
 | **MLP** | Neural network | 0.842±0.067 | 0.867±0.057 | 0.771±0.058 | 0.807±0.075 | 0.729±0.071 | 0.814±0.089 | 0.763±0.056 | 0.167±0.038 |
 
-### Cách tôi đọc bảng này (và giới hạn của nó)
+### Cách đọc bảng này (và giới hạn của nó)
 
 - **XGB / LGBM / RF gần như tương đương**: chênh lệch ROC-AUC giữa các mô hình
-  ≤ 0.001. Với độ lệch chuẩn ~0.005, tôi **không thể kết luận** mô hình nào
+  ≤ 0.001. Với độ lệch chuẩn ~0.005, **không thể kết luận** mô hình nào
   "hơn" mô hình nào dựa trên bảng này; nếu đưa vào báo cáo thì cần paired test
-  (ví dụ so trên từng test fold giống nhau). Tôi chưa làm paired test ở lần này.
+  (ví dụ so trên từng test fold giống nhau). Paired test chưa được thực hiện ở lần này.
 - **MLP yếu nhất và phương sai lớn** (0.842±0.067). Điều này khớp kỳ vọng trên
   dữ liệu quy mô ~5.000 mẫu không có pretraining, nhưng cũng phải nói rõ: MLP
-  **chưa được tuning** — tôi chỉ dùng cấu hình mặc định. Kết quả này là baseline
+  **chưa được tuning** — chỉ dùng cấu hình mặc định. Kết quả này là baseline
   neural đơn giản, không phải "MLP tối ưu".
 - **LR (0.918) là baseline tuyến tính**: chênh ~0.03 với nhóm boosting đủ để nói
   "mô hình phi tuyến cải thiện rõ trên bài toán này", nhưng chưa đủ để nói
@@ -53,8 +53,8 @@
 
 ## 3. Đánh giá luận giải trên một ca cụ thể
 
-Đo độ chính xác chưa đủ — với hệ thống cảnh báo y tế, tôi cần biết **lời giải
-thích có hợp lý về mặt lâm sàng hay không**. Tôi chọn một ca mẫu và chạy tất cả
+Đo độ chính xác chưa đủ — với hệ thống cảnh báo y tế, cần biết **lời giải
+thích có hợp lý về mặt lâm sàng hay không**. Chọn một ca mẫu và chạy tất cả
 mô hình với cùng đầu vào:
 
 - Systolic BP = **165 mmHg**, Diastolic BP = **95 mmHg** (cả hai ở ngưỡng Tăng
@@ -68,7 +68,7 @@ Cách đo: **perturbation** — thay lần lượt từng đặc trưng bằng m
 hưởng *cục bộ quanh điểm dữ liệu này*, không phải thuộc tính toàn cục của mô
 hình; con số không tương đương với hệ số hồi quy hay SHAP value.
 
-Ngoài luận giải theo **từng đặc trưng**, tôi còn tính luận giải theo **từng luật
+Ngoài luận giải theo **từng đặc trưng**, còn tính luận giải theo **từng luật
 kích hoạt**: với mỗi luật, đặt đúng các chỉ số mà luật đó dùng về baseline quần
 thể rồi đo độ giảm điểm nguy cơ → con số đó là "phần điểm do luật này đóng
 góp". Ca mẫu trên kích hoạt 3 luật: `R_CV_01` (Tăng huyết áp), `R_CV_03` (THA
@@ -105,7 +105,7 @@ phải lỗi của riêng bản chạy này.
 Điểm rủi ro đạt mức cực đoan (0.9998 và 0.9995). Khi mô hình phân nhánh quá sâu
 vào SBP để đẩy điểm số tiệm cận 1.0, các split sau cho DBP hay HbA1c gần như
 không đóng góp thêm — hiện tượng **nén attribution (feature collapse)**, khiến
-các chỉ số nguy cơ thực tế khác bị gán giá trị xấp xỉ 0.000. Tôi xin nhấn mạnh:
+các chỉ số nguy cơ thực tế khác bị gán giá trị xấp xỉ 0.000. Cần nhấn mạnh:
 đây là hạn chế của *phép giải thích gần điểm bão hòa*, không phải dấu hiệu mô
 hình dự đoán sai — bản thân mô hình vẫn chính xác, nhưng lời giải thích cục bộ
 không còn phân biệt được vai trò các biến.
@@ -115,18 +115,18 @@ không còn phân biệt được vai trò các biến.
 (+0.156) và làm phẳng hoàn toàn các biến sinh hóa còn lại. Kết quả dự đoán cao
 nhưng lời giải thích nghèo nàn. Nhận định này khớp với tài liệu chung về các mô
 hình Transformer trên dữ liệu bảng quy mô nhỏ: mạnh về dự đoán, yếu về minh bạch
-cục bộ. Cần lưu ý: bản FT-Transformer của tôi là phiên bản gọn, tự cài (không
+cục bộ. Cần lưu ý: bản FT-Transformer dùng trong đợt này là phiên bản gọn, tự cài (không
 dùng torch), chưa tuning — không nên tổng quát hóa kết luận cho mọi biến thể
 FT-Transformer.
 
 **5. MLP — sai lệch bản chất sinh lý học (collinearity / gradient artifact).**
 Đây là trường hợp đáng chú ý nhất: MLP gán SBP là yếu tố tăng nguy cơ cực mạnh
 (+0.671) nhưng lại coi DBP 95 mmHg (−0.269) và Nhịp tim 88 (−0.279) là yếu tố
-bảo vệ/giảm nguy cơ — đi ngược lại tri thức y khoa. Tôi cho rằng đây là hiện
+bảo vệ/giảm nguy cơ — đi ngược lại tri thức y khoa. Đây là hiện
 tượng **weights cancellation** kinh điển trong mạng nơ-ron khi xử lý dữ liệu
 bảng có hai biến tương quan thuận mạnh (SBP và DBP): một biến nhận trọng số
 dương lớn, biến còn lại bị gán trọng số âm để bù trừ. **Mức độ chắc chắn của
-giải thích này ở mức trung bình** — tôi chưa phân tích sâu kiến trúc MLP, nên
+giải thích này ở mức trung bình** — kiến trúc MLP chưa được phân tích sâu, nên
 đây là giả thuyết hợp lý chứ không phải kết luận đã chứng minh.
 
 ### 3.3. Nhận xét rút ra
@@ -188,7 +188,7 @@ của từng mô hình (seed 42, đại diện):
 | 6 | Tab **So sánh luận giải** | Form nhập đủ 10 chỉ số (mở rộng, có glucose/egfr/spo2) | `benchmark_form_10_chi_so.png` |
 | 7 | Tab **Chi tiết thí nghiệm** | Vài evidence package tiêu biểu (XGB/LGBM/RF) có kèm curves | `benchmark_chi_tiet_thi_nghiem.png` |
 
-## 6. Giới hạn của đợt thực nghiệm này (tôi nói thẳng)
+## 6. Giới hạn của đợt thực nghiệm này
 
 1. **Chưa tuning hyperparameter** cho bất kỳ mô hình nào — kết quả là mốc ban
    đầu, có thể cải thiện (đặc biệt FT-Transformer và MLP).
@@ -211,7 +211,7 @@ của từng mô hình (seed 42, đại diện):
 ## 7. Cập nhật sau đợt 1 (17/08)
 
 Kết quả benchmark ở trên dùng NHANES 2017–2018 (n = 4.949) và mô hình sản xuất
-`risk_lgbm_real.joblib` được huấn luyện trên cùng bộ đó. Sau đợt 1, tôi đã:
+`risk_lgbm_real.joblib` được huấn luyện trên cùng bộ đó. Sau đợt 1, nhóm đã:
 
 - **Mở rộng dataset** sang 3 chu kỳ NHANES (2015–2016, 2017–2018, 2021–2023),
   gộp thành `data/datasets/nhanes_merged.csv` (n = 16.314, positive 49,0%).

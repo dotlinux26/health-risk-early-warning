@@ -20,6 +20,8 @@
 - [08. Nguồn tri thức y khoa và xây dựng luật](docs/08_Nguon_tri_thuc_va_xay_dung_luat.md)
 - [09. Thảo luận & chuẩn hóa định vị đề tài (nội bộ)](docs/09_Thao_luan_chuan_hoa_dinh_vi.md)
 - [10. Bài toán lựa chọn mô hình học máy](docs/10_Bai_toan_lua_chon_mo_hinh_ML.md)
+- [11. Kết quả benchmark lần 1 (NHANES 1 chu kỳ)](docs/11_Ket_qua_benchmark_lan_1.md)
+- [12. Báo cáo giai đoạn: trợ lý chat + đánh giá đa mô hình + benchmark mở rộng](docs/12_Bao_cao_giai_doan_chat_tong_hop.md)
 
 ## Kiến trúc 3 tầng
 
@@ -27,13 +29,17 @@
 Tầng 1  Phân tích bất thường & xu hướng cá nhân (Z-Score, Isolation Forest, EWMA/STL,
         sai số dự báo chuỗi thời gian — EWMA offline, sẵn sàng Chronos/TimesFM)
 Tầng 2  Ánh xạ tri thức y khoa (rule engine trên JSON)
-Tầng 3  Tổng hợp rủi ro & hỗ trợ quyết định (LightGBM + SHAP + báo cáo chi tiết từng chỉ số)
+Tầng 3  Tổng hợp rủi ro & hỗ trợ quyết định (6 mô hình ML XGB/LGBM/RF/FT/MLP/LR,
+        mỗi mô hình cho điểm tổng hợp riêng + báo cáo chi tiết từng chỉ số)
 ```
 
-Mô hình ML hiện tại: LightGBM được huấn luyện trên **dữ liệu thật NHANES 2017-2018
-(CDC)** — 4949 người, nhãn tăng huyết áp/đái tháo đường (AUC 5-fold 0.9436) — và
-được đối chứng trên Pima Diabetes (AUC 0.8116) và Cleveland Heart Disease (AUC
-0.8906). Chi tiết kết quả, giới hạn và lộ trình: [docs/06](docs/06_Bao_cao_huong_train_va_gioi_han.md).
+Mô hình ML hiện tại: LightGBM được huấn luyện trên **dữ liệu thật NHANES 3 chu kỳ
+(CDC)** — `data/datasets/nhanes_merged.csv` (n = 16.314, nhãn tăng huyết áp/đái
+tháo đường) — AUC 0.9356 ± 0.0016. So sánh 6 mô hình (XGBoost / LightGBM /
+Random Forest / FT-Transformer / MLP / Logistic Regression) cùng bộ dữ liệu:
+`experiments/summary.json` (XGBoost đứng đầu ROC-AUC 0.9356±0.0028, ba model
+boosting/tree gần tương đương). Chi tiết: [docs/06](docs/06_Bao_cao_huong_train_va_gioi_han.md),
+[docs/11](docs/11_Ket_qua_benchmark_lan_1.md), [docs/12](docs/12_Bao_cao_giai_doan_chat_tong_hop.md).
 
 > **Định vị:** đề tài xây dựng một **khung hỗ trợ quyết định lâm sàng** (CDSF),
 > không xây dựng một mô hình AI mới. Mô hình học máy (LightGBM) là một thành phần
@@ -65,11 +71,25 @@ Sau khi chạy `./run_api.sh start`, mở trình duyệt tại **http://127.0.0.
 2. Nhập nhật ký sức khỏe hàng ngày — mỗi ngày một dòng, ví dụ:
    - `Huyết áp 135/85, nhịp tim 80`
    - `Đường huyết lúc đói 6.9, cân nặng 77`
-   - Hoặc **đính kèm file PDF/DOCX** báo cáo khám (đọc được cả báo cáo thật xuất từ NHANES trong `data/sample_nhanes/`).
-3. Dữ liệu được tích lũy theo bệnh nhân; khi đủ 7 ngày đo, hệ thống đưa ra **báo cáo nguy cơ cá nhân hóa**.
-4. Lệnh điều khiển: `trạng thái` (tình trạng hiện tại), `báo cáo` (đánh giá đầy đủ), `xóa dữ liệu` (reset bệnh nhân).
+   - Hoặc **đính kèm file PDF/DOCX** báo cáo khám — bằng nút 📎, **kéo-thả file**
+     vào bất kỳ đâu trên trang, hoặc **dán (Ctrl+V)** file.
+3. (Tùy chọn) Bật ô **"Ngày đo"** dưới khung nhập để **gán ngày cho lần ghi nhận**
+   — hữu ích khi nhập lại nhật ký cũ hoặc nộp báo cáo khám nhiều ngày trước.
+   Bỏ chọn → hệ thống dùng ngày hôm nay (hoặc ngày ghi trong tin nhắn).
+4. Dữ liệu được tích lũy theo bệnh nhân; khi đủ 7 ngày đo, hệ thống đưa ra **báo cáo nguy cơ cá nhân hóa**.
+5. Lệnh điều khiển: `trạng thái` (tình trạng hiện tại), `báo cáo` (đánh giá đầy đủ), `xóa dữ liệu` (reset bệnh nhân).
 
-Kết quả đánh giá được trình bày theo thứ tự: **luật lâm sàng kích hoạt** (mỗi luật kèm link tham chiếu nguồn hướng dẫn gốc, thêm số trang/chương/trích đoạn nếu có), **bảng chỉ số theo dõi** (giá trị, đường cơ sở, thay đổi, xu hướng, Z-Score, phạm vi bình thường), rồi mới đến **hỗ trợ của mô hình ML** kèm ghi chú rõ đây là suy luận bổ sung, không phải chẩn đoán chính thức — kết luận cuối do bác sĩ xác nhận. Kết quả đủ thông tin để bệnh nhân trình bác sĩ.
+Kết quả đánh giá trình bày gọn: **mức rủi ro** (tiếng Việt: THẤP / TRUNG BÌNH /
+CAO), **hệ cơ quan cần kiểm tra**, **cảnh báo theo luật lâm sàng** (mỗi luật kèm
+link nguồn hướng dẫn gốc, số trang/chương/trích đoạn nếu có) và **chỉ số theo
+dõi** (giá trị, đường cơ sở, thay đổi, xu hướng). Các chi tiết như công thức tính
+điểm, chuẩn xếp loại, và **điểm tổng hợp theo từng mô hình ML** nằm trong thẻ
+ẤN-MỞ (`<details>`) để báo cáo không rối — mỗi mô hình (XGB/LGBM/RF/FT/MLP/LR)
+có một điểm cuối riêng (thống kê + tri thức y khoa + model đó + xu hướng), so
+sánh được model nào đẩy mức rủi ro cao hơn. Báo cáo kết thúc bằng mức độ đầy đủ
+dữ liệu (đánh dấu rõ chỉ số nào đang thiếu). Mọi suy luận ML đều ghi rõ là tham
+khảo bổ sung, kết luận cuối do bác sĩ xác nhận — kết quả đủ thông tin để bệnh
+nhân trình bác sĩ.
 
 ### Quản lý cơ sở tri thức (`/rules`)
 
@@ -84,7 +104,17 @@ python scripts/build_nhanes_dataset.py   # dựng dataset thật NHANES (CDC)
 python scripts/train_nhanes.py           # train model sản xuất trên NHANES
 python scripts/download_datasets.py      # tải dataset chính thống (UCI)
 python scripts/train_real_datasets.py    # đánh giá trên dữ liệu thật UCI
+python scripts/run_benchmark.py          # benchmark 6 mô hình -> experiments/
 ```
+
+## Benchmark
+
+So sánh 6 mô hình học máy trên `data/datasets/nhanes_merged.csv` (NHANES 3 chu
+kỳ, n = 16.314, 5 seed, impute median tránh data leakage). Kết quả tổng hợp ở
+`experiments/summary.json` / `summary.md`, chi tiết từng seed ở
+`experiments/EXP-ML-<MODEL>-<SEED>/`. Giao diện so sánh luận giải từng mô hình:
+**http://127.0.0.1:8000/benchmark** (gồm cả mức độ đầy đủ dữ liệu — lưu ý
+`glucose_fasting` thiếu 52% trong dataset gộp).
 
 ## Schema dữ liệu đầu vào
 
@@ -99,14 +129,34 @@ P001,2025-01-02,systolic_bp,131
 
 ```
 src/
-  config.py                 # tham số toàn cục
-  main.py                   # pipeline chính
-  api.py                    # API FastAPI
-  data/                     # nạp, làm sạch, đặc trưng hóa
-  tier1_anomaly/            # phát hiện bất thường cá nhân hóa
+  config.py                 # tham số toàn cục, ngưỡng, trọng số
+  main.py                   # pipeline chính: nạp dữ liệu -> đánh giá -> báo cáo
+  api.py                    # API FastAPI (chat, rules, benchmark, explain)
+  core/                     # hạ tầng chung: pipeline, types, config
+  data/                     # nạp / làm sạch / đặc trưng hóa dữ liệu (loader, features, preprocess)
+  tier1_anomaly/            # phân tích bất thường & xu hướng cá nhân
+  │                         # (zscore, isolation_forest, trend, forecast, detector)
   tier2_knowledge/          # cơ sở tri thức y khoa (JSON + rule engine)
-  tier3_risk/               # điểm rủi ro + báo cáo
-  models/                   # LightGBM, SHAP, LSTM (đối chứng)
-  ingest/                   # trích xuất dữ liệu từ PDF/DOCX
-  chat/                     # hộp thoại tích lũy nhật ký sức khỏe
+  tier3_risk/               # điểm rủi ro (scoring) + báo cáo (report)
+  tier4_explain/            # giải thích mô hình (SHAP + luận giải perturbation)
+  ingest/                   # trích xuất dữ liệu từ PDF/DOCX/TXT (parsers, pipeline, extractor, llm_extractor)
+  chat/                     # trợ lý trò chuyện: tích lũy nhật ký theo ngày, đánh giá, báo cáo
+  │   ├─ agent.py           #   xử lý hội thoại, lệnh, đánh giá
+  │   ├─ parser.py          #   nhận diện chỉ số từ câu tự nhiên
+  │   ├─ store.py           #   lưu/truy vấn nhật ký theo bệnh nhân (JSONL)
+  │   └─ static/            #   giao diện web: index.html (chat), rules.html, benchmark.html
+  experiments/              # benchmark đa mô hình (models, runner, protocol, view, ft_transformer)
+
+scripts/
+  build_nhanes_dataset.py   # dựng dataset NHANES nhiều chu kỳ
+  train_nhanes.py           # huấn luyện model sản xuất
+  run_benchmark.py          # benchmark 6 mô hình x 5 seed -> experiments/
+  download_datasets.py      # tải dataset UCI
+  train_real_datasets.py    # đánh giá trên dữ liệu thật UCI
+  export_nhanes_samples.py  # xuất báo cáo mẫu dạng PDF/DOCX (test ingest)
+  gen_sample_data.py        # sinh dữ liệu mẫu
+
+docs/                         # báo cáo nghiên cứu theo giai đoạn (01 → 12)
+experiments/                  # evidence package + bảng tổng hợp benchmark
+data/                         # dataset thật + dữ liệu chat mẫu (data/chat/, data/reports/)
 ```

@@ -79,21 +79,26 @@ def chat_page() -> str:
 
 @app.post("/api/chat")
 async def chat(payload: dict[str, Any]) -> JSONResponse:
-    """Body: {"patient_id": "P001", "message": "Huyết áp 135/85, nhịp tim 80"}"""
+    """Body: {"patient_id": "P001", "message": "Huyết áp 135/85, nhịp tim 80", "date": "2026-08-17"}"""
     pid = str(payload.get("patient_id", "P001"))
     message = str(payload.get("message", ""))
-    return JSONResponse(chat_agent.handle(pid, message))
+    day = payload.get("date")
+    return JSONResponse(chat_agent.handle(pid, message, day=str(day) if day else None))
 
 
 @app.post("/api/chat_file")
-async def chat_file(file: UploadFile = File(...), patient_id: str = Form("P001")) -> JSONResponse:
-    """Upload PDF/DOCX/TXT qua chat -> ingest -> tích lũy -> phản hồi."""
+async def chat_file(file: UploadFile = File(...), patient_id: str = Form("P001"),
+                    date: str = Form("")) -> JSONResponse:
+    """Upload PDF/DOCX/TXT qua chat -> ingest -> tích lũy -> phản hồi.
+
+    date (tùy chọn): ngày ghi nhận do người dùng chọn, ghi đè ngày trong file.
+    """
     if file.filename is None or file.filename.split(".")[-1].lower() not in {"pdf", "docx", "doc", "txt"}:
         return JSONResponse({"error": "Chỉ hỗ trợ pdf, docx, doc, txt"}, status_code=400)
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     tmp_path = TMP_DIR / file.filename
     tmp_path.write_bytes(await file.read())
-    return JSONResponse(chat_agent.handle(patient_id, "", file_path=tmp_path))
+    return JSONResponse(chat_agent.handle(patient_id, "", file_path=tmp_path, day=date or None))
 
 
 @app.get("/api/chat/patients")

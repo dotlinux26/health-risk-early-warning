@@ -147,7 +147,7 @@
   /* ---------- FOOTER ---------- */
   footer {
     padding: 12px 16px; background: var(--panel); border-top: 1px solid var(--line);
-    display: flex; gap: 10px; align-items: center;
+    display: flex; gap: 10px; align-items: center; position: relative;
   }
   footer input[type=text] {
     flex: 1; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 10px;
@@ -155,11 +155,29 @@
   }
   footer input[type=text]:focus { border-color: var(--brand-2); box-shadow: 0 0 0 3px rgba(2,132,199,.12); }
   footer button, .upload-label {
-    background: var(--brand-2); color: #fff; border: none; border-radius: 10px; padding: 11px 16px;
-    font-size: 14px; cursor: pointer; font-weight: 600; transition: background .15s;
+    background: var(--brand-2); color: #fff; border: none; border-radius: 10px; padding: 11px 14px;
+    font-size: 14px; cursor: pointer; font-weight: 600; transition: background .15s; white-space: nowrap;
   }
   footer button:hover, .upload-label:hover { background: var(--brand); }
   .upload-label input { display: none; }
+  .date-box { display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid var(--line);
+              border-radius: 10px; padding: 6px 10px; white-space: nowrap; }
+  .date-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--muted);
+                 cursor: pointer; user-select: none; }
+  .date-toggle input { accent-color: var(--brand-2); }
+  .date-box input[type=date] { border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px;
+                                font-size: 13px; color: var(--ink); background: #fff; outline: none; }
+  .date-box input[type=date]:disabled { opacity: .45; cursor: not-allowed; }
+  #drop-overlay {
+    position: fixed; inset: 12px; border: 3px dashed var(--brand-2); border-radius: 18px;
+    background: rgba(240,249,255,.9); backdrop-filter: blur(2px); color: var(--brand-2);
+    font-size: 20px; font-weight: 700; display: none; align-items: center; justify-content: center;
+    z-index: 100; pointer-events: none;
+  }
+  body.dragging #drop-overlay { display: flex; }
+  @media (max-width: 860px) {
+    .date-box { order: 3; width: 100%; }
+  }
 
   @media (max-width: 860px) {
     .main { flex-direction: column; }
@@ -225,9 +243,17 @@ Lệnh: "trạng thái" • "báo cáo" • "xóa dữ liệu"</div>
 </div>
 
 <footer>
-  <label class="upload-label">📎 File<input type="file" id="file" accept=".pdf,.docx,.doc,.txt"></label>
+  <label class="upload-label" title="Chọn file (PDF/DOCX/TXT)">📎<input type="file" id="file" accept=".pdf,.docx,.doc,.txt"></label>
+  <div class="date-box" title="Gán ngày cho lần ghi nhận này (bỏ chọn = dùng ngày hôm nay)">
+    <label class="date-toggle">
+      <input type="checkbox" id="date-enable">
+      <span>Ngày đo:</span>
+    </label>
+    <input type="date" id="date-input" disabled>
+  </div>
   <input type="text" id="input" placeholder="Nhập nhật ký sức khỏe hoặc lệnh…" autocomplete="off">
   <button id="send">Gửi</button>
+  <div id="drop-overlay">Thả file để tải lên</div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
@@ -239,6 +265,8 @@ const pidSelect = document.getElementById('pid-select');
 const badge = document.getElementById('status-badge');
 const modelOpts = document.getElementById('model-opts');
 const btnExplain = document.getElementById('btn-explain');
+const dateEnable = document.getElementById('date-enable');
+const dateInput = document.getElementById('date-input');
 
 const MODELS_KEY = 'hrk_explain_models';
 let state = {
@@ -250,6 +278,21 @@ let state = {
 };
 
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// Ngày do người dùng chọn (nếu bật toggle). "" = không gán -> dùng hôm nay.
+function selectedDate(){
+  if (dateEnable && dateEnable.checked && dateInput && dateInput.value) return dateInput.value;
+  return '';
+}
+
+dateEnable.addEventListener('change', () => {
+  dateInput.disabled = !dateEnable.checked;
+  if (dateEnable.checked && !dateInput.value) dateInput.value = new Date().toISOString().slice(0, 10);
+});
+// Nhấn Enter trong ô ngày cũng gửi nhanh
+dateInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); if (input.value.trim()) submit(input.value); }
+});
 
 // Mở link ngoài trong tab mới.
 function enhanceHtml(html){
@@ -456,10 +499,13 @@ pidSelect.addEventListener('change', () => {
 });
 
 async function send(text, pid){
+  const payload = {patient_id: pid, message: text};
+  const d = selectedDate();
+  if (d) payload.date = d;
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({patient_id: pid, message: text})
+    body: JSON.stringify(payload)
   });
   return res.json();
 }
@@ -467,6 +513,8 @@ async function send(text, pid){
 async function sendFile(file, pid){
   const fd = new FormData();
   fd.append('patient_id', pid);
+  const d = selectedDate();
+  if (d) fd.append('date', d);
   fd.append('file', file);
   const res = await fetch('/api/chat_file', {method: 'POST', body: fd});
   return res.json();
@@ -507,6 +555,30 @@ document.getElementById('send').addEventListener('click', () => { submit(input.v
 document.getElementById('file').addEventListener('change', e => {
   if (e.target.files[0]) { submit('', e.target.files[0]); e.target.value = ''; }
 });
+
+// ---------- KÉO-THẢ FILE ----------
+let dragDepth = 0;
+window.addEventListener('dragenter', e => {
+  if (e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files')) {
+    dragDepth++; document.body.classList.add('dragging');
+  }
+});
+window.addEventListener('dragleave', () => {
+  if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragging'); }
+});
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => {
+  e.preventDefault();
+  dragDepth = 0;
+  document.body.classList.remove('dragging');
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) submit('', f);
+});
+document.addEventListener('paste', e => {
+  const f = e.clipboardData && e.clipboardData.files && e.clipboardData.files[0];
+  if (f && f.type) submit('', f);
+});
+
 loadPatients();
 loadModels();
 </script>

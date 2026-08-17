@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Hiện trạng (tôi đã rà lại toàn bộ source)
+## 1. Hiện trạng (đã rà lại toàn bộ source)
 
 Cấu trúc hiện tại đã có 3 nhánh tầng nhưng **chưa tách bạch hoàn toàn**:
 
