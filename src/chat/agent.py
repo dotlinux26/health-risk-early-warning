@@ -28,6 +28,33 @@ COMMANDS = {
     "reset": "reset",
 }
 
+# Nhận diện chế độ chẩn đoán chuyên biệt từ câu hỏi tự nhiên.
+# Ví dụ "đánh giá nguy cơ tăng huyết áp" -> modes=["htn"].
+MODE_KEYWORDS: dict[str, tuple[str, list[str]]] = {
+    "tăng huyết áp": ("htn", ["htn"]),
+    "tang huyet ap": ("htn", ["htn"]),
+    "huyết áp": ("htn", ["htn"]),
+    "huyet ap": ("htn", ["htn"]),
+    "tim": ("cv", ["cv"]),
+    "tim mạch": ("cv", ["cv"]),
+    "tim mach": ("cv", ["cv"]),
+    "tiểu đường": ("dm", ["dm"]),
+    "tieu duong": ("dm", ["dm"]),
+    "đái tháo đường": ("dm", ["dm"]),
+    "dai thao duong": ("dm", ["dm"]),
+    "đường huyết": ("dm", ["dm"]),
+    "duong huyet": ("dm", ["dm"]),
+    "thận": ("ckd", ["ckd"]),
+    "than": ("ckd", ["ckd"]),
+    "hô hấp": ("resp", ["resp"]),
+    "ho hap": ("resp", ["resp"]),
+    "spo2": ("resp", ["resp"]),
+    "cân nặng": ("met", ["met"]),
+    "can nang": ("met", ["met"]),
+    "cân": ("met", ["met"]),
+    "bmi": ("met", ["met"]),
+}
+
 
 class ChatAgent:
     def __init__(
@@ -46,6 +73,7 @@ class ChatAgent:
         """Xử lý một tin nhắn chat. Trả về dict chứa `reply` và dữ liệu cấu trúc."""
         message = (message or "").strip()
         pid = (patient_id or "P001").strip()
+        self._last_message = message
 
         if file_path is not None:
             return self._handle_file(pid, file_path)
@@ -87,11 +115,25 @@ class ChatAgent:
                                         f"[file {Path(file_path).name}]")
 
     # ------------------------------------------------------------------ #
+    def _detect_modes(self, message: str) -> list[str] | None:
+        """Nhận diện chế độ chẩn đoán chuyên biệt từ câu hỏi tự nhiên."""
+        if not message:
+            return None
+        msg = message.lower()
+        found: list[str] = []
+        for kw, (_label, modes) in MODE_KEYWORDS.items():
+            if kw in msg:
+                for m in modes:
+                    if m not in found:
+                        found.append(m)
+        return found or None
+
     def _run_command(self, pid: str, action: str) -> dict:
         if action == "status":
             st = self.store.status(pid, self.config.min_points)
             lines = [self._fmt_status(st)]
-            quick = self._quick_snapshot(pid)
+            modes = self._detect_modes(self._last_message or "")
+            quick = self._quick_snapshot(pid, modes=modes)
             if quick["risk_level"] != "KHONG_PHAT_HIEN":
                 lines.append(f"Đánh giá sơ bộ hiện tại: **{quick['risk_level']}** — {quick['summary']}")
             if st["ready"]:
@@ -104,7 +146,8 @@ class ChatAgent:
             if df.empty:
                 return {"reply": "Chưa có dữ liệu. Gửi nhật ký sức khỏe hàng ngày để tích lũy.",
                         "ready": False, "collected": st}
-            result = self._assess_df(df)
+            modes = self._detect_modes(message) if self._last_message else None
+            result = self._assess_df(df, modes=modes)
             result["reply"] = self._fmt_assessment(pid, result, ready=st["ready"], forced=True)
             result["ready"] = st["ready"]
             result["collected"] = st
@@ -128,16 +171,28 @@ class ChatAgent:
 
         lines.append(self._fmt_status(status))
 
+        # Đánh giá ngay theo tri thức y khoa từ snapshot hiện tại — dù chỉ có
+        # 1 chỉ số (máy đo HA ở nhà, cân tự đo). Không bắt buộc đủ 7 ngày.
+        df = self.store.load(pid)
+        modes = self._detect_modes(self._last_message or "") if not status["ready"] else None
         if status["ready"]:
-            df = self.store.load(pid)
             result = self._assess_df(df)
             lines.append(self._fmt_assessment(pid, result, ready=True))
             result["reply"] = "\n".join(lines)
             result["ready"] = True
             return result
 
-        # Chưa đủ dữ liệu -> phản hồi sơ bộ theo luật (nếu có) và yêu cầu bổ sung
-        quick = self._quick_snapshot(pid)
+        # Chưa đủ chuỗi thời gian nhưng vẫn đánh giá tức thì theo luật.
+        result = self._assess_df(df, modes=modes)
+        if result["risk_level"] != "INSUFFICIENT_DATA":
+            lines.append(self._fmt_assessment(pid, result, ready=False))
+            lines.append(self._ask_more(status))
+            result["reply"] = "\n".join(lines)
+            result["ready"] = False
+            result["collected"] = status
+            return result
+
+        quick = self._quick_snapshot(pid, modes=modes)
         if quick["risk_level"] != "KHONG_PHAT_HIEN":
             lines.append(f"Đánh giá sơ bộ hôm nay: **{quick['risk_level']}** — {quick['summary']}")
         lines.append(self._ask_more(status))
@@ -149,7 +204,7 @@ class ChatAgent:
         }
 
     # ------------------------------------------------------------------ #
-    def _quick_snapshot(self, pid: str) -> dict:
+    def _quick_snapshot(self, pid: str, modes: list[str] | None = None) -> dict:
         df = self.store.load(pid)
         if df.empty:
             return {"risk_level": "KHONG_PHAT_HIEN", "summary": ""}
@@ -157,14 +212,17 @@ class ChatAgent:
         last = wide.iloc[-1]
         snapshot = {c: float(last[c]) for c in wide.columns
                     if c != "timestamp" and not pd.isna(last[c])}
-        res = self.scorer.score([], snapshot=snapshot)
+        res = self.scorer.score([], snapshot=snapshot, modes=modes)
         if res.affected_systems:
             return {"risk_level": res.risk_level, "summary": ", ".join(res.affected_systems)}
         return {"risk_level": "KHONG_PHAT_HIEN", "summary": ""}
 
-    def _assess_df(self, df: pd.DataFrame) -> dict:
+    def _assess_df(self, df: pd.DataFrame, modes: list[str] | None = None) -> dict:
         wide = load_long_df(df)[df["patient_id"].iloc[0]]
-        return assess_patient(wide, self.config, self.scorer)
+        result = assess_patient(wide, self.config, self.scorer, modes=modes)
+        if modes:
+            result["modes"] = modes
+        return result
 
     # ------------------------------------------------------------------ #
     def _fmt_status(self, st: dict) -> str:
@@ -185,12 +243,21 @@ class ChatAgent:
             "Gửi thêm các lần đo — mỗi ngày một dòng, ví dụ:\n"
             "• " + "Huyết áp 128/82, nhịp tim 74, cân nặng 78" + "\n"
             "• " + "Đường huyết lúc đói 6.8" + "\n\n"
+            "Chế độ đánh giá chuyên biệt (gõ đầu câu): đánh giá nguy cơ tăng huyết "
+            "áp / tiểu đường / thận / hô hấp / cân nặng.\n\n"
             f"Ưu tiên theo dõi: {hints}."
         )
 
     def _fmt_assessment(self, pid: str, result: dict, ready: bool, forced: bool = False) -> str:
         head = f"**BÁO CÁO ĐẦY ĐỦ** ({pid})" if ready else f"**BÁO CÁO SƠ BỘ** ({pid})"
         lines = [head, f"- Mức rủi ro: **{result['risk_level']}** (điểm {result['risk_score']:.3f})"]
+        if result.get("modes"):
+            labels = {
+                "htn": "tăng huyết áp", "dm": "đái tháo đường", "ckd": "suy thận mạn",
+                "resp": "hô hấp", "met": "chuyển hóa", "cv": "tim mạch", "endo": "nội tiết",
+            }
+            modes_str = ", ".join(labels.get(m, m) for m in result["modes"])
+            lines.append(f"- Chế độ đánh giá: **{modes_str}**")
         lines.append(f"- Hệ cơ quan có khả năng ảnh hưởng: "
                      f"{', '.join(result['affected_systems']) if result['affected_systems'] else 'chưa xác định'}")
 

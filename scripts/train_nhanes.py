@@ -73,13 +73,13 @@ def main() -> None:
     meta = {
         "feature_names": FEATURES,
         "feature_medians": medians,
-        "label": "tăng huyết áp HOẶC đái tháo đường (NHANES 2017-2018)",
+        "label": "tăng huyết áp HOẶC đái tháo đường (NHANES)",
         "n": int(len(df)),
         "positive": int(y.sum()),
         "auc_cv": float(np.mean(aucs)),
         "auc_cv_std": float(np.std(aucs)),
         "auprc_cv": float(np.mean(auprcs)),
-        "data_source": "NHANES 2017-2018 (CDC/NCHS)",
+        "data_source": "NHANES (CDC/NCHS): " + ", ".join(df.get("cycle", pd.Series()).unique()) if "cycle" in df.columns else "NHANES (CDC/NCHS)",
         "trained_at": pd.Timestamp.now().isoformat(),
     }
     (out.parent / f"{out.name}_meta.json").write_text(

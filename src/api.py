@@ -230,8 +230,11 @@ def benchmark_explain(payload: dict[str, Any]) -> JSONResponse:
     return JSONResponse({"results": results, "clinical": context})
 
 
-def _assess_json(records: list[dict[str, Any]], patient_id: str) -> JSONResponse:
-    """Đánh giá từ danh sách bản ghi chuẩn (long format)."""
+def _assess_json(records: list[dict[str, Any]], patient_id: str, modes: list[str] | None = None) -> JSONResponse:
+    """Đánh giá từ danh sách bản ghi chuẩn (long format).
+
+    modes: chế độ chẩn đoán chuyên biệt, vd ["htn"] chỉ xét luật tăng huyết áp.
+    """
     import pandas as pd
 
     df = pd.DataFrame(records)
@@ -239,18 +242,25 @@ def _assess_json(records: list[dict[str, Any]], patient_id: str) -> JSONResponse
         return JSONResponse({"error": "Thiếu cột (cần: timestamp, metric, value)"}, status_code=400)
     df["patient_id"] = patient_id
     wide = load_long_df(df)[patient_id]
-    result = assess_patient(wide, CONFIG, scorer)
-    return JSONResponse({"patient_id": patient_id, **result})
+    result = assess_patient(wide, CONFIG, scorer, modes=modes)
+    return JSONResponse({"patient_id": patient_id, "modes": modes, **result})
 
 
 @app.post("/api/assess")
 async def assess(payload: dict[str, Any]) -> JSONResponse:
-    """Body: {"patient_id": "P001", "records": [{"timestamp": "...", "metric": "...", "value": 128}, ...]}"""
+    """Body: {"patient_id": "P001", "mode": "htn", "records": [{"timestamp": "...", "metric": "...", "value": 128}, ...]}"""
     patient_id = str(payload.get("patient_id", "P001"))
     records = payload.get("records", [])
     if not records:
         return JSONResponse({"error": "records rỗng"}, status_code=400)
-    return _assess_json(records, patient_id)
+    modes = payload.get("mode")
+    if isinstance(modes, str) and modes.strip():
+        modes = [m.strip() for m in modes.split(",") if m.strip()]
+    elif isinstance(modes, list):
+        modes = [str(m) for m in modes]
+    else:
+        modes = None
+    return _assess_json(records, patient_id, modes=modes)
 
 
 @app.post("/api/assess_docs")
@@ -291,7 +301,6 @@ async def assess_docs(
             **result,
         }
     )
-
 
 if __name__ == "__main__":
     import uvicorn

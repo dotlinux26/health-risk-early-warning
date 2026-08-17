@@ -208,6 +208,21 @@ của từng mô hình (seed 42, đại diện):
    bệnh riêng nên "điểm theo luật" là attribution trên model gộp, không phải
    điểm riêng của bệnh đó.
 
+## 7. Cập nhật sau đợt 1 (17/08)
+
+Kết quả benchmark ở trên dùng NHANES 2017–2018 (n = 4.949) và mô hình sản xuất
+`risk_lgbm_real.joblib` được huấn luyện trên cùng bộ đó. Sau đợt 1, tôi đã:
+
+- **Mở rộng dataset** sang 3 chu kỳ NHANES (2015–2016, 2017–2018, 2021–2023),
+  gộp thành `data/datasets/nhanes_merged.csv` (n = 16.314, positive 49,0%).
+- **Huấn luyện lại mô hình sản xuất** trên dataset mới:
+  `AUC 0.9356 ± 0.0016` (CV 5-fold). AUC thấp hơn đợt 1 (0.9425 ± 0.0046) một
+  chút nhưng **phương sai giảm ~3 lần** — hợp lý khi gộp thêm chu kỳ có khác
+  biệt về phương pháp đo (BP oscillometric, codebook thuốc mới ở chu kỳ
+  2021–2023), giảm học quá khớp một chu kỳ.
+- Ghi chú chi tiết đợt nâng cấp này tại `notes/05_Mo_rong_chu_doan_va_dataset.md`
+  (đánh giá tức thì từ 1 chỉ số + chế độ chẩn đoán chuyên biệt theo bệnh).
+
 ---
 
 *Tài liệu thực nghiệm. Số liệu truy xuất từ `experiments/`, chạy lại được bằng

@@ -63,11 +63,13 @@ def assess_patient(
     config: Config,
     scorer: RiskScorer,
     explainer=None,
+    modes: list[str] | None = None,
 ) -> dict:
     """Chạy 3 tầng cho một bệnh nhân (wide format), tầng 4 (nếu có) sinh lời giải.
 
     explainer: đối tượng có phương thức explain(context) -> str (xem
     src/tier4_explain/base.py). Tuỳ chọn — hệ thống chạy đầy đủ khi vắng mặt.
+    modes: chế độ chẩn đoán chuyên biệt (htn/dm/ckd/...), xem scoring.py.
     """
     # 1) Làm sạch & đường cơ sở cá nhân
     df = resample_to_daily(df_wide)
@@ -96,7 +98,7 @@ def assess_patient(
     # 3) Tầng 2 — tri thức y khoa (luôn chạy từ snapshot giá trị hiện tại)
     # 4) Tầng 3 — tổng hợp rủi ro (thống kê + tri thức + ML + xu hướng)
     ml_score = _ml_score_for(df, value_cols, config)
-    result = scorer.score(records, ml_score=ml_score, snapshot=snapshot)
+    result = scorer.score(records, ml_score=ml_score, snapshot=snapshot, modes=modes)
 
     output = {
         "tier1_summary": tier1_summary(records),

@@ -38,6 +38,35 @@ _DEFAULT_METRIC_SYSTEM: dict[str, tuple[str, str]] = {
     "bmi": ("chuyen_hoa", "Khoa Nội tiết"),
 }
 
+# Chế độ chẩn đoán chuyên biệt: mode -> nhóm hệ cơ quan được xét.
+# Ví dụ mode="htn" chỉ xét các luật của hệ tim mạch (tăng huyết áp).
+DIAGNOSTIC_MODES: dict[str, set[str]] = {
+    "all": set(),                            # xét mọi luật (không lọc)
+    "htn": {"tim_manh"},                     # tăng huyết áp
+    "dm": {"noi_tiet"},                      # đái tháo đường
+    "ckd": {"than"},                         # suy thận mạn
+    "resp": {"ho_hap"},                      # hô hấp / SpO2
+    "met": {"chuyen_hoa"},                   # chuyển hóa / cân nặng
+    "cv": {"tim_manh"},                      # tim mạch tổng hợp
+    "endo": {"noi_tiet", "chuyen_hoa"},      # nội tiết + chuyển hóa
+}
+
+
+def normalize_modes(modes: list[str] | None) -> list[str] | None:
+    """Chuẩn hoá danh sách mode; None/"all" -> None (xét tất cả)."""
+    if not modes:
+        return None
+    out = {m.strip().lower() for m in modes if m and m.strip().lower() != "all"}
+    return list(out) if out else None
+
+
+def _rule_in_modes(rule: dict[str, Any], modes: list[str]) -> bool:
+    system = rule.get("system", "")
+    allowed: set[str] = set()
+    for m in modes:
+        allowed |= DIAGNOSTIC_MODES.get(m, {m})
+    return system in allowed
+
 
 def validate_condition(condition: Any, errors: list[str], prefix: str = "condition") -> None:
     """Validate cấu trúc điều kiện luật (đệ quy, chấp nhận and/or lồng nhau).
@@ -98,6 +127,18 @@ def validate_rule(rule: dict[str, Any]) -> list[str]:
         val = rule.get(field)
         if val is not None and not isinstance(val, str):
             errors.append(f"{field}: cần là chuỗi văn bản")
+    # Chế độ chẩn đoán chuyên biệt — tùy chọn. Mặc định "all" nếu không khai.
+    modes = rule.get("modes")
+    if modes is not None:
+        if not isinstance(modes, list) or not all(isinstance(m, str) for m in modes):
+            errors.append("modes: cần là danh sách chuỗi (vd [\"htn\", \"cv\"])")
+        else:
+            from src.tier2_knowledge.rules import DIAGNOSTIC_MODES
+
+            valid = set(DIAGNOSTIC_MODES) | {"all"}
+            for m in modes:
+                if m not in valid:
+                    errors.append(f"modes: '{m}' không hợp lệ (các mode: {sorted(valid)})")
     validate_condition(rule.get("condition"), errors)
     return errors
 
@@ -114,6 +155,7 @@ class RuleHit:
     specialty: str
     evidence: str
     matched_metrics: list[str] = field(default_factory=list)
+    modes: list[str] = field(default_factory=list)
     source_url: str = ""
     source_page: str = ""
     source_section: str = ""
@@ -129,6 +171,7 @@ class RuleHit:
             "specialty": self.specialty,
             "evidence": self.evidence,
             "matched_metrics": self.matched_metrics,
+            "modes": self.modes,
             "source_url": self.source_url,
         }
         if self.source_page:
@@ -209,10 +252,17 @@ class KnowledgeBase:
         else:
             out.append(condition["metric"])
 
-    def evaluate(self, snapshot: dict[str, float]) -> list[RuleHit]:
-        """Đối chiếu snapshot chỉ số hiện tại với mọi luật."""
+    def evaluate(self, snapshot: dict[str, float], modes: list[str] | None = None) -> list[RuleHit]:
+        """Đối chiếu snapshot chỉ số hiện tại với mọi luật.
+
+        modes: lọc luật theo chế độ chẩn đoán chuyên biệt. Mỗi luật khai báo
+        thuộc hệ cơ quan nào (field `system`); mode ánh xạ system -> nhóm bệnh.
+        Ví dụ mode=["htn"] chỉ xét luật hệ tim mạch (tăng huyết áp).
+        """
         hits: list[RuleHit] = []
         for rule in self.rules:
+            if modes and not _rule_in_modes(rule, modes):
+                continue
             cond = rule["condition"]
             if self._eval_condition(cond, snapshot):
                 metrics: list[str] = []
@@ -227,6 +277,7 @@ class KnowledgeBase:
                         specialty=rule["specialty"],
                         evidence=rule["evidence"],
                         matched_metrics=metrics,
+                        modes=rule.get("modes", ["all"]),
                         source_url=rule.get("source_url", ""),
                         source_page=rule.get("source_page", ""),
                         source_section=rule.get("source_section", ""),
@@ -235,10 +286,10 @@ class KnowledgeBase:
                 )
         return sorted(hits, key=lambda h: -h.severity)
 
-    def evaluate_from_records(self, records: list[AnomalyRecord]) -> list[RuleHit]:
+    def evaluate_from_records(self, records: list[AnomalyRecord], modes: list[str] | None = None) -> list[RuleHit]:
         """Phiên bản dùng chính kết quả Tầng 1 (giá trị mới nhất)."""
         snapshot = {r.metric: r.current for r in records}
-        return self.evaluate(snapshot)
+        return self.evaluate(snapshot, modes=modes)
 
     def suggest_for_flagged(self, records: list[AnomalyRecord]) -> dict[str, str]:
         """Bản đồ fallback: chỉ số bị flag (Tầng 1) → hệ cơ quan & chuyên khoa.

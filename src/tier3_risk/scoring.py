@@ -193,11 +193,20 @@ class RiskScorer:
         records: list[AnomalyRecord],
         ml_score: float | None = None,
         snapshot: dict[str, float] | None = None,
+        modes: list[str] | None = None,
     ) -> RiskResult:
-        """Tính điểm tổng hợp và sinh đầu ra chuẩn 3 thành phần."""
-        hits = self.kb.evaluate_from_records(records) if records else []
+        """Tính điểm tổng hợp và sinh đầu ra chuẩn 3 thành phần.
+
+        modes: chế độ chẩn đoán chuyên biệt (htn/dm/ckd/resp/met/...). Truyền
+        None/"all" để xét mọi luật. Dùng khi chỉ có bộ chỉ số tương ứng (vd
+        máy đo huyết áp ở nhà -> mode="htn").
+        """
+        from src.tier2_knowledge.rules import normalize_modes
+
+        modes = normalize_modes(modes)
+        hits = self.kb.evaluate_from_records(records, modes=modes) if records else []
         if snapshot and not records:
-            hits = self.kb.evaluate(snapshot)
+            hits = self.kb.evaluate(snapshot, modes=modes)
         suggestions = self.kb.suggest_for_flagged(records) if records else {}
 
         components = {

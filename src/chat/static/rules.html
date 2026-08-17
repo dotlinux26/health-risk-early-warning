@@ -106,6 +106,8 @@
       <input id="f-specialty" placeholder="Ví dụ: Khoa Tim mạch">
       <label>Nguồn (evidence)</label>
       <input id="f-evidence" placeholder="Ví dụ: ESC/ESH 2018">
+      <label>Chế độ chẩn đoán (cách nhau bằng dấu phẩy; để trống = mọi chế độ)</label>
+      <input id="f-modes" placeholder="Ví dụ: htn, cv — xem gợi ý: htn, dm, ckd, resp, met, cv, endo, all">
       <label>Link nguồn (tải bản gốc hướng dẫn)</label>
       <input id="f-source-url" type="url" placeholder="https://..." >
       <label>Số trang (tùy chọn)</label>
@@ -246,6 +248,7 @@ function renderRules() {
       '<span class="rid">' + esc(r.rule_id) + '</span> — ' + esc(r.name) + ' <span class="muted">(' + esc(sysName) + ')</span>' +
       '<div class="cond">' + fmtCond(r.condition) + '</div>' +
       '<div class="sev">Độ nặng ' + r.severity + ' · ' + esc(r.specialty) + ' · nguồn: ' + esc(r.evidence) + url + locHtml + '</div>' +
+      (r.modes && r.modes.length ? '<div class="cond" style="color:#0f766e">Chế độ: ' + (r.modes.includes('all') ? 'mọi chế độ' : r.modes.map(m => '<code>' + esc(m) + '</code>').join(' ')) + '</div>' : '') +
       exHtml +
       '<div class="ops">' +
         '<button class="btn" onclick="editRule(\'' + escAttr(r.rule_id) + '\')">Sửa</button>' +
@@ -314,6 +317,8 @@ function collectRule() {
     if (!isNaN(win) && win > 0) c.window_days = win;
     conds.push(c);
   });
+  const modesRaw = $('f-modes').value.trim();
+  const modes = modesRaw ? modesRaw.split(',').map(s => s.trim()).filter(Boolean) : null;
   return {
     rule_id: ($('edit-rule-id').value || $('f-rule-id').value.trim()),
     name: $('f-name').value.trim(),
@@ -325,6 +330,7 @@ function collectRule() {
     source_page: $('f-source-page').value.trim(),
     source_section: $('f-source-section').value.trim(),
     source_excerpt: $('f-source-excerpt').value.trim(),
+    modes: modes,
     condition: conds.length > 1 ? { logic: $('f-logic').value, conditions: conds } : conds[0],
   };
 }
@@ -356,6 +362,7 @@ function resetForm() {
   $('f-severity').value = '0.7';
   $('f-specialty').value = '';
   $('f-evidence').value = '';
+  $('f-modes').value = '';
   $('f-source-url').value = '';
   $('f-source-page').value = '';
   $('f-source-section').value = '';
@@ -379,6 +386,7 @@ async function editRule(ruleId) {
   $('f-severity').value = r.severity;
   $('f-specialty').value = r.specialty;
   $('f-evidence').value = r.evidence;
+  $('f-modes').value = (r.modes || []).join(', ');
   $('f-source-url').value = r.source_url || '';
   $('f-source-page').value = r.source_page || '';
   $('f-source-section').value = r.source_section || '';

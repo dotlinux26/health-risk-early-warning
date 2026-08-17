@@ -16,7 +16,7 @@
     "unit": "mmol/L"
   },
   "glucose_fasting": {
-    "aliases": ["glucose lúc đói", "đường huyết lúc đói", "duong huyết luc doi", "đuong huyet luc doi", "duong huyet luc doi", "glucose fasting", "fasting glucose", "fasting blood sugar", "fbs"],
+    "aliases": ["glucose lúc đói", "đường huyết lúc đói", "đường huyết đói", "duong huyet doi", "duong huyết luc doi", "đuong huyet luc doi", "duong huyet luc doi", "glucose fasting", "fasting glucose", "fasting blood sugar", "fbs"],
     "unit": "mmol/L"
   },
   "hba1c": {
