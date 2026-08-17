@@ -1,8 +1,8 @@
 """Huấn luyện mô hình LightGBM trên dữ liệu tổng hợp có nhãn.
 
 Chạy:
-    python -m src.models.train --n-per-condition 120 --seed 42
-    python -m src.models.train --n-per-condition 120 --seed 42 --out data/models/risk_lgbm
+    python -m src.tier3_risk.ml.train --n-per-condition 120 --seed 42
+    python -m src.tier3_risk.ml.train --n-per-condition 120 --seed 42 --out data/models/risk_lgbm
 
 Sinh bệnh nhân (4 trạng thái) -> ma trận đặc trưng 60 ngày -> LightGBM nhị phân
 -> lưu model + tên cột đặc trưng + báo cáo AUC/AUPRC trên test.
@@ -17,8 +17,8 @@ import numpy as np
 import pandas as pd
 
 from src.config import Config
-from src.models.risk_model import RiskModel
-from src.models.synthetic_data import (
+from src.tier3_risk.ml.risk_model import RiskModel
+from src.tier3_risk.ml.synthetic_data import (
     CONDITIONS,
     STATE_LABEL,
     build_train_matrix,

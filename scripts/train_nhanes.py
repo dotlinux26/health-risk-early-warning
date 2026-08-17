@@ -27,7 +27,7 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 
 from src.config import Config
-from src.models.risk_model import RiskModel
+from src.tier3_risk.ml.risk_model import RiskModel
 
 FEATURES = [
     "systolic_bp", "diastolic_bp", "heart_rate",

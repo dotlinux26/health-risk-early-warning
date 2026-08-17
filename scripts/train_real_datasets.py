@@ -3,7 +3,7 @@
 Chạy:
     python scripts/train_real_datasets.py
 
-So với train trên dữ liệu tổng hợp (src/models/train.py), script này dùng dữ
+So với train trên dữ liệu tổng hợp (src/tier3_risk/ml/train.py), script này dùng dữ
 liệu thực thu thập lâm sàng (UCI), cross-validation 5-folds theo bệnh nhân để
 đánh giá khách quan hơn AUC/AUPRC. Kết quả ghi ra report/train_real_results.json
 phục vụ báo cáo docs/06.
@@ -23,7 +23,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import roc_auc_score, average_precision_score
 from sklearn.impute import SimpleImputer
 
-from src.models.risk_model import RiskModel
+from src.tier3_risk.ml.risk_model import RiskModel
 from src.config import Config
 
 

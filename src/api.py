@@ -21,10 +21,10 @@ from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from src.config import CONFIG
+from src.core.pipeline import VALUE_COLUMNS, assess_patient
 from src.data.loader import load_long_df
 from src.data.preprocess import build_baseline, impute_missing, resample_to_daily
 from src.ingest.pipeline import ingest_file
-from src.main import VALUE_COLUMNS, assess_patient
 from src.tier1_anomaly.detector import run_tier1, tier1_summary
 from src.tier2_knowledge.rules import KnowledgeBase
 from src.tier3_risk.scoring import RiskScorer
@@ -186,9 +186,17 @@ def benchmark_page() -> str:
 
 @app.get("/api/benchmark")
 def benchmark_summary() -> dict:
-    from src.experiments.view import build_summary, list_experiments
+    from src.experiments.view import (
+        available_input_metrics,
+        build_summary,
+        list_experiments,
+    )
 
-    return {"summary": build_summary(), "experiments": list_experiments()}
+    return {
+        "summary": build_summary(),
+        "experiments": list_experiments(),
+        "input_metrics": available_input_metrics(),
+    }
 
 
 @app.get("/api/benchmark/exp/{experiment_id}/curves")
@@ -207,7 +215,7 @@ def benchmark_curves(experiment_id: str):
 @app.post("/api/benchmark/explain")
 def benchmark_explain(payload: dict[str, Any]) -> JSONResponse:
     """Body: {"metrics": {"systolic_bp": 202, ...}} -> so sánh luận giải các model."""
-    from src.experiments.view import explain_patient
+    from src.experiments.view import clinical_context, explain_patient
 
     values = payload.get("metrics") or {}
     model_keys = payload.get("models") or None
@@ -217,8 +225,9 @@ def benchmark_explain(payload: dict[str, Any]) -> JSONResponse:
         values = {k: float(v) for k, v in values.items()}
     except (TypeError, ValueError):
         return JSONResponse({"error": "Giá trị metrics phải là số"}, status_code=400)
-    results = explain_patient(values, model_keys=model_keys)
-    return JSONResponse({"results": results})
+    context = clinical_context(values)
+    results = explain_patient(values, model_keys=model_keys, rules=context.get("rules"))
+    return JSONResponse({"results": results, "clinical": context})
 
 
 def _assess_json(records: list[dict[str, Any]], patient_id: str) -> JSONResponse:

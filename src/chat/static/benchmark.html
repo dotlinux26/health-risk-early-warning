@@ -83,13 +83,7 @@
   <div class="grid2">
     <div>
       <form id="explain-form">
-        <label>Systolic BP (mmHg)</label><input id="m-systolic_bp" type="number" value="165">
-        <label>Diastolic BP (mmHg)</label><input id="m-diastolic_bp" type="number" value="95">
-        <label>Nhịp tim (lần/phút)</label><input id="m-heart_rate" type="number" value="88">
-        <label>Đường huyết đói (mmol/L)</label><input id="m-glucose_fasting" type="number" value="6.2">
-        <label>HbA1c (%)</label><input id="m-hba1c" type="number" value="6.1">
-        <label>Creatinine (mg/dL)</label><input id="m-creatinine" type="number" value="0.9">
-        <label>BMI (kg/m²)</label><input id="m-bmi" type="number" value="27">
+        <div id="metric-inputs"></div>
         <button class="btn" type="submit">So sánh luận giải các mô hình</button>
       </form>
       <div class="err" id="explain-err"></div>
@@ -125,10 +119,25 @@ async function load(){
     state.data = await res.json();
     const s = state.data.summary;
     $('meta').textContent = `Dataset: ${esc(s.dataset || '?')} · n=${s.n || '?'} · positive=${s.positive || '?'} · seeds=[${(s.seeds||[]).join(', ')}]`;
-    renderSummary(s); renderDetail();
+    renderSummary(s); renderDetail(); renderMetricInputs();
   } catch(e){
     $('meta').textContent = 'Lỗi tải dữ liệu benchmark: ' + e.message;
   }
+}
+
+const METRIC_DEFAULTS = {
+  systolic_bp: 165, diastolic_bp: 95, heart_rate: 88, glucose: 100,
+  glucose_fasting: 6.2, hba1c: 6.1, creatinine: 0.9, egfr: 90, spo2: 98, bmi: 27
+};
+
+function renderMetricInputs(){
+  const list = (state.data.input_metrics || []);
+  if (!list.length) { $('metric-inputs').innerHTML = ''; return; }
+  $('metric-inputs').innerHTML = list.map(m => {
+    const def = METRIC_DEFAULTS[m.key] !== undefined ? METRIC_DEFAULTS[m.key] : '';
+    return `<label for="m-${m.key}">${esc(m.name)} <span class="sub">(${esc(m.key)})</span></label>` +
+      `<input id="m-${m.key}" type="number" step="any" value="${def}">`;
+  }).join('');
 }
 
 function renderSummary(s){
@@ -161,11 +170,10 @@ function renderSummary(s){
 // ---------- TAB 2: SO SÁNH LUẬN GIẢI ----------
 function readMetrics(){
   const out = {};
-  ['systolic_bp','diastolic_bp','heart_rate','glucose_fasting','hba1c','creatinine','bmi']
-    .forEach(k => {
-      const v = parseFloat($('m-' + k).value);
-      if (!isNaN(v)) out[k] = v;
-    });
+  (state.data.input_metrics || []).forEach(m => {
+    const v = parseFloat($('m-' + m.key).value);
+    if (!isNaN(v)) out[m.key] = v;
+  });
   return out;
 }
 
@@ -182,18 +190,41 @@ $('explain-form').addEventListener('submit', async e => {
     const d = await res.json();
     if (d.error) { errEl.textContent = d.error; return; }
     if (!d.results.length) { $('explain-result').innerHTML = '<span class="sub">Chưa có kết quả — chạy benchmark trước.</span>'; return; }
-    $('explain-result').innerHTML = d.results.map(r => {
+
+    let html = '';
+    const cl = d.clinical || {};
+    if (cl.note) {
+      html += `<div class="panel" style="margin-bottom:10px"><b>Bối cảnh lâm sàng:</b> ${esc(cl.note)}</div>`;
+    } else if (cl.systems && cl.systems.length) {
+      html += '<div class="panel" style="margin-bottom:10px"><b>Bệnh/nguy cơ lâm sàng được kích hoạt:</b><div style="margin-top:6px">';
+      cl.systems.forEach(s => {
+        const sev = s.max_severity >= 0.7 ? 'Cao' : (s.max_severity >= 0.4 ? 'Vừa' : 'Thấp');
+        html += `<div style="margin:4px 0"><span class="risk-badge r-${s.max_severity >= 0.7 ? 'CAO' : (s.max_severity >= 0.4 ? 'TRUNG_BINH' : 'THAP')}">${esc(s.label)} — mức ${sev}</span></div>`;
+        s.rules.forEach(r => {
+          html += `<div class="contrib" style="margin-left:14px"><span class="fw" style="min-width:120px">${esc(r.rule_id)}</span><span>${esc(r.name)}</span></div>`;
+        });
+      });
+      html += '</div></div>';
+    }
+    html += d.results.map(r => {
       const feats = r.top_features.map(f => {
         const dir = f.delta > 0.005 ? '<span class="pos">▲ +' + f.delta.toFixed(3) + '</span>'
                   : f.delta < -0.005 ? '<span class="neg">▼ ' + f.delta.toFixed(3) + '</span>'
                   : '<span>' + f.delta.toFixed(3) + '</span>';
         return `<div class="contrib"><span class="fw">${esc(f.feature)}</span><div class="bar-wrap" style="flex:1"><div class="bar" style="width:${Math.min(100, Math.abs(f.delta)*200).toFixed(0)}%"></div></div><span class="val">${dir}</span></div>`;
       }).join('');
+      const rules = (r.rule_attribution || []).map(x => {
+        const dir = x.delta > 0.005 ? '<span class="pos">▲ +' + x.delta.toFixed(3) + '</span>'
+                  : '<span>' + x.delta.toFixed(3) + '</span>';
+        return `<div class="contrib"><span class="fw" style="min-width:150px">${esc(x.rule_id)} · ${esc(x.system_label || '')}</span><span style="flex:1">${esc(x.name)}</span><div class="bar-wrap" style="width:60px"><div class="bar" style="width:${Math.min(100, Math.abs(x.delta)*200).toFixed(0)}%"></div></div><span class="val">${dir}</span></div>`;
+      }).join('');
       return `<div class="model-card"><h3>${esc(r.name)} <span class="sub">(${esc(r.family)})</span></h3>` +
         `<div>Điểm nguy cơ: <b>${r.risk_score.toFixed(4)}</b> <span class="risk-badge r-${r.level}">${r.level}</span></div>` +
+        (rules ? `<div style="margin-top:6px"><b>Đóng góp theo từng luật kích hoạt:</b></div>` + rules : '') +
         `<div style="margin-top:6px"><b>Đặc trưng đóng góp chính (đổi sang baseline quần thể):</b></div>` +
         feats + `</div>`;
     }).join('');
+    $('explain-result').innerHTML = html;
   } catch(err){ errEl.textContent = 'Lỗi: ' + err.message; }
 });
 

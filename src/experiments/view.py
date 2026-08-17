@@ -105,18 +105,36 @@ def _find_model(model_key: str, seed: int = 42):
     return None
 
 
+def available_input_metrics() -> list[dict[str, str]]:
+    """Danh sách chỉ số có thể nhập để đánh giá (từ KB + NHANES features)."""
+    from src.tier2_knowledge.rules import KnowledgeBase
+
+    labels: dict[str, str] = {}
+    try:
+        kb = KnowledgeBase()
+        for metric, info in kb.metrics.items():
+            labels[metric] = info.get("name") or metric
+    except Exception:
+        pass
+    known = [
+        "systolic_bp", "diastolic_bp", "heart_rate", "glucose",
+        "glucose_fasting", "hba1c", "creatinine", "egfr", "spo2", "bmi",
+    ]
+    out: list[dict[str, str]] = []
+    for m in known:
+        out.append({"key": m, "name": labels.get(m) or m})
+    for m in NHANES_FEATURES:
+        if m not in known:
+            out.append({"key": m, "name": labels.get(m) or m})
+    return out
+
+
 def explain_patient(
     values: dict[str, float],
     model_keys: list[str] | None = None,
     n_features: int = 5,
+    rules: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    """Chạy từng model trên 1 bệnh nhân + luận giải feature đóng góp.
-
-    Luận giải model-agnostic bằng **perturbation**: thay lần lượt từng đặc
-    trưng bằng median quần thể (từ dataset), đo độ giảm điểm nguy cơ -> đặc
-    trưng nào đẩy điểm lên cao (dương) / kéo xuống (âm). Không cần SHAP, áp
-    được cho mọi model — minh chứng "cùng 1 ca, các model luận giải ra sao".
-    """
     if not EXPERIMENTS_DIR.exists():
         return []
     from src.experiments.models import available_models
@@ -150,15 +168,96 @@ def explain_patient(
                 {"feature": feat, "delta": round(proba - alt_proba, 4)}
             )
         contributions.sort(key=lambda c: -abs(c["delta"]))
+
+        # Điểm nguy cơ theo TỪNG LUẬT kích hoạt: đặt đúng các chỉ số mà luật
+        # đó dùng về baseline quần thể -> độ giảm điểm = mức đóng góp của luật.
+        rule_attrib: list[dict[str, Any]] = []
+        for rule in rules or []:
+            metrics = rule.get("matched_metrics") or []
+            metric_subset = [m for m in metrics if m in NHANES_FEATURES]
+            if not metric_subset:
+                continue
+            alt = row.copy()
+            for feat in metric_subset:
+                med = medians.get(feat)
+                if med is not None:
+                    alt[feat] = med
+            try:
+                alt_proba = float(model.predict_proba(alt)[:, 1][0])
+            except Exception:
+                continue
+            rule_attrib.append(
+                {
+                    "rule_id": rule.get("rule_id"),
+                    "name": rule.get("name"),
+                    "system_label": rule.get("system_label"),
+                    "severity": rule.get("severity"),
+                    "matched_metrics": metric_subset,
+                    "delta": round(proba - alt_proba, 4),
+                }
+            )
+        rule_attrib.sort(key=lambda r: -r["delta"])
+
         out.append(
             {
                 **_model_meta(key),
                 "risk_score": round(proba, 4),
                 "level": _level(proba),
                 "top_features": contributions[:n_features],
+                "rule_attribution": rule_attrib,
             }
         )
     return out
+
+
+def clinical_context(values: dict[str, float]) -> dict[str, Any]:
+    """Bối cảnh lâm sàng của ca: hệ/bệnh nào bị nghi ngờ + luật nào đã kích hoạt.
+
+    Tái sử dụng đúng rule engine của hệ thống (Tầng 2) — đối chiếu snapshot
+    chỉ số với knowledge_base.json, trả về các luật thoả. Trả lời: "nguy cơ
+    cao của bệnh gì, dựa trên luật nào".
+    """
+    from src.tier2_knowledge.rules import KnowledgeBase
+
+    snapshot = {k: v for k, v in values.items() if v is not None}
+    if not snapshot:
+        return {"systems": [], "rules": [], "note": "Không có chỉ số để đối chiếu luật."}
+    try:
+        kb = KnowledgeBase()
+        hits = kb.evaluate(snapshot)
+    except Exception as e:
+        return {"systems": [], "rules": [], "note": f"Không đối chiếu được luật: {e}"}
+    if not hits:
+        return {
+            "systems": [],
+            "rules": [],
+            "note": "Không có luật lâm sàng nào kích hoạt với bộ chỉ số này.",
+        }
+
+    systems: dict[str, list[dict[str, Any]]] = {}
+    rules_out: list[dict[str, Any]] = []
+    for h in hits:
+        rules_out.append(
+            {
+                "rule_id": h.rule_id,
+                "name": h.name,
+                "system": h.system,
+                "system_label": h.system_label,
+                "severity": h.severity,
+                "specialty": h.specialty,
+                "matched_metrics": h.matched_metrics,
+                "evidence": h.evidence,
+            }
+        )
+        systems.setdefault(h.system_label, []).append(
+            {"rule_id": h.rule_id, "name": h.name, "severity": h.severity}
+        )
+    system_summary = [
+        {"label": label, "max_severity": max(r["severity"] for r in rules), "rules": rules}
+        for label, rules in systems.items()
+    ]
+    system_summary.sort(key=lambda s: -s["max_severity"])
+    return {"systems": system_summary, "rules": rules_out, "note": ""}
 
 
 def _level(score: float) -> str:

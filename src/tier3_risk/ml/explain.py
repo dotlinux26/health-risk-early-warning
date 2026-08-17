@@ -4,7 +4,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.models.risk_model import RiskModel
+from src.tier3_risk.ml.risk_model import RiskModel
 
 
 def global_importance(model: RiskModel, X: pd.DataFrame) -> pd.DataFrame:
