@@ -131,7 +131,7 @@ class Explainer(Protocol):
 
 ## 6. Giới hạn / rủi ro cần nói thẳng
 
-1. **Bước 3 và 5 là rủi ro nhất** (đổi import, đụng nhiều file). Tôi khuyến nghị
+1. **Bước 3 và 5 là rủi ro nhất** (đổi import, đụng nhiều file). Khuyến nghị
    làm từng bước, mỗi bước chạy lại `run_api.sh restart` + test curl các
    endpoints trước khi qua bước kế.
 2. **Đổi tên thư mục `src/models/`** có thể gây lỗi ở script cũ không nằm trong

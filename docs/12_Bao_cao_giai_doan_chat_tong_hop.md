@@ -51,7 +51,7 @@ cho mạng nơ-ron).
   (glucose đói chỉ đo trên nhóm con), cần lưu ý khi đọc kết quả của mô hình.
 - Các chỉ số còn lại: đầy đủ hoặc thiếu 1 phần (5–8%).
 
-Tôi đã đưa `data_completeness` vào `build_summary()` và giao diện `/benchmark`
+`data_completeness` đã được đưa vào `build_summary()` và giao diện `/benchmark`
 hiển thị các flag này để người đọc không ngộ nhận chất lượng dữ liệu.
 
 ## 3. Trợ lý chat và đánh giá đa mô hình
@@ -67,9 +67,9 @@ hiển thị các flag này để người đọc không ngộ nhận chất lư
 
 ### 3.2 Điểm tổng hợp theo từng mô hình (không fusion)
 
-Tôi thử nghiệm phương án gộp (fusion) tất cả mô hình thành một điểm ML duy
-nhất, nhưng anh đề xuất ngược lại: **mỗi mô hình giữ một điểm cuối riêng** để
-thấy model nào đẩy mức rủi ro lên/cao hơn. Tôi đã làm theo — với mỗi mô hình:
+Phương án gộp (fusion) tất cả mô hình thành một điểm ML duy nhất đã được thử
+nghiệm, nhưng nhóm đề xuất ngược lại: **mỗi mô hình giữ một điểm cuối riêng** để
+thấy model nào đẩy mức rủi ro lên/cao hơn. Triển khai theo hướng đó — với mỗi mô hình:
 
 ```
 điểm cuối(model) = stat×0.30 + knowledge×0.35 + ml(model)×0.25 + trend×0.10
@@ -117,7 +117,7 @@ Random Forest +0.421, có ý nghĩa lâm sàng.
 
 ## 5. Bỏ tích hợp LLM local
 
-Tôi thử chạy Qwen2.5-0.5B qua llama.cpp trên máy (i3-4005U, 2 lõi, không GPU):
+Thử chạy Qwen2.5-0.5B qua llama.cpp trên máy (i3-4005U, 2 lõi, không GPU):
 
 - Thời gian phản hồi **~90 giây** cho 60 token — không dùng được cho chat.
 - Chất lượng kém: trả lời sai kiến thức y khoa ("huyết áp 150/95 không nguy
@@ -148,7 +148,7 @@ vào bất kỳ đâu trên trang (overlay nét đứt hiện khi đang kéo) ho
 
 ## 7. Dữ liệu thử nghiệm
 
-Tôi đã tạo bệnh nhân demo `P1000` — 7 ngày liên tục (2026-08-10 → 2026-08-16),
+Bệnh nhân demo `P1000` đã được tạo — 7 ngày liên tục (2026-08-10 → 2026-08-16),
 35 bản ghi gồm systolic_bp, diastolic_bp, heart_rate, glucose_fasting, bmi.
 Đủ để test BÁO CÁO ĐẦY ĐỦ có phân tích cá nhân hóa (đường cơ sở, xu hướng ổn
 định, các hệ cơ quan: Chuyển hóa + Hệ tim mạch).

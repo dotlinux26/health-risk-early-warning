@@ -1,16 +1,16 @@
 # 11. Kết quả benchmark lần 1 — Baseline 6 mô hình và đánh giá luận giải
 
-> Tôi ghi lại kết quả thực nghiệm đầu tiên của khung: so sánh 6 mô hình học máy
+> Báo cáo này ghi lại kết quả thực nghiệm đầu tiên của khung: so sánh 6 mô hình học máy
 > trên cùng một bộ dữ liệu, kèm đánh giá **tính hợp lý lâm sàng** (clinical
 > plausibility) và **độ trung thực của luận giải** (explainability fidelity)
 > trên một ca cụ thể. Mọi số liệu truy xuất từ evidence package
 > (`experiments/EXP-ML-<MODEL>-<SEED>/`) theo Experimental Protocol (`notes/02`).
-> Tôi cố gắng nói đúng những gì đo được, không thổi phồng, và nêu thẳng giới hạn
+> Nội dung nêu đúng những gì đo được, không thổi phồng, và nêu thẳng giới hạn
 > ở từng bước.
 
 ---
 
-## 1. Tôi đã chạy cái gì
+## 1. Chạy thực nghiệm nào
 
 | Thành phần | Giá trị |
 |---|---|
