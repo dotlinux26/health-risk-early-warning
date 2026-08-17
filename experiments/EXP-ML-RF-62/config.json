@@ -1,7 +1,7 @@
 {
   "model_key": "rf",
   "seed": 62,
-  "dataset": "data/datasets/nhanes_2017_2018.csv",
+  "dataset": "data/datasets/nhanes_merged.csv",
   "features": [
     "systolic_bp",
     "diastolic_bp",

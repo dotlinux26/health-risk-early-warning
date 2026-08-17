@@ -5,55 +5,173 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chat Sức khỏe — HealthRisk</title>
 <style>
+  :root {
+    --brand: #0369a1; --brand-2: #0284c7;
+    --bg: #eef2f7; --panel: #ffffff; --line: #e2e8f0;
+    --ink: #1e293b; --muted: #64748b;
+    --green: #16a34a; --green-bg: #dcfce7;
+    --yellow: #ca8a04; --yellow-bg: #fef9c3;
+    --red: #dc2626; --red-bg: #fee2e2;
+    --radius: 12px;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    background: #ffffff; color: #1e293b; height: 100vh; display: flex; flex-direction: column;
+    background: var(--bg); color: var(--ink); height: 100vh;
+    display: flex; flex-direction: column; line-height: 1.5;
   }
+  /* ---------- HEADER ---------- */
   header {
-    padding: 12px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: linear-gradient(135deg, #0c4a6e 0%, #0284c7 100%);
+    color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, .25);
   }
-  header h1 { font-size: 17px; color: #0369a1; margin-right: 8px; }
-  header label { font-size: 13px; color: #64748b; display: inline-flex; align-items: center; gap: 6px; }
+  header h1 { font-size: 17px; font-weight: 700; letter-spacing: .2px; }
+  header .tag { font-size: 11px; background: rgba(255,255,255,.16); padding: 2px 8px; border-radius: 999px; }
+  header label { font-size: 13px; color: #e0f2fe; display: inline-flex; align-items: center; gap: 6px; }
   header select, header input {
-    background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 2px;
-    padding: 6px 8px; font-size: 14px;
+    background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.28);
+    border-radius: 8px; padding: 5px 8px; font-size: 13px; outline: none;
   }
-  header select { max-width: 180px; }
-  header input { width: 90px; }
+  header select option { color: #1e293b; background: #fff; }
+  header input { width: 96px; }
+  header a { color: #bae6fd; text-decoration: none; font-size: 13px; }
+  header a:hover { color: #fff; text-decoration: underline; }
+  #status-badge { display: inline-flex; align-items: center; }
+  .head-right { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; }
+
+  /* ---------- LAYOUT ---------- */
+  .main { flex: 1; display: flex; gap: 16px; padding: 16px; min-height: 0; }
+
+  /* ---------- SIDEBAR ---------- */
+  aside {
+    width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px;
+    overflow-y: auto; padding-right: 2px;
+  }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px; box-shadow: 0 1px 3px rgba(15,23,42,.06);
+  }
+  .card h2 { font-size: 13px; color: var(--brand); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+  .card h3 { font-size: 13px; color: var(--ink); margin: 10px 0 6px; }
+  .card p, .card li { font-size: 13px; color: var(--muted); }
+  .card ul { padding-left: 18px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .model-opts { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .model-opts label { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; transition: border-color .15s, background .15s; }
+  .model-opts label:hover { border-color: var(--brand-2); }
+  .model-opts input[type=checkbox] { margin-top: 3px; accent-color: var(--brand-2); }
+  .model-opts .m-name { font-weight: 600; }
+  .model-opts .m-meta { font-size: 12px; color: var(--muted); }
+
+  .btn {
+    background: var(--brand-2); color: #fff; border: none; border-radius: 8px;
+    padding: 9px 14px; font-size: 13px; cursor: pointer; font-weight: 600; width: 100%;
+    transition: background .15s;
+  }
+  .btn:hover { background: var(--brand); }
+  .btn:disabled { background: #93c5fd; cursor: not-allowed; }
+  .btn.ghost { background: #fff; color: var(--brand-2); border: 1px solid var(--brand-2); }
+  .btn.ghost:hover { background: #f0f9ff; }
+
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-weight: 700; font-size: 11px; }
+
+  /* ---------- CHAT ---------- */
   #chat {
-    flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;
-    background: #ffffff;
+    flex: 1; overflow-y: auto; padding: 8px 4px; display: flex; flex-direction: column; gap: 14px;
   }
-  .msg { max-width: 78%; padding: 9px 12px; border-radius: 2px; line-height: 1.55; font-size: 14px;
-         white-space: pre-wrap; word-break: break-word; }
-  .bot { align-self: flex-start; background: #f1f5f9; border: 1px solid #e2e8f0; }
-  .user { align-self: flex-end; background: #0284c7; color: #ffffff; }
-  .typing { color: #94a3b8; font-style: italic; }
+  .msg { max-width: 82%; padding: 10px 14px; border-radius: var(--radius); line-height: 1.55;
+         font-size: 14px; word-break: break-word; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+  .msg p { margin: 3px 0; }
+  .msg p:first-child { margin-top: 0; }
+  .msg p:last-child { margin-bottom: 0; }
+  .msg br { line-height: 1.3; }
+  .msg ul { margin: 3px 0 3px 20px; padding: 0; }
+  .msg ol { margin: 3px 0 3px 20px; padding: 0; }
+  .msg li { margin: 1px 0; }
+  .msg h1, .msg h2, .msg h3, .msg h4 { margin: 8px 0 3px; color: var(--brand); font-size: 14px; }
+  .msg a { color: var(--brand-2); }
+  .msg code { background: #eef2f7; border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+  .msg pre { background: #f1f5f9; border-radius: 8px; padding: 8px 10px; overflow-x: auto; margin: 6px 0; }
+  .msg blockquote { border-left: 3px solid var(--brand-2); padding-left: 10px; color: var(--muted); margin: 6px 0; }
+  .msg details { margin: 6px 0; border: 1px solid var(--line); border-radius: 8px; padding: 2px 10px;
+                 background: #f8fafc; }
+  .msg details summary { cursor: pointer; font-size: 13px; color: var(--brand); font-weight: 600;
+                         padding: 4px 0; user-select: none; }
+  .msg details[open] summary { border-bottom: 1px dashed var(--line); margin-bottom: 6px; }
+  .msg .details-body p { margin: 4px 0; }
+  .msg .details-body ul { margin: 3px 0 3px 20px; padding: 0; }
+  .msg .details-body li { margin: 1px 0; }
+  .msg details p { margin: 4px 0; }
+  .bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--line);
+         border-top-left-radius: 4px; }
+  .user { align-self: flex-end; background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff;
+          border-top-right-radius: 4px; }
+  .typing { color: var(--muted); font-style: italic; background: #f8fafc; }
+  .typing::after { content: ''; animation: dots 1.2s steps(4, end) infinite; }
+  @keyframes dots { 0% { content: ''; } 25% { content: '·'; } 50% { content: '··'; } 75% { content: '···'; } }
+
+  .risk-badge { display:inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; }
+  .r-THAP { background: var(--green-bg); color: var(--green); }
+  .r-TRUNG_BINH { background: var(--yellow-bg); color: var(--yellow); }
+  .r-CAO { background: var(--red-bg); color: var(--red); }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+  .chip { font-size: 12px; background: #f1f5f9; border: 1px solid var(--line); border-radius: 999px;
+          padding: 2px 10px; color: var(--ink); }
+  .chip b { color: var(--brand); }
+
+  /* ---------- LUẬN GIẢI (trong chat) ---------- */
+  .explain-block { border: 1px solid #bae6fd; background: #f0f9ff; border-radius: var(--radius);
+                   padding: 12px; margin-top: 10px; }
+  .explain-block h4 { font-size: 13px; color: var(--brand); margin-bottom: 6px; }
+  .explain-block hr { border: none; border-top: 1px dashed #bae6fd; margin: 12px 0; }
+  .model-card { margin-top: 4px; }
+  .model-card:first-of-type { margin-top: 0; }
+  .model-head { margin: 4px 0 8px; font-size: 13.5px; }
+  .model-head .m-family { color: var(--muted); }
+  .section-title { margin: 8px 0 4px; font-size: 12.5px; font-weight: 600; color: #475569; }
+  .contrib { display: flex; align-items: center; gap: 8px; font-size: 12.5px; margin: 4px 0; }
+  .contrib .fw { min-width: 150px; color: #475569; }
+  .contrib .val { min-width: 74px; text-align: right; font-variant-numeric: tabular-nums; }
+  .contrib .pos { color: #dc2626; font-weight: 700; }
+  .contrib .neg { color: var(--green); font-weight: 700; }
+  .bar-wrap { background: var(--line); border-radius: 999px; height: 7px; flex: 1; min-width: 40px; }
+  .bar { height: 7px; border-radius: 999px; background: var(--brand-2); }
+  .explain-toggle { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .explain-toggle select { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font-size: 13px; }
+  .explain-toggle .btn { width: auto; }
+
+  /* ---------- FOOTER ---------- */
   footer {
-    padding: 12px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0;
-    display: flex; gap: 8px; align-items: center;
+    padding: 12px 16px; background: var(--panel); border-top: 1px solid var(--line);
+    display: flex; gap: 10px; align-items: center;
   }
   footer input[type=text] {
-    flex: 1; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 2px;
-    padding: 10px 12px; font-size: 14px; outline: none;
+    flex: 1; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 14px; font-size: 14px; outline: none; transition: border-color .15s, box-shadow .15s;
   }
+  footer input[type=text]:focus { border-color: var(--brand-2); box-shadow: 0 0 0 3px rgba(2,132,199,.12); }
   footer button, .upload-label {
-    background: #0284c7; color: #fff; border: none; border-radius: 2px; padding: 10px 14px;
-    font-size: 14px; cursor: pointer; font-weight: 600;
+    background: var(--brand-2); color: #fff; border: none; border-radius: 10px; padding: 11px 16px;
+    font-size: 14px; cursor: pointer; font-weight: 600; transition: background .15s;
   }
-  footer button:hover, .upload-label:hover { background: #0369a1; }
+  footer button:hover, .upload-label:hover { background: var(--brand); }
   .upload-label input { display: none; }
-  .risk-badge { display:inline-block; padding: 1px 8px; border-radius: 2px; font-weight: 700; font-size: 12px; }
-  .r-THAP { background:#dcfce7; color:#166534; }
-  .r-TRUNG_BINH { background:#fef9c3; color:#854d0e; }
-  .r-CAO { background:#fee2e2; color:#991b1b; }
+
+  @media (max-width: 860px) {
+    .main { flex-direction: column; }
+    aside { width: 100%; }
+    .msg { max-width: 92%; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <h1>Chat theo dõi sức khỏe</h1>
+  <h1>💙 HealthRisk · Trợ lý sức khỏe</h1>
+  <span class="tag">KB v0.3.0</span>
   <label>Bệnh nhân:
     <select id="pid-select">
       <option value="">— chọn mã có sẵn —</option>
@@ -61,44 +179,132 @@
     <input id="pid" value="P001" title="Mã bệnh nhân (có thể nhập mã mới)">
   </label>
   <span id="status-badge"></span>
-  <span style="margin-left:auto; font-size:13px">
-    <a href="/rules" style="color:#0284c7; text-decoration:none">Luật lâm sàng</a>
-    <span style="color:#cbd5e1">·</span>
-    <a href="/benchmark" style="color:#0284c7; text-decoration:none">Benchmark ML</a>
+  <span class="head-right">
+    <a href="/rules">Luật lâm sàng</a>
+    <span style="opacity:.5">·</span>
+    <a href="/benchmark">Benchmark ML</a>
   </span>
 </header>
 
-<div id="chat">
-  <div class="msg bot">Nhập nhật ký sức khỏe hàng ngày, ví dụ:
+<div class="main">
+  <aside>
+    <div class="card">
+      <h2>⚙ Cấu hình suy luận</h2>
+      <p>Tích model bạn muốn hệ thống dùng để <b>luận giải</b> ca hiện tại của bệnh nhân (giống tab
+        "So sánh luận giải" trên <a href="/benchmark" style="color:var(--brand-2)">/benchmark</a>).
+        Mỗi tin trả lời kèm đánh giá sẽ hiển thị mục giải thích theo các model đã chọn.</p>
+      <div id="model-opts" class="model-opts"><span class="hint">Đang tải model…</span></div>
+      <div style="display:flex; gap:8px; margin-top:10px">
+        <button class="btn" id="btn-explain" disabled>Giải thích ca hiện tại</button>
+      </div>
+      <p class="hint" id="explain-hint">Chưa có ca đánh giá nào. Gửi nhật ký sức khỏe trước.</p>
+    </div>
+
+    <div class="card">
+      <h2>📌 Hướng dẫn</h2>
+      <ul>
+        <li><b>Nhập nhật ký:</b> "Huyết áp 135/85, nhịp tim 80"</li>
+        <li><b>Chế độ chuyên biệt:</b> "đánh giá nguy cơ tiểu đường", "nguy cơ thận"…</li>
+        <li><b>Lệnh:</b> "trạng thái" • "báo cáo" • "xóa dữ liệu"</li>
+        <li><b>File:</b> gửi PDF/DOCX báo cáo khám.</li>
+      </ul>
+      <p class="hint" style="margin-top:8px">Mỗi luật cho biết độ đầy đủ dữ liệu — nếu thiếu chỉ số, hệ thống
+        sẽ đánh dấu rõ để bạn tự quyết định mức tin cậy.</p>
+    </div>
+  </aside>
+
+  <div id="chat">
+    <div class="msg bot">Nhập nhật ký sức khỏe hàng ngày, ví dụ:
 • "Huyết áp 135/85, nhịp tim 80"
 • "Đường huyết lúc đói 6.9, cân nặng 77"
 • Hoặc đính kèm file PDF/DOCX báo cáo khám.
 
 Dữ liệu được tích lũy theo bệnh nhân. Khi đủ 7 ngày đo, hệ thống đưa ra báo cáo nguy cơ cá nhân hóa.
 Lệnh: "trạng thái" • "báo cáo" • "xóa dữ liệu"</div>
+  </div>
 </div>
 
 <footer>
-  <label class="upload-label">File<input type="file" id="file" accept=".pdf,.docx,.doc,.txt"></label>
-  <input type="text" id="input" placeholder="Nhập nhật ký sức khỏe hoặc lệnh..." autocomplete="off">
+  <label class="upload-label">📎 File<input type="file" id="file" accept=".pdf,.docx,.doc,.txt"></label>
+  <input type="text" id="input" placeholder="Nhập nhật ký sức khỏe hoặc lệnh…" autocomplete="off">
   <button id="send">Gửi</button>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script>
 const chat = document.getElementById('chat');
 const input = document.getElementById('input');
 const pidEl = document.getElementById('pid');
 const pidSelect = document.getElementById('pid-select');
 const badge = document.getElementById('status-badge');
+const modelOpts = document.getElementById('model-opts');
+const btnExplain = document.getElementById('btn-explain');
 
-function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+const MODELS_KEY = 'hrk_explain_models';
+let state = {
+  models: [],               // danh sách model từ /api/benchmark
+  selected: new Set(),      // key các model được chọn
+  lastSnapshot: null,       // snapshot gần nhất từ tin trả lời
+  lastRules: [],            // luật kích hoạt gần nhất
+  lastScoreContext: null,   // components + weights + critical để tính điểm tổng hợp từng model
+};
 
-function renderMarkdown(s){
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// Mở link ngoài trong tab mới.
+function enhanceHtml(html){
+  return html.replace(/<a href="([^"]+)">/g, (m, u) =>
+    u.startsWith('http') ? `<a href="${u}" target="_blank" rel="noopener">` : m);
+}
+
+function preprocessMarkdown(s){
+  // Chuẩn hóa trước khi vào marked:
+  // 1) "• " đầu dòng -> "- " (markdown list)
+  // 2) " _italic_" -> "*italic*". Tạm che token chứa "_" (heart_rate, systolic_bp…)
+  //    để không phá cặp italic.
+  s = s.replace(/(^|\n)[ \t]*•[ \t]+/g, '$1- ');
+  s = s.replace(/\b[a-z0-9]+(?:_[a-z0-9]+)+\b/g, t => t.replace(/_/g, '\u0001'));
+  s = s.replace(/(^|[ \t])_([^_\n]+)_([ \t]*)(?=\n|$)/g, '$1*$2*$3');
+  s = s.replace(/\u0001/g, '_');
+  return s.replace(/\b(THAP|TRUNG_BINH|CAO)\b/g, '{{RB$1}}');
+}
+
+function renderBody(s){
+  if (typeof marked !== 'undefined') {
+    try {
+      let html = marked.parse(s, { breaks: true, gfm: true });
+      html = html.replace(/\{\{RB(THAP|TRUNG_BINH|CAO)\}\}/g,
+        (m, l) => `<span class="risk-badge r-${l}">${l}</span>`);
+      return html;
+    } catch(e){ /* fallthrough */ }
+  }
+  // Fallback thủ công (offline).
   s = esc(s);
   s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
-  s = s.replace(/(^|\n)• /g, '$1• ');
-  s = s.replace(/(THAP|TRUNG_BINH|CAO)/g, m => `<span class="risk-badge r-${m}">${m}</span>`);
+  s = s.replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
+  s = s.replace(/{{RB(THAP|TRUNG_BINH|CAO)}}/g,
+    (m, l) => `<span class="risk-badge r-${l}">${l}</span>`);
   return s.replace(/\n/g, '<br>');
+}
+
+function renderMarkdown(s){
+  s = preprocessMarkdown(s);
+  // Tách <details> để nội dung bên trong được render markdown riêng (marked
+  // giữ nguyên HTML block nên không render nội dung). Mỗi block:
+  //   <details><summary>tiêu đề</summary>
+  //   nội dung…
+  //   </details>
+  const re = /<details>(<summary>.*?<\/summary>)?([\s\S]*?)<\/details>/g;
+  let html = '', last = 0, m;
+  while ((m = re.exec(s)) !== null) {
+    html += renderBody(s.slice(last, m.index));
+    const summary = m[1] ? m[1].replace(/<\/?summary>/g, '') : 'Chi tiết';
+    html += `<details><summary>${summary}</summary><div class="details-body">` +
+            renderBody(m[2]) + `</div></details>`;
+    last = m.index + m[0].length;
+  }
+  html += renderBody(s.slice(last));
+  return enhanceHtml(html);
 }
 
 function addMsg(text, cls){
@@ -110,6 +316,128 @@ function addMsg(text, cls){
   return d;
 }
 
+function riskLevelOf(score){ return score >= 0.7 ? 'CAO' : (score >= 0.4 ? 'TRUNG_BINH' : 'THAP'); }
+const LEVEL_VI = {THAP: 'THẤP', TRUNG_BINH: 'TRUNG BÌNH', CAO: 'CAO'};
+function levelVi(l){ return LEVEL_VI[l] || l; }
+
+function chipsFromSnapshot(snap){
+  if (!snap || !Object.keys(snap).length) return '';
+  return '<div class="chip-row">' + Object.entries(snap).map(([k, v]) =>
+    `<span class="chip">${esc(k)}: <b>${v}</b></span>`).join('') + '</div>';
+}
+
+// ---------- CẤU HÌNH SUY LUẬN ----------
+async function loadModels(){
+  try {
+    const res = await fetch('/api/benchmark');
+    const d = await res.json();
+    state.models = (d.summary && d.summary.models) || [];
+    if (!state.models.length) {
+      modelOpts.innerHTML = '<span class="hint">Chưa có kết quả benchmark.</span>';
+      return;
+    }
+    const saved = new Set((localStorage.getItem(MODELS_KEY) || '').split(',').filter(Boolean));
+    state.selected = new Set(state.models.map(m => m.key));
+    if (saved.size) state.models.forEach(m => { if (saved.has(m.key)) state.selected.add(m.key); });
+    modelOpts.innerHTML = state.models.map(m =>
+      `<label><input type="checkbox" value="${esc(m.key)}" ${state.selected.has(m.key) ? 'checked' : ''}>` +
+      `<span><span class="m-name">${esc(m.name)}</span><br>` +
+      `<span class="m-meta">${esc(m.family)} · AUC ${(m.metrics.roc_auc.mean).toFixed(3)}</span></span></label>`
+    ).join('');
+    modelOpts.querySelectorAll('input[type=checkbox]').forEach(cb =>
+      cb.addEventListener('change', () => {
+        cb.checked ? state.selected.add(cb.value) : state.selected.delete(cb.value);
+        localStorage.setItem(MODELS_KEY, [...state.selected].join(','));
+        refreshExplainButton();
+      }));
+    refreshExplainButton();
+  } catch(e){
+    modelOpts.innerHTML = '<span class="hint">Không tải được danh sách model.</span>';
+  }
+}
+
+function refreshExplainButton(){
+  btnExplain.disabled = !state.models.length || !state.lastSnapshot;
+}
+
+// ---------- LUẬN GIẢI ----------
+async function runExplain(){
+  if (!state.lastSnapshot) return;
+  const models = [...state.selected];
+  if (!models.length) { alert('Chọn ít nhất một model để luận giải.'); return; }
+  btnExplain.disabled = true;
+  btnExplain.textContent = 'Đang luận giải…';
+  try {
+    const res = await fetch('/api/benchmark/explain', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({metrics: state.lastSnapshot, models, score_context: state.lastScoreContext || undefined})
+    });
+    const d = await res.json();
+    if (d.error) { alert(d.error); return; }
+    appendExplainBlock(d);
+  } catch(err){ alert('Lỗi luận giải: ' + err.message); }
+  finally { btnExplain.textContent = 'Giải thích ca hiện tại'; refreshExplainButton(); }
+}
+
+function appendExplainBlock(d){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  const box = document.createElement('div');
+  box.className = 'explain-block';
+  box.style.width = '100%';
+  const title = document.createElement('h4');
+  title.textContent = '🔍 Luận giải ML cho ca ' + (pidEl.value || 'P001');
+  box.appendChild(title);
+  const chips = document.createElement('div');
+  chips.innerHTML = chipsFromSnapshot(state.lastSnapshot) || '';
+  box.appendChild(chips);
+  (d.results || []).forEach((r, idx) => {
+    if (idx > 0) box.appendChild(document.createElement('hr'));
+    const div = document.createElement('div');
+    div.className = 'model-card';
+    const showTotal = r.total_score !== undefined && r.total_score !== null;
+    const badgeLevel = showTotal ? r.total_level : riskLevelOf(r.risk_score);
+    let h = `<div class="model-head"><b>${esc(r.name)}</b> <span class="m-family">(${esc(r.family)})</span>`;
+    if (showTotal) {
+      h += ` — điểm tổng <b>${r.total_score.toFixed(3)}</b> <span class="risk-badge r-${badgeLevel}">${levelVi(badgeLevel)}</span>` +
+           ` <span class="m-family">(ML ${r.risk_score.toFixed(3)})</span>`;
+    } else {
+      h += ` — điểm <b>${r.risk_score.toFixed(4)}</b> <span class="risk-badge r-${badgeLevel}">${levelVi(badgeLevel)}</span>`;
+    }
+    h += '</div>';
+    if (r.rule_attribution && r.rule_attribution.length) {
+      h += '<div class="section-title">Đóng góp theo luật lâm sàng kích hoạt:</div>';
+      h += r.rule_attribution.map(x => {
+        const dir = x.delta > 0.005 ? `<span class="pos">▲ +${x.delta.toFixed(3)}</span>`
+                  : `<span class="val">${x.delta.toFixed(3)}</span>`;
+        return `<div class="contrib"><span class="fw">${esc(x.rule_id)} · ${esc(x.system_label || '')}</span>` +
+               `<span style="flex:1">${esc(x.name)}</span>` +
+               `<div class="bar-wrap"><div class="bar" style="width:${Math.min(100, Math.abs(x.delta)*200).toFixed(0)}%"></div></div>` +
+               `<span class="val">${dir}</span></div>`;
+      }).join('');
+    }
+    if (r.top_features && r.top_features.length) {
+      h += '<div class="section-title">Đặc trưng đóng góp chính:</div>';
+      h += r.top_features.map(f => {
+        const dir = f.delta > 0.005 ? `<span class="pos">▲ +${f.delta.toFixed(3)}</span>`
+                  : f.delta < -0.005 ? `<span class="neg">▼ ${f.delta.toFixed(3)}</span>`
+                  : `<span class="val">${f.delta.toFixed(3)}</span>`;
+        return `<div class="contrib"><span class="fw">${esc(f.feature)}</span>` +
+               `<div class="bar-wrap"><div class="bar" style="width:${Math.min(100, Math.abs(f.delta)*200).toFixed(0)}%"></div></div>` +
+               `<span class="val">${dir}</span></div>`;
+      }).join('');
+    }
+    div.innerHTML = h;
+    box.appendChild(div);
+  });
+  wrap.appendChild(box);
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+btnExplain.addEventListener('click', runExplain);
+
+// ---------- CHAT ----------
 async function loadPatients(){
   try {
     const res = await fetch('/api/chat/patients');
@@ -117,12 +445,14 @@ async function loadPatients(){
     const list = d.patients || [];
     pidSelect.innerHTML = '<option value="">— chọn mã có sẵn —</option>' +
       list.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
-  } catch(e){ /* bỏ qua khi chưa có server */ }
+  } catch(e){}
 }
 
 pidSelect.addEventListener('change', () => {
   if (pidSelect.value) { pidEl.value = pidSelect.value; }
   badge.innerHTML = '';
+  state.lastSnapshot = null;
+  refreshExplainButton();
 });
 
 async function send(text, pid){
@@ -152,8 +482,18 @@ async function submit(text, file){
     else if (text) addMsg(text, 'user');
     typing.remove();
     if (!d.silent && d.reply) addMsg(d.reply, 'bot');
+    if (d.snapshot) {
+      state.lastSnapshot = d.snapshot;
+      state.lastRules = d.rules || [];
+      state.lastScoreContext = d.components ? {
+        components: d.components,
+        weights: d.score_weights || {stat:0.30, knowledge:0.35, ml:0.25, trend:0.10},
+        critical: (d.components.ml !== undefined)
+      } : null;
+      refreshExplainButton();
+    }
     if (d.risk_level) {
-      badge.innerHTML = `<span class="risk-badge r-${d.risk_level}">${d.risk_level}</span>`;
+      badge.innerHTML = `<span class="risk-badge r-${d.risk_level}">${levelVi(d.risk_level)}</span>`;
     }
     loadPatients();
   } catch(e){
@@ -168,6 +508,7 @@ document.getElementById('file').addEventListener('change', e => {
   if (e.target.files[0]) { submit('', e.target.files[0]); e.target.value = ''; }
 });
 loadPatients();
+loadModels();
 </script>
 </body>
 </html>

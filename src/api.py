@@ -226,7 +226,9 @@ def benchmark_explain(payload: dict[str, Any]) -> JSONResponse:
     except (TypeError, ValueError):
         return JSONResponse({"error": "Giá trị metrics phải là số"}, status_code=400)
     context = clinical_context(values)
-    results = explain_patient(values, model_keys=model_keys, rules=context.get("rules"))
+    score_context = payload.get("score_context") or None
+    results = explain_patient(values, model_keys=model_keys, rules=context.get("rules"),
+                              score_context=score_context)
     return JSONResponse({"results": results, "clinical": context})
 
 

@@ -69,6 +69,7 @@ class RiskResult:
     recommendations: list[str]
     components: dict[str, float]
     metrics_detail: list[dict[str, Any]] = field(default_factory=list)
+    data_sufficiency: dict[str, Any] = field(default_factory=dict)
     disclaimer: str = (
         "Hệ thống chỉ HỖ TRỢ QUYẾT ĐỊNH, không thay thế chẩn đoán của bác sĩ."
     )
@@ -82,6 +83,7 @@ class RiskResult:
             "recommendations": self.recommendations,
             "components": self.components,
             "metrics_detail": self.metrics_detail,
+            "data_sufficiency": self.data_sufficiency,
             "disclaimer": self.disclaimer,
         }
 
@@ -188,6 +190,81 @@ class RiskScorer:
             )
         return rows
 
+    def _sufficiency(
+        self,
+        snapshot: dict[str, float],
+        records: list[AnomalyRecord],
+        modes: list[str] | None,
+    ) -> dict[str, Any]:
+        """Đánh giá mức độ đầy đủ dữ liệu của lần đánh giá này.
+
+        Với chế độ chuyên biệt (htn/dm/...), chỉ chỉ số thuộc hệ tương ứng được
+        tính là "cần thiết" — ví dụ chỉ đo huyết áp để xét mode htn là hợp lệ.
+        Trả về: level (CAO/TRUNG_BINH/THAP), missing_metrics, và ghi chú.
+
+        Nhấn mạnh: đây là MỨC ĐỘ ĐẦY ĐỦ DỮ LIỆU, không phải mức rủi ro — một ca
+        đo 1 chỉ số vẫn có thể cho đánh giá rủi ro, nhưng độ bao phủ thấp.
+        """
+        from src.tier2_knowledge.rules import DIAGNOSTIC_MODES
+
+        # Tập chỉ số "cần thiết": toàn bộ KB nếu không lọc mode; nếu có mode thì
+        # chỉ lấy metrics của các hệ tương ứng (từ `metrics` khai báo trong KB).
+        kb_metrics = set(self.kb.metrics.keys())
+        if modes:
+            needed: set[str] = set()
+            for m in modes:
+                systems = DIAGNOSTIC_MODES.get(m, {m})
+                for sys_key in systems:
+                    for rule in self.kb.rules:
+                        if rule["system"] == sys_key:
+                            self._collect_rule_metrics(rule["condition"], needed)
+        else:
+            needed = kb_metrics
+
+        # Lọc chỉ số thiếu: cần thiết mà snapshot không có
+        present = set(snapshot.keys()) | {r.metric for r in records}
+        missing = sorted(needed - present)
+        have = sorted(needed & present)
+
+        total = len(needed)
+        covered = len(have)
+        ratio = covered / total if total else 1.0
+        if ratio >= 0.8:
+            level = "CAO"
+        elif ratio >= 0.5:
+            level = "TRUNG_BINH"
+        else:
+            level = "THAP"
+
+        note_parts = []
+        if ratio < 1.0:
+            note_parts.append(
+                f"Chỉ {covered}/{total} chỉ số cần thiết có dữ liệu "
+                f"({ratio:.0%}); thiếu: {', '.join(missing) or '—'}."
+            )
+        else:
+            note_parts.append("Đủ dữ liệu cho các chỉ số cần thiết.")
+        if not records:
+            note_parts.append("Chưa có chuỗi thời gian — không phân tích cá nhân hóa.")
+        return {
+            "level": level,
+            "coverage": ratio,
+            "needed": total,
+            "present": covered,
+            "missing_metrics": missing,
+            "present_metrics": have,
+            "note": " ".join(note_parts),
+        }
+
+    def _collect_rule_metrics(self, cond: dict[str, Any], out: set[str]) -> None:
+        if not isinstance(cond, dict):
+            return
+        if cond.get("logic"):
+            for c in cond.get("conditions", []):
+                self._collect_rule_metrics(c, out)
+        elif cond.get("metric"):
+            out.add(cond["metric"])
+
     def score(
         self,
         records: list[AnomalyRecord],
@@ -250,6 +327,7 @@ class RiskScorer:
                 "rule_id": h.rule_id,
                 "rule": h.name,
                 "system": h.system_label,
+                "severity": h.severity,
                 "message": f"Kích hoạt luật '{h.name}' ({h.evidence}) → {h.system_label}.",
                 "source_url": h.source_url,
             }
@@ -279,4 +357,5 @@ class RiskScorer:
             recommendations=recommendations,
             components=components,
             metrics_detail=self._build_metric_detail(records, snapshot or {}),
+            data_sufficiency=self._sufficiency(snapshot or {}, records, modes),
         )

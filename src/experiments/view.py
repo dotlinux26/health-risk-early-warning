@@ -54,6 +54,7 @@ def build_summary() -> dict[str, Any]:
         "n": summary.get("n"),
         "positive": summary.get("positive"),
         "seeds": summary.get("seeds"),
+        "data_completeness": summary.get("data_completeness"),
         "models": models_out,
     }
 
@@ -129,11 +130,68 @@ def available_input_metrics() -> list[dict[str, str]]:
     return out
 
 
+def fusion_score(values: dict[str, float], model_keys: list[str] | None = None) -> float | None:
+    """Điểm rủi ro fusion: trung bình trọng số (theo AUC benchmark) xác suất
+    nguy cơ của MỌI model đã train. None nếu không có model nào sẵn sàng."""
+    if not EXPERIMENTS_DIR.exists():
+        return None
+    from src.experiments.models import available_models
+
+    keys = model_keys or available_models()
+    aucs = _model_aucs()
+    total_w = 0.0
+    total_p = 0.0
+    medians = _baseline_medians()
+    for key in keys:
+        model = _find_model(key)
+        if model is None:
+            continue
+        row = pd.DataFrame([{f: values.get(f) for f in NHANES_FEATURES}])
+        row = row.reindex(columns=NHANES_FEATURES).astype("float64")
+        for feat in NHANES_FEATURES:
+            if pd.isna(row[feat].iloc[0]):
+                med = medians.get(feat)
+                if med is not None:
+                    row[feat] = med
+        try:
+            proba = float(model.predict_proba(row)[:, 1][0])
+        except Exception:
+            continue
+        w = aucs.get(key, 0.0)
+        if w <= 0:
+            continue
+        total_w += w
+        total_p += w * proba
+    if total_w <= 0:
+        return None
+    return total_p / total_w
+
+
+def _model_aucs() -> dict[str, float]:
+    """AUC trung bình từ experiments/summary.json (dict keyed theo model)."""
+    import json as _json
+
+    path = EXPERIMENTS_DIR / "summary.json"
+    if not path.exists():
+        return {}
+    try:
+        d = _json.loads(path.read_text())
+        models = d.get("models", {})
+        return {
+            k: float(v["roc_auc"]["mean"])
+            for k, v in models.items()
+            if isinstance(v, dict) and v.get("roc_auc", {}).get("mean") is not None
+        }
+    except Exception:
+        return {}
+
+
 def explain_patient(
     values: dict[str, float],
     model_keys: list[str] | None = None,
     n_features: int = 5,
     rules: list[dict[str, Any]] | None = None,
+    score_context: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     if not EXPERIMENTS_DIR.exists():
         return []
@@ -148,7 +206,15 @@ def explain_patient(
         if model is None:
             continue
         row = pd.DataFrame([{f: values.get(f) for f in NHANES_FEATURES}])
-        row = row.reindex(columns=NHANES_FEATURES)
+        row = row.reindex(columns=NHANES_FEATURES).astype("float64")
+        # Impute missing bằng median giống lúc train (SimpleImputer median) —
+        # model chưa từng thấy NaN khi huấn luyện, nếu để NaN model sẽ cho
+        # cùng xác suất cho mọi input -> delta đóng góp ~ 0 vô nghĩa.
+        for feat in NHANES_FEATURES:
+            if pd.isna(row[feat].iloc[0]):
+                med = medians.get(feat)
+                if med is not None:
+                    row[feat] = med
         try:
             proba = float(model.predict_proba(row)[:, 1][0])
         except Exception:
@@ -198,15 +264,27 @@ def explain_patient(
             )
         rule_attrib.sort(key=lambda r: -r["delta"])
 
-        out.append(
-            {
-                **_model_meta(key),
-                "risk_score": round(proba, 4),
-                "level": _level(proba),
-                "top_features": contributions[:n_features],
-                "rule_attribution": rule_attrib,
-            }
-        )
+        entry: dict[str, Any] = {
+            **_model_meta(key),
+            "risk_score": round(proba, 4),
+            "level": _level(proba),
+            "top_features": contributions[:n_features],
+            "rule_attribution": rule_attrib,
+        }
+        # Điểm tổng hợp 3 tầng riêng của model này (stat + knowledge + model
+        # + trend) — để so sánh mức khác biệt giữa các model.
+        if score_context:
+            comp = dict(score_context.get("components") or {})
+            comp["ml"] = min(1.0, proba)
+            w = score_context.get("weights") or {}
+            total = sum(comp.get(k, 0.0) * w[k] for k in w)
+            total = round(min(1.0, max(0.0, total)), 3)
+            if score_context.get("critical"):
+                total = max(total, score_context.get("floor", 0.5))
+                total = round(total, 3)
+            entry["total_score"] = total
+            entry["total_level"] = _level(total)
+        out.append(entry)
     return out
 
 

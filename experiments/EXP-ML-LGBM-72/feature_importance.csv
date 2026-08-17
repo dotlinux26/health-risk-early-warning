@@ -1,8 +1,8 @@
 feature,importance
-systolic_bp,690.0
-diastolic_bp,586.0
-creatinine,581.0
-hba1c,530.0
-bmi,492.0
-glucose_fasting,443.0
-heart_rate,228.0
+diastolic_bp,778.0
+systolic_bp,753.0
+hba1c,636.0
+glucose_fasting,554.0
+creatinine,536.0
+bmi,405.0
+heart_rate,354.0

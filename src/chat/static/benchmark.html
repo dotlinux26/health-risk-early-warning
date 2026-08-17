@@ -118,7 +118,14 @@ async function load(){
     const res = await fetch('/api/benchmark');
     state.data = await res.json();
     const s = state.data.summary;
+    const dc = s.data_completeness || {};
     $('meta').textContent = `Dataset: ${esc(s.dataset || '?')} · n=${s.n || '?'} · positive=${s.positive || '?'} · seeds=[${(s.seeds||[]).join(', ')}]`;
+    if (dc.confidence) {
+      $('meta').innerHTML += ` &nbsp;·&nbsp; <b>Đầy đủ dữ liệu:</b> ${esc(dc.confidence)}` +
+        (dc.flags ? ' &nbsp;·&nbsp; ' + Object.entries(dc.flags)
+          .filter(([,v]) => v.includes('MISSING_CAO'))
+          .map(([f,v]) => `<b style="color:#b91c1c">${esc(f)}: ${esc(v)}</b>`).join(' &nbsp; ') : '');
+    }
     renderSummary(s); renderDetail(); renderMetricInputs();
   } catch(e){
     $('meta').textContent = 'Lỗi tải dữ liệu benchmark: ' + e.message;

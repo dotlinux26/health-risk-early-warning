@@ -213,21 +213,48 @@ def run_benchmark(
 
     agg = {key: aggregate_seeds(rows) for key, rows in rows_by_model.items()}
 
+    # --- Mức độ đầy đủ dữ liệu: đánh dấu rõ chỉ số nào bị khuyết nhiều -------
+    # Benchmark phải minh bạch về information boundary: một chỉ số missing >20%
+    # làm suy yếu độ tin cậy của mô hình trên chỉ số đó, kết quả AUC cao có thể
+    # đến từ các chỉ số còn lại. Ghi thật vào summary để người đọc tự đánh giá.
+    missing_rates = {f: float(round(X[f].isna().mean(), 4)) for f in features}
+    data_completeness = {
+        "missing_rates": missing_rates,
+        "flags": {
+            f: (f"MISSING_CAO ({missing_rates[f]:.0%})" if missing_rates[f] > 0.20 else
+                f"thiếu_1_phần ({missing_rates[f]:.0%})" if missing_rates[f] > 0.05 else
+                "đầy_đủ")
+            for f in features
+        },
+    }
+    # Cảnh báo độ tin cậy tổng thể dựa trên mức missing trung bình
+    avg_missing = float(np.mean(list(missing_rates.values())))
+    if avg_missing > 0.20:
+        data_completeness["confidence"] = "THAP — nhiều chỉ số bị khuyết, kết quả cần đọc thận trọng"
+    elif avg_missing > 0.05:
+        data_completeness["confidence"] = "TRUNG_BINH — một phần chỉ số bị khuyết, đã impute median"
+    else:
+        data_completeness["confidence"] = "CAO — dữ liệu gần như đầy đủ"
+
     summary = {
         "dataset": str(dataset_path),
         "n": int(len(df)),
         "positive": int(y.sum()),
         "features": features,
         "seeds": seeds,
+        "data_completeness": data_completeness,
         "models": agg,
         "per_seed": {k: [{"seed": r["seed"], "roc_auc": r["roc_auc"]} for r in rows] for k, rows in rows_by_model.items()},
     }
     (out_dir / "summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    (out_dir / "summary.md").write_text(
-        "# Bảng tổng hợp benchmark\n\n" + _fmt_metric_table(agg) + "\n", encoding="utf-8"
-    )
+    md = "# Bảng tổng hợp benchmark\n\n" + _fmt_metric_table(agg) + "\n"
+    md += "\n## Mức độ đầy đủ dữ liệu\n"
+    md += f"- **Confidence tổng thể: {data_completeness['confidence']}**\n"
+    for f in features:
+        md += f"- `{f}`: {data_completeness['flags'][f]}\n"
+    (out_dir / "summary.md").write_text(md, encoding="utf-8")
     summary_rows = []
     for key, rows in rows_by_model.items():
         for r in rows:
