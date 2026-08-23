@@ -112,3 +112,63 @@ class ChatStore:
 
     def list_patients(self) -> list[str]:
         return sorted(p.stem for p in self.base_dir.glob("*.jsonl"))
+
+    # ------------------------------------------------------------------ #
+    # P1 — Quản lý bản ghi cá nhân theo ngày (docs/15 U10)
+    # ------------------------------------------------------------------ #
+    def _write_rows(self, patient_id: str, rows: list[dict]) -> None:
+        path = self._path(patient_id)
+        with path.open("w", encoding="utf-8") as f:
+            for r in rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+    def upsert(
+        self, patient_id: str, timestamp: str, metric: str,
+        value: float | None, unit: str = "",
+    ) -> dict:
+        """Thêm/sửa một ô dữ liệu (metric, ngày). value=None -> xóa giá trị."""
+        from datetime import datetime as _dt
+
+        _dt.strptime(timestamp, "%Y-%m-%d")  # validate
+        rows = self._load_rows(patient_id)
+        key = (metric, timestamp)
+        found = False
+        out = []
+        for r in rows:
+            if (r["metric"], r["timestamp"]) == key:
+                if value is None:
+                    continue  # xóa dòng
+                r = {**r, "value": float(value), "unit": unit or r.get("unit", "")}
+                found = True
+            out.append(r)
+        if not found and value is not None:
+            out.append({"timestamp": timestamp, "metric": metric,
+                        "value": float(value), "unit": unit})
+        self._write_rows(patient_id, out)
+        return {"patient_id": patient_id, "timestamp": timestamp,
+                "metric": metric, "value": value}
+
+    def delete_value(self, patient_id: str, timestamp: str, metric: str) -> None:
+        """Xóa một ô (metric, ngày); ném ValueError nếu không tồn tại."""
+        rows = self._load_rows(patient_id)
+        kept = [r for r in rows
+                if not (r["metric"] == metric and r["timestamp"] == timestamp)]
+        if len(kept) == len(rows):
+            raise ValueError(f"Không tìm thấy ({metric}, {timestamp}).")
+        self._write_rows(patient_id, kept)
+
+    def table_by_date(self, patient_id: str) -> dict:
+        """Bảng theo ngày: mỗi hàng một ngày, cột là các chỉ số (U10)."""
+        rows = self._load_rows(patient_id)
+        dates = sorted({r["timestamp"] for r in rows}, reverse=True)
+        metrics = sorted({r["metric"] for r in rows})
+        grid = {}
+        for d in dates:
+            day_rows = [r for r in rows if r["timestamp"] == d]
+            grid[d] = {
+                r["metric"]: {"value": r.get("value"),
+                              "unit": r.get("unit", "")}
+                for r in day_rows
+            }
+        return {"patient_id": patient_id, "metrics": metrics,
+                "dates": dates, "grid": grid}

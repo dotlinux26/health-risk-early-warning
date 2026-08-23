@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthRisk · Đánh giá nguy cơ sức khỏe cá nhân hóa</title>
+<style>
+  :root{--bg:#f1f5f9;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;
+    --blue:#0369a1;--green:#15803d;--amber:#b45309;--red:#b91c1c}
+  *{box-sizing:border-box}body{margin:0;font-family:system-ui,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(90deg,#0c4a6e,#0369a1);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:17px;margin:0;font-weight:700}
+  nav{display:flex;gap:6px;margin-left:auto}
+  nav button{border:none;background:rgba(255,255,255,.12);color:#e0f2fe;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px}
+  nav button.on{background:#fff;color:#0c4a6e;font-weight:600}
+  main{max-width:1060px;margin:16px auto;padding:0 14px}
+  .tab{display:none}.tab.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:0 0 10px}
+  label{font-size:13px;color:var(--mut)}
+  input,select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+  button.act{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer}
+  button.act.sec{background:#475569}
+  button.mini{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+  .field{display:flex;flex-direction:column;gap:4px}
+  /* Evidence surface */
+  .risk-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .risk-badge{font-size:22px;font-weight:800;padding:8px 20px;border-radius:10px}
+  .lv-THAP{background:#dcfce7;color:var(--green)}.lv-TRUNG_BINH{background:#fef3c7;color:var(--amber)}
+  .lv-CAO{background:#fee2e2;color:var(--red)}.lv-INSUFFICIENT_DATA{background:#e2e8f0;color:var(--mut)}
+  .scope{font-size:12px;color:var(--mut);margin-top:6px}
+  table.ev{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  table.ev td,table.ev th{border-top:1px solid var(--line);padding:6px 8px;text-align:left}
+  table.ev th{color:var(--mut);font-weight:600;font-size:12px}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .tier-tag{display:inline-block;font-size:11px;font-weight:700;color:var(--blue);background:#e0f2fe;border-radius:6px;padding:2px 8px}
+  .md-body{font-size:14px;line-height:1.55}.md-body table{border-collapse:collapse}.md-body td,.md-body th{border:1px solid var(--line);padding:4px 10px}
+  /* Records */
+  table.rec{width:100%;border-collapse:collapse;font-size:13px}
+  table.rec th,table.rec td{border:1px solid var(--line);padding:4px 6px}
+  table.rec td input{width:100%;border:none;background:transparent;font-size:13px;padding:3px}
+  table.rec td input:focus{outline:2px solid #7dd3fc;border-radius:4px}
+  .empty{color:#cbd5e1}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:.92}
+  iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:12px;background:#fff}
+</style>
+</head>
+<body>
+<header>
+  <h1>💙 HealthRisk · Hệ thống đánh giá nguy cơ sức khỏe cá nhân hóa</h1>
+  <nav>
+    <button data-tab="assess" class="on">Đánh giá</button>
+    <button data-tab="records">Bản ghi cá nhân</button>
+    <button data-tab="rules">Luật &amp; Quản trị</button>
+    <button data-tab="bench">Benchmark</button>
+  </nav>
+</header>
+<main>
+
+<!-- ================= TAB 1: ĐÁNH GIÁ ================= -->
+<section class="tab on" id="tab-assess">
+  <div class="card">
+    <h2>Đánh giá bệnh nhân</h2>
+    <div class="row">
+      <div class="field"><label>Mã bệnh nhân</label>
+        <input id="pid" list="pidlist" value="P001" style="width:140px">
+        <datalist id="pidlist"></datalist></div>
+      <div class="field"><label>Chế độ luật</label>
+        <select id="mode" style="min-width:150px">
+          <option value="">Tất cả chuyên khoa</option><option value="htn">Tăng huyết áp</option>
+          <option value="dm">Đái tháo đường</option><option value="ckd">Bệnh thận mạn</option>
+        </select></div>
+      <button class="act" onclick="doAssess()">▶ Đánh giá</button>
+      <span id="assess-status" style="font-size:12px;color:var(--mut)"></span>
+    </div>
+  </div>
+  <div id="ev"></div>
+</section>
+
+<!-- ================= TAB 2: BẢN GHI ================= -->
+<section class="tab" id="tab-records">
+  <div class="card">
+    <h2>Dữ liệu cá nhân theo ngày — sửa trực tiếp từng ô</h2>
+    <div class="row">
+      <div class="field"><label>Bệnh nhân</label><input id="r-pid" list="pidlist" value="P001" style="width:130px"></div>
+      <div class="field"><label>Ngày mới</label><input id="r-newdate" type="date"></div>
+      <button class="act sec" onclick="loadRecords()">↻ Tải bảng</button>
+      <button class="act" onclick="addRow()">＋ Thêm ngày</button>
+    </div>
+    <p style="font-size:12px;color:var(--mut);margin:8px 0 0">
+      Ô trống = chưa đo, hệ thống chấp nhận thiếu dữ liệu từng trường.
+      Sửa số → rời ô là tự động lưu. Nhấn × để xóa một ô.</p>
+  </div>
+  <div class="card" id="rec-wrap" style="overflow-x:auto"></div>
+</section>
+
+<!-- ================= TAB 3+4 ================= -->
+<section class="tab" id="tab-rules"><iframe src="/rules"></iframe></section>
+<section class="tab" id="tab-bench"><iframe src="/benchmark"></iframe></section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const METRICS=["systolic_bp","diastolic_bp","heart_rate","glucose_fasting","hba1c","creatinine","bmi"];
+const VN={systolic_bp:"HA tâm thu",diastolic_bp:"HA tâm trương",heart_rate:"Nhịp tim",
+  glucose_fasting:"Glucose",hba1c:"HbA1c",creatinine:"Creatinine",bmi:"BMI"};
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
+
+// ---- điều hướng tab ----
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");$("#tab-"+b.dataset.tab).classList.add("on");
+});
+
+async function j(url,opt){const r=await fetch(url,opt);const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||r.status);return d}
+
+async function loadPatients(){
+  try{const d=await j("/api/chat/patients");
+    $("#pidlist").innerHTML=d.patients.map(p=>`<option value="${p}">`).join("")}catch(e){}
+}
+
+// ---- TAB ĐÁNH GIÁ: evidence surface ----
+function compRows(c,w){
+  const keys=[["stat","Thống kê (Tầng 1)"],["knowledge","Tri thức (Tầng 2)"],["ml","Machine Learning (Tầng 3)"],["trend","Xu hướng"]];
+  return keys.map(([k,label])=>{
+    const v=c?.[k]??null;if(v===null)return "";
+    const wt=w[k]??0;return `<tr><td>${label}</td><td class="num">${v.toFixed(2)}</td>
+      <td class="num">× ${wt.toFixed(2)}</td><td class="num">${(v*wt).toFixed(3)}</td></tr>`}).join("")}
+
+async function doAssess(){
+  const pid=$("#pid").value.trim()||"P001";localStorage.setItem("last_pid",pid);
+  $("#assess-status").textContent="Đang đánh giá…";
+  try{
+    const st=await j(`/api/records/${encodeURIComponent(pid)}`);
+    if(!st.dates.length){$("#assess-status").textContent="Bệnh nhân chưa có dữ liệu — hãy nhập ở tab Bản ghi.";return}
+    // dựng records từ store
+    const recs=[];for(const d of st.dates)for(const m of Object.keys(st.grid[d]))
+      recs.push({timestamp:d,metric:m,value:st.grid[d][m].value});
+    const res=await j("/api/assess",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({patient_id:pid,records:recs,mode:$("#mode").value||null})});
+    $("#assess-status").textContent="";
+    renderEvidence(pid,res,st);
+  }catch(e){$("#assess-status").textContent="Lỗi: "+e.message}
+}
+
+async function renderEvidence(pid,res,st){
+  let mlInfo="";
+  try{mlInfo=(await j("/api/evidence/ml")).html_md}catch(e){}
+  const lv=res.risk_level||"INSUFFICIENT_DATA";
+  const days=st.dates.length;
+  const t1=(res.metrics_detail||[]).map(m=>`<tr>
+     <td>${VN[m.metric]||m.metric}</td><td class="num">${m.value??""}</td>
+     <td class="num">${m.baseline_mean!=null?m.baseline_mean.toFixed(1):"—"}</td>
+     <td class="num">${m.z_score!=null?(m.z_score>0?"+":"")+m.z_score.toFixed(2)+"σ":"—"}</td>
+     <td>${m.flagged?'<b style="color:var(--red)">⚠ bất thường</b>':"<span class='empty'>trong ngưỡng</span>"}</td></tr>`).join("");
+  const t2=(res.evidence||[]).map(e=>`<li><code>${e.rule_id||""}</code> ${e.name||e} 
+     ${e.severity!=null?`· severity ${e.severity}`:""}${e.source_url?` · <a href="${e.source_url}" target="_blank">nguồn</a>`:""}</li>`).join("");
+  const w={"stat":.30,"knowledge":.35,"ml":.25,"trend":.10};
+  const c=res.components||{};
+  $("#ev").innerHTML=`
+  <div class="card">
+    <div class="risk-head">
+      <h2 style="margin:0">Phân tầng nguy cơ</h2>
+      <span class="risk-badge lv-${lv}">${lv==="TRUNG_BINH"?"TRUNG BÌNH":lv==="THAP"?"THẤP":lv==="CAO"?"CAO":lv}</span>
+      <b class="num" style="font-size:20px">${res.risk_score??"—"}</b>
+    </div>
+    <div class="scope">Phạm vi: dữ liệu hiện có (${days} ngày) · Phân tầng theo dữ liệu cắt ngang,
+      <b>chưa chứng minh dự báo biến cố tương lai</b>. Kết luận cuối thuộc về bác sĩ.</div>
+  </div>
+  <div class="card"><span class="tier-tag">TẦNG 1 · CÁ NHÂN</span>
+    <table class="ev"><tr><th>Chỉ số</th><th>Hiện tại</th><th>Baseline μ</th><th>Z-score</th><th>Kết luận</th></tr>
+    ${t1||'<tr><td colspan="5" class="empty">Chưa đủ lịch sử (≥7 điểm) để phân tích chuỗi thời gian.</td></tr>'}</table>
+  </div>
+  <div class="card"><span class="tier-tag">TẦNG 2 · TRI THỨC Y KHOA</span>
+    ${t2?`<ul style="margin:8px 0 0">${t2}</ul>`:'<p class="empty" style="margin:8px 0 0">Không có luật nào kích hoạt.</p>'}
+  </div>
+  <div class="card"><span class="tier-tag">TẦNG 3 · MACHINE LEARNING</span>
+    <div class="md-body" id="ml-md">Đang tải…</div>
+  </div>
+  <div class="card"><span class="tier-tag">TỔNG HỢP</span>
+    <table class="ev"><tr><th>Thành phần</th><th>Điểm</th><th>Trọng số</th><th>Đóng góp</th></tr>
+      ${compRows(c,w)||'<tr><td colspan="4" class="empty">Không có dữ liệu tổng hợp.</td></tr>'}
+    </table>
+    ${res.recommendations?.length?`<details style="margin-top:8px"><summary style="cursor:pointer;font-size:13px">Khuyến nghị (WHY?)</summary>
+      <div class="md-body" id="rec-md"></div></details>`:""}
+  </div>`;
+  // render markdown chuẩn hóa qua python-markdown (U9)
+  try{
+    const r=await j("/api/render_markdown",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({markdown:mlInfo})});
+    $("#ml-md").innerHTML=r.html;
+  }catch(e){$("#ml-md").textContent=mlInfo}
+  if($("#rec-md")){
+    const rr=await j("/api/render_markdown",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({markdown:(res.recommendations||[]).map(x=>"- "+x).join("\n")})});
+    $("#rec-md").innerHTML=rr.html;}
+}
+
+// ---- TAB BẢN GHI ----
+let REC=null;
+async function loadRecords(){
+  const pid=$("#r-pid").value.trim()||"P001";
+  REC=await j(`/api/records/${encodeURIComponent(pid)}`);
+  drawRecords();
+}
+function cell(d,m){
+  const g=REC.grid[d]&&REC.grid[d][m];
+  const v=g?g.value:"";
+  return `<td><input value="${v}" placeholder="—"
+    onchange="saveCell('${d}','${m}',this.value)">
+    ${g?`<a href="#" onclick="delCell('${d}','${m}');return false" style="color:var(--red);text-decoration:none;font-size:10px">×</a>`:""}</td>`;
+}
+function drawRecords(){
+  const ms=REC.metrics.length?REC.metrics:METRICS.slice(0,4);
+  const head=`<tr><th>Ngày</th>${ms.map(m=>`<th>${VN[m]||m}</th>`).join("")}</tr>`;
+  const rows=REC.dates.map(d=>`<tr><td><b>${d}</b></td>${ms.map(m=>cell(d,m)).join("")}</tr>`).join("");
+  $("#rec-wrap").innerHTML=`<table class="rec">${head}${rows||'<tr><td colspan="8" class="empty">Chưa có bản ghi — nhấn “Thêm ngày”.</td></tr>'}</table>`;
+}
+async function saveCell(d,m,v){
+  const pid=$("#r-pid").value.trim();
+  try{await j(`/api/records/${encodeURIComponent(pid)}`,{method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({timestamp:d,metric:m,value:v===""?null:parseFloat(v)})});
+    toast(`Đã lưu ${VN[m]||m} · ${d}`)}catch(e){toast("Lỗi: "+e.message)}
+}
+async function delCell(d,m){
+  const pid=$("#r-pid").value.trim();
+  await j(`/api/records/${encodeURIComponent(pid)}?timestamp=${d}&metric=${m}`,{method:"DELETE"});
+  loadRecords();toast("Đã xóa ô");
+}
+async function addRow(){
+  const d=$("#r-newdate").value||new Date().toISOString().slice(0,10);
+  const pid=$("#r-pid").value.trim();
+  await j(`/api/records/${encodeURIComponent(pid)}`,{method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({timestamp:d,metric:"heart_rate",value:null})}).catch(()=>{});
+  loadRecords();
+}
+
+loadPatients();
+if(localStorage.getItem("last_pid")){$("#pid").value=$("#r-pid").value=localStorage.getItem("last_pid")}
+</script>
+</body>
+</html>

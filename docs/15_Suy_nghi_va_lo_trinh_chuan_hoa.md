@@ -325,6 +325,26 @@ không tham gia chấm điểm production. Trang `/rules` hiển thị đầy đ
 này ngay trên card luật — biến câu hỏi "nguồn tri thức lấy ở đâu?" thành tính
 năng nhìn thấy được.
 
+### 7.1 Trạng thái triển khai P1 (23/08/2026)
+
+Đã hoàn tất và kiểm chứng qua API:
+
+| Hạng mục | Triển khai | Kiểm chứng |
+|---|---|---|
+| Governance module | `src/tier2_knowledge/governance.py`: STATUSES, TRANSITIONS, `apply_transition`, audit JSONL (`data/kb/audit_log.jsonl`) | ✓ |
+| KB tích hợp | Luật cũ tự migrate → active v1.0; luật mới luôn **draft v1.0**; sửa nội dung → bump version +0.1, reset draft, lưu `previous_version`; `evaluate()` mặc định chỉ chạy luật **active** | ✓ |
+| Workflow | draft→review→approved→active (+rejected); chặn nhảy cóc (draft→active bị từ chối); sửa luật đang review → v1.1/draft | ✓ |
+| Audit trail | create/edit/delete/transition đều ghi actor + timestamp + chi tiết; `GET /api/kb/audit` | ✓ |
+| `/rules` UI | Card hiển thị version, badge trạng thái màu, nút chuyển trạng thái theo luồng, dòng "✓ production / ◐ preview" | ✓ |
+| U10 Bản ghi | `ChatStore.upsert/delete_value/table_by_date` + `GET/PUT/DELETE /api/records/{pid}`: bảng theo ngày, sửa từng ô, ô trống hợp lệ | ✓ |
+| U9 Markdown | `POST /api/render_markdown` (python-markdown, extensions tables+fenced_code); tầng ML và khuyến nghị render qua endpoint này | ✓ |
+| U8 Bỏ chatbot | `/` giờ là SPA biểu mẫu `app.html`: Đánh giá · Bản ghi · Luật · Benchmark; không còn giao diện hội thoại | ✓ |
+| Evidence surface | Panel phân tầng: badge mức + score + phạm vi dữ liệu; Tầng 1 (z-score/baseline), Tầng 2 (luật+nguồn), Tầng 3 (`/api/evidence/ml` — raw vs calibrated isotonic, cảnh báo không diễn giải), Tổng hợp components × trọng số | ✓ |
+
+Còn lại cho P1: benchmark research page nâng cấp (tab Robustness đọc
+LABEL/WEIGHT/BASELINE-STABILITY summaries — hiện đã có sẵn trang /benchmark cũ
+qua iframe) và evidence status checklist (✓/◐/○).
+
 ## 8. Quản lý trạng thái bằng chứng
 
 Thêm panel **SYSTEM EVIDENCE STATUS** (trên `/benchmark` hoặc trang tổng quan):

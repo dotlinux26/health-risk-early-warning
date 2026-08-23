@@ -201,9 +201,18 @@ class KnowledgeBase:
         """(Đ)ọc lại file — dùng sau khi API ghi đè để scorer/agent nhận luật mới."""
         with open(self.path, encoding="utf-8") as f:
             self.data: dict[str, Any] = json.load(f)
+        from src.tier2_knowledge.governance import ensure_governance
+
+        migrated = False
+        for r in self.data["rules"]:
+            if "status" not in r:
+                ensure_governance(r)
+                migrated = True
         self.rules: list[dict[str, Any]] = self.data["rules"]
         self.system_labels: dict[str, str] = self.data.get("system_labels", {})
         self.metrics: dict[str, dict[str, Any]] = self.data.get("metrics", {})
+        if migrated:
+            self.save()
 
     # ------------------------------------------------------------------ #
     # Trợ giúp metadata chỉ số (mở rộng)
@@ -252,15 +261,25 @@ class KnowledgeBase:
         else:
             out.append(condition["metric"])
 
-    def evaluate(self, snapshot: dict[str, float], modes: list[str] | None = None) -> list[RuleHit]:
+    def evaluate(
+        self,
+        snapshot: dict[str, float],
+        modes: list[str] | None = None,
+        include_inactive: bool = False,
+    ) -> list[RuleHit]:
         """Đối chiếu snapshot chỉ số hiện tại với mọi luật.
 
         modes: lọc luật theo chế độ chẩn đoán chuyên biệt. Mỗi luật khai báo
         thuộc hệ cơ quan nào (field `system`); mode ánh xạ system -> nhóm bệnh.
         Ví dụ mode=["htn"] chỉ xét luật hệ tim mạch (tăng huyết áp).
+
+        Governance (P1): mặc định CHỈ luật ở trạng thái 'active' tham gia chấm
+        điểm production. include_inactive=True để preview toàn bộ (UI quản trị).
         """
         hits: list[RuleHit] = []
         for rule in self.rules:
+            if not include_inactive and rule.get("status", "active") != "active":
+                continue
             if modes and not _rule_in_modes(rule, modes):
                 continue
             cond = rule["condition"]
@@ -328,8 +347,8 @@ class KnowledgeBase:
         tmp.replace(self.path)
         self.reload()
 
-    def add_rule(self, rule: dict[str, Any]) -> dict[str, Any]:
-        """Thêm luật mới. Ném ValueError kèm thông báo lỗi nếu không hợp lệ."""
+    def add_rule(self, rule: dict[str, Any], actor: str = "unknown") -> dict[str, Any]:
+        """Thêm luật mới (mặc định DRAFT v1.0 — phải qua duyệt mới chạy production)."""
         errors = validate_rule(rule)
         if errors:
             raise ValueError("; ".join(errors))
@@ -343,15 +362,28 @@ class KnowledgeBase:
             v = rule.get(k)
             if isinstance(v, str) and v.strip():
                 clean[k] = v.strip()
+        from src.tier2_knowledge.governance import ensure_governance, log_audit, now_iso
+
+        # Luật mới luôn bắt đầu ở draft — an toàn lâm sàng mặc định.
+        ensure_governance(clean)
+        clean["status"] = "draft"
+        clean["rule_version"] = 1.0
+        clean["created_by"] = actor
+        clean["updated_at"] = now_iso()
         self.rules.append(clean)
         self.save()
-        return rule
+        log_audit(actor, "create", clean["rule_id"], detail={"version": 1.0})
+        return clean
 
-    def update_rule(self, rule_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        """Cập nhật luật theo rule_id. rule_id cũ giữ nguyên."""
+    def update_rule(self, rule_id: str, patch: dict[str, Any],
+                    actor: str = "unknown") -> dict[str, Any]:
+        """Cập nhật nội dung luật -> tự động bump phiên bản và reset về draft."""
+        from src.tier2_knowledge.governance import bump_version, log_audit
+
         for i, rule in enumerate(self.rules):
             if rule["rule_id"] != rule_id:
                 continue
+            old_version = float(rule.get("rule_version", 1.0))
             merged = dict(rule)
             for k in ("name", "system", "condition", "severity",
                       "specialty", "evidence", "source_url"):
@@ -367,17 +399,49 @@ class KnowledgeBase:
             errors = validate_rule(merged)
             if errors:
                 raise ValueError("; ".join(errors))
-            self.rules[i] = merged
-            self.save()
+            changed_content = any(
+                k in patch and patch[k] != rule.get(k)
+                for k in ("name", "system", "condition", "severity",
+                          "specialty", "evidence", "source_url")
+            )
+            if changed_content:
+                merged = bump_version(merged, actor)
+                self.rules[i] = merged
+                self.save()
+                log_audit(actor, "edit", rule_id, detail={
+                    "from_version": old_version,
+                    "to_version": merged["rule_version"],
+                    "status_reset_to": "draft",
+                })
+            else:
+                self.rules[i] = merged
+                self.save()
             return merged
         raise ValueError(f"Không tìm thấy luật '{rule_id}'.")
 
-    def delete_rule(self, rule_id: str) -> None:
+    def transition(self, rule_id: str, to_status: str, actor: str = "unknown",
+                   note: str = "") -> dict[str, Any]:
+        """Chuyển trạng thái governance: draft → review → approved → active."""
+        from src.tier2_knowledge.governance import apply_transition
+
+        for i, rule in enumerate(self.rules):
+            if rule["rule_id"] != rule_id:
+                continue
+            updated = apply_transition(dict(rule), to_status, actor, note)
+            self.rules[i] = updated
+            self.save()
+            return updated
+        raise ValueError(f"Không tìm thấy luật '{rule_id}'.")
+
+    def delete_rule(self, rule_id: str, actor: str = "unknown") -> None:
         before = len(self.rules)
         self.rules = [r for r in self.rules if r["rule_id"] != rule_id]
         if len(self.rules) == before:
             raise ValueError(f"Không tìm thấy luật '{rule_id}'.")
+        from src.tier2_knowledge.governance import log_audit
+
         self.save()
+        log_audit(actor, "delete", rule_id)
 
     def add_system(self, system_key: str, label: str) -> dict[str, str]:
         """Thêm hệ cơ quan mới: system_key -> label."""

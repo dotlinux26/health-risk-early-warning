@@ -244,17 +244,41 @@ function renderRules() {
     if (r.source_section) loc.push(esc(r.source_section));
     const locHtml = loc.length ? ' <span class="muted">(' + loc.join(', ') + ')</span>' : '';
     const exHtml = r.source_excerpt ? ' <div class="cond" style="color:#64748b">Trích: “' + esc(r.source_excerpt) + '”</div>' : '';
-    return '<div class="rule">' +
-      '<span class="rid">' + esc(r.rule_id) + '</span> — ' + esc(r.name) + ' <span class="muted">(' + esc(sysName) + ')</span>' +
+    const st = r.status || 'active';
+    const stColor = {active:'#15803d',approved:'#0369a1',review:'#b45309',draft:'#64748b',rejected:'#b91c1c'}[st] || '#64748b';
+    const gov = ' <span class="muted">· v' + (r.rule_version != null ? r.rule_version : '1.0') +
+      '</span> <span style="font-size:11px;font-weight:700;color:#fff;background:' + stColor + ';border-radius:6px;padding:1px 7px;text-transform:uppercase">' + esc(st) + '</span>' +
+      (r.previous_version ? ' <span class="muted">(từ v' + r.previous_version + ')</span>' : '') +
+      (r.approved_by ? ' <span class="muted">· duyệt: ' + esc(r.approved_by) + '</span>' : '');
+    const nexts = ({draft:['review','rejected'],review:['approved','draft','rejected'],approved:['active','draft'],active:['draft'],rejected:['draft','review']})[st] || [];
+    const transHtml = nexts.map(n => '<button class="btn" onclick="doTransition(\'' + escAttr(r.rule_id) + '\',\'' + n + '\')">' + n + '</button>').join('');
+    return '<div class="rule"' + (st === 'active' ? '' : ' style="opacity:.72;border-style:dashed"') + '>' +
+      '<span class="rid">' + esc(r.rule_id) + '</span> — ' + esc(r.name) + ' <span class="muted">(' + esc(sysName) + ')</span>' + gov +
       '<div class="cond">' + fmtCond(r.condition) + '</div>' +
       '<div class="sev">Độ nặng ' + r.severity + ' · ' + esc(r.specialty) + ' · nguồn: ' + esc(r.evidence) + url + locHtml + '</div>' +
+      '<div class="cond muted" style="font-size:11px">' + (st === 'active' ? '✓ Đang chạy production' : '◐ Chưa active — chỉ preview, KHÔNG chấm điểm production') +
+      (r.updated_by ? ' · sửa: ' + esc(r.updated_by) + ' lúc ' + esc(r.updated_at || '') : '') + '</div>' +
       (r.modes && r.modes.length ? '<div class="cond" style="color:#0f766e">Chế độ: ' + (r.modes.includes('all') ? 'mọi chế độ' : r.modes.map(m => '<code>' + esc(m) + '</code>').join(' ')) + '</div>' : '') +
       exHtml +
-      '<div class="ops">' +
+      '<div class="ops">' + transHtml +
         '<button class="btn" onclick="editRule(\'' + escAttr(r.rule_id) + '\')">Sửa</button>' +
         '<button class="btn danger" onclick="delRule(\'' + escAttr(r.rule_id) + '\')">Xóa</button>' +
       '</div></div>';
   }).join('');
+}
+
+async function doTransition(ruleId, toStatus) {
+  const actor = prompt('Người thực hiện (actor):', 'doctor') || 'unknown';
+  if (!toStatus) return;
+  try {
+    const res = await fetch('/api/kb/rules/' + encodeURIComponent(ruleId) + '/transition', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({to: toStatus, actor: actor, note: ''})
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || res.status);
+    await load();
+  } catch (e) { alert('Lỗi chuyển trạng thái: ' + e.message); }
 }
 
 function renderSystemSelect() {

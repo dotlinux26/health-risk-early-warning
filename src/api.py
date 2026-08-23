@@ -44,6 +44,7 @@ chat_store = ChatStore()
 chat_agent = ChatAgent(store=chat_store, config=CONFIG, scorer=scorer)
 
 TMP_DIR = Path("data/uploads")
+APP_PAGE = Path(__file__).parent / "chat" / "static" / "app.html"
 CHAT_PAGE = Path(__file__).parent / "chat" / "static" / "index.html"
 RULES_PAGE = Path(__file__).parent / "chat" / "static" / "rules.html"
 BENCH_PAGE = Path(__file__).parent / "chat" / "static" / "benchmark.html"
@@ -51,19 +52,8 @@ BENCH_PAGE = Path(__file__).parent / "chat" / "static" / "benchmark.html"
 
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
-    """Trang demo tối giản cho frontend (upload file hoặc dán JSON)."""
-    return """
-    <!doctype html><html lang="vi"><head><meta charset="utf-8">
-    <title>HealthRisk Demo</title></head><body style="font-family:sans-serif">
-    <h2>Đánh giá nguy cơ sức khỏe cá nhân hóa</h2>
-    <form method="post" action="/api/assess_docs" enctype="multipart/form-data">
-      <label>Bệnh nhân: <input name="patient_id" value="P001"></label><br><br>
-      <label>File PDF/DOCX: <input type="file" name="file" accept=".pdf,.docx,.doc,.txt"></label><br><br>
-      <button>Đánh giá từ file</button>
-    </form>
-    <p>Hoặc dùng Swagger: <a href="/docs">/docs</a></p>
-    </body></html>
-    """
+    """Ứng dụng dạng biểu mẫu (P1): Đánh giá · Bản ghi · Luật · Benchmark."""
+    return APP_PAGE.read_text(encoding="utf-8")
 
 
 @app.get("/api/health")
@@ -134,8 +124,9 @@ def rules_page() -> str:
 
 @app.post("/api/kb/rules")
 def kb_add_rule(rule: dict[str, Any]) -> JSONResponse:
+    actor = str(rule.pop("actor", "unknown") or "unknown")
     try:
-        saved = kb.add_rule(rule)
+        saved = kb.add_rule(rule, actor=actor)
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
     return JSONResponse({"ok": True, "rule": saved})
@@ -143,20 +134,123 @@ def kb_add_rule(rule: dict[str, Any]) -> JSONResponse:
 
 @app.put("/api/kb/rules/{rule_id}")
 def kb_update_rule(rule_id: str, patch: dict[str, Any]) -> JSONResponse:
+    actor = str(patch.pop("actor", "unknown") or "unknown")
     try:
-        saved = kb.update_rule(rule_id, patch)
+        saved = kb.update_rule(rule_id, patch, actor=actor)
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
     return JSONResponse({"ok": True, "rule": saved})
 
 
 @app.delete("/api/kb/rules/{rule_id}")
-def kb_delete_rule(rule_id: str) -> JSONResponse:
+def kb_delete_rule(rule_id: str, actor: str = "unknown") -> JSONResponse:
     try:
-        kb.delete_rule(rule_id)
+        kb.delete_rule(rule_id, actor=actor)
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
     return JSONResponse({"ok": True, "rule_id": rule_id})
+
+
+# --------------------------------------------------------------------------- #
+# P1 Governance — workflow DRAFT → REVIEW → APPROVED → ACTIVE + audit trail
+# --------------------------------------------------------------------------- #
+@app.post("/api/kb/rules/{rule_id}/transition")
+def kb_transition(rule_id: str, payload: dict[str, Any]) -> JSONResponse:
+    """Body: {"to": "review|approved|active|rejected", "actor": "...", "note": "..."}"""
+    from src.tier2_knowledge.governance import STATUSES
+
+    to_status = str(payload.get("to", "")).strip().lower()
+    if to_status not in STATUSES:
+        return JSONResponse(
+            {"error": f"Trạng thái '{to_status}' không hợp lệ. "
+                      f"Cho phép: {', '.join(STATUSES)}"},
+            status_code=400,
+        )
+    actor = str(payload.get("actor", "unknown") or "unknown")
+    note = str(payload.get("note", ""))
+    try:
+        updated = kb.transition(rule_id, to_status, actor=actor, note=note)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    kb.reload()
+    scorer_kb_reload()
+    return JSONResponse({"ok": True, "rule": updated})
+
+
+@app.get("/api/kb/audit")
+def kb_audit(limit: int = 200) -> dict:
+    """Audit trail quản trị tri thức (mới nhất trước)."""
+    from src.tier2_knowledge.governance import read_audit
+
+    return {"entries": read_audit(limit=limit)}
+
+
+def scorer_kb_reload() -> None:
+    """Nạp lại KB cho scorer sau khi luật đổi trạng thái."""
+    global scorer
+    kb.reload()
+    scorer.kb = kb
+
+
+# --------------------------------------------------------------------------- #
+# P1 U10 — Quản lý bản ghi cá nhân theo ngày (CRUD từng ô dữ liệu)
+# --------------------------------------------------------------------------- #
+@app.get("/api/records/{patient_id}")
+def records_table(patient_id: str) -> dict:
+    """Bảng dữ liệu cá nhân theo ngày: mỗi hàng một ngày, cột là chỉ số."""
+    return chat_store.table_by_date(patient_id)
+
+
+@app.put("/api/records/{patient_id}")
+async def record_upsert(patient_id: str, payload: dict[str, Any]) -> JSONResponse:
+    """Body: {"timestamp": "YYYY-MM-DD", "metric": "...", "value": 120 hoặc null, "unit": ""}.
+
+    value=null nghĩa là xóa ô; ô nào chưa có dữ liệu cứ để trống hoàn toàn.
+    """
+    ts = str(payload.get("timestamp", "")).strip()
+    metric = str(payload.get("metric", "")).strip()
+    if not ts or not metric:
+        return JSONResponse({"error": "Cần timestamp và metric"}, status_code=400)
+    value = payload.get("value", None)
+    if value is not None:
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return JSONResponse({"error": "value phải là số hoặc null"}, status_code=400)
+    try:
+        saved = chat_store.upsert(patient_id, ts, metric, value,
+                                  unit=str(payload.get("unit", "")))
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+    return JSONResponse({"ok": True, **saved})
+
+
+@app.delete("/api/records/{patient_id}")
+def record_delete(patient_id: str, timestamp: str, metric: str) -> JSONResponse:
+    try:
+        chat_store.delete_value(patient_id, timestamp, metric)
+    except ValueError as e:
+        return JSONResponse({"error": str(e)}, status_code=404)
+    return JSONResponse({"ok": True, "deleted": {"timestamp": timestamp, "metric": metric}})
+
+
+# --------------------------------------------------------------------------- #
+# P1 U9 — Render Markdown chuẩn hóa bằng python-markdown
+# --------------------------------------------------------------------------- #
+@app.post("/api/render_markdown")
+def render_markdown(payload: dict[str, Any]) -> JSONResponse:
+    """Body: {"markdown": "# Tiêu đề\\n| a | b |..."} -> {"html": "..."}.
+
+    Extension: tables + fenced_code — đủ cho bảng số liệu và khối mã trong
+    evidence/báo cáo, giữ đầu ra thống nhất giữa các trang.
+    """
+    import markdown as _md
+
+    text = str(payload.get("markdown", ""))
+    if not text.strip():
+        return JSONResponse({"html": ""})
+    html = _md.markdown(text, extensions=["tables", "fenced_code"])
+    return JSONResponse({"html": html})
 
 
 @app.post("/api/kb/systems")
@@ -235,6 +329,54 @@ def benchmark_explain(payload: dict[str, Any]) -> JSONResponse:
     results = explain_patient(values, model_keys=model_keys, rules=context.get("rules"),
                               score_context=score_context)
     return JSONResponse({"results": results, "clinical": context})
+
+
+@app.get("/api/evidence/ml")
+def evidence_ml(score: float | None = None) -> JSONResponse:
+    """Bằng chứng tầng ML dạng Markdown (U4/U9).
+
+    score (tùy chọn): áp calibrator production (isotonic, fit trên val của
+    EXP-ML-LGBM-42) lên một điểm raw -> hiển thị cặp Raw vs Calibrated.
+    """
+    import json as _json
+
+    from src.experiments.view import EXPERIMENTS_DIR
+
+    exp_dir = EXPERIMENTS_DIR / "EXP-ML-LGBM-42"
+    lines = ["**LightGBM** — mô hình production (NHANES merged, n=16314)"]
+    try:
+        cal = _json.loads((exp_dir / "calibration.json").read_text(encoding="utf-8"))
+        m_none = cal["methods"]["none"]
+        m_iso = cal["methods"][cal.get("selected", "isotonic")]
+        lines += [
+            f"- Đầu ra THÔ của model: **{score:.3f}**" if score is not None
+            else "- Đầu ra thô của model: *xem ô Đánh giá*",
+            f"- Phương pháp hiệu chỉnh: **{cal.get('selected', 'isotonic')}** "
+            "(fit trên validation; test chỉ đánh giá)",
+            f"- Brier test: raw {m_none['brier_test']:.4f} → "
+            f"calibrated {m_iso['brier_test']:.4f}",
+            f"- ECE test: raw {m_none['ece_test']:.1%} → "
+            f"calibrated {m_iso['ece_test']:.1%}",
+            "- ⚠️ Đầu ra chưa hiệu chỉnh **không được diễn giải là xác suất bệnh**.",
+        ]
+        if score is not None and cal.get("selected") != "none":
+            import joblib as _jl
+
+            cal_path = exp_dir / f"calibrator_{cal['selected']}.joblib"
+            if cal_path.exists():
+                from src.experiments.calibration import apply_calibration
+
+                p_cal = float(apply_calibration(_jl.load(cal_path), [score])[0])
+                lines.insert(2, f"- Sau hiệu chỉnh ({cal['selected']}): **{p_cal:.3f}**")
+    except FileNotFoundError:
+        lines.append("- Chưa có evidence package calibration — chạy benchmark trước.")
+    try:
+        met = _json.loads((exp_dir / "metrics.json").read_text(encoding="utf-8"))
+        lines.append(f"- ROC-AUC (test): {met['roc_auc']:.4f} · "
+                     "phân tầng cắt ngang, không phải dự báo biến cố.")
+    except FileNotFoundError:
+        pass
+    return JSONResponse({"html_md": "\n".join(lines)})
 
 
 def _assess_json(records: list[dict[str, Any]], patient_id: str, modes: list[str] | None = None) -> JSONResponse:

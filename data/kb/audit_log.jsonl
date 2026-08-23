@@ -1,0 +1,9 @@
+{"ts": "2026-08-23T15:45:34+00:00", "actor": "bs_an", "action": "create", "rule_id": "R_TEST_GOVERNANCE", "detail": {"version": 1.0}}
+{"ts": "2026-08-23T15:45:34+00:00", "actor": "bs_truong", "action": "transition", "rule_id": "R_TEST_GOVERNANCE", "detail": {"to": "review", "version": 1.0, "note": "duyet review"}}
+{"ts": "2026-08-23T15:45:34+00:00", "actor": "bs_truong", "action": "transition", "rule_id": "R_TEST_GOVERNANCE", "detail": {"to": "approved", "version": 1.0, "note": "duyet approved"}}
+{"ts": "2026-08-23T15:45:34+00:00", "actor": "bs_truong", "action": "transition", "rule_id": "R_TEST_GOVERNANCE", "detail": {"to": "active", "version": 1.0, "note": "duyet active"}}
+{"ts": "2026-08-23T15:45:34+00:00", "actor": "bs_an", "action": "delete", "rule_id": "R_TEST_GOVERNANCE", "detail": {}}
+{"ts": "2026-08-23T15:46:06+00:00", "actor": "unknown", "action": "create", "rule_id": "R_TEST_EDIT", "detail": {"version": 1.0}}
+{"ts": "2026-08-23T15:46:06+00:00", "actor": "bs_an", "action": "transition", "rule_id": "R_TEST_EDIT", "detail": {"to": "review", "version": 1.0, "note": ""}}
+{"ts": "2026-08-23T15:46:06+00:00", "actor": "bs_an", "action": "edit", "rule_id": "R_TEST_EDIT", "detail": {"from_version": 1.0, "to_version": 1.1, "status_reset_to": "draft"}}
+{"ts": "2026-08-23T15:46:06+00:00", "actor": "bs_an", "action": "delete", "rule_id": "R_TEST_EDIT", "detail": {}}

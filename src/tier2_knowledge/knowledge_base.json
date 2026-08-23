@@ -119,7 +119,14 @@
       "source_url": "https://www.eshonline.org/esh-content/uploads/2018/10/Download.pdf",
       "modes": [
         "htn"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     },
     {
       "rule_id": "R_CV_02",
@@ -143,7 +150,14 @@
       "modes": [
         "htn",
         "cv"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     },
     {
       "rule_id": "R_CV_03",
@@ -165,7 +179,14 @@
       "source_url": "https://www.eshonline.org/esh-content/uploads/2018/10/Download.pdf",
       "modes": [
         "htn"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     },
     {
       "rule_id": "R_END_01",
@@ -192,7 +213,14 @@
       "source_url": "https://diabetesjournals.org/care/issue/46/Supplement_1",
       "modes": [
         "dm"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     },
     {
       "rule_id": "R_END_02",
@@ -214,7 +242,14 @@
       "source_url": "https://diabetesjournals.org/care/issue/46/Supplement_1",
       "modes": [
         "dm"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     },
     {
       "rule_id": "R_KID_01",
@@ -237,7 +272,14 @@
       "source_url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf",
       "modes": [
         "ckd"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     },
     {
       "rule_id": "R_KID_02",
@@ -259,7 +301,14 @@
       "source_url": "https://kdigo.org/wp-content/uploads/2022/10/KDIGO-2022-Clinical-Practice-Guideline-for-Diabetes-Management-in-CKD.pdf",
       "modes": [
         "ckd"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     },
     {
       "rule_id": "R_RES_01",
@@ -281,7 +330,14 @@
       "source_url": "https://iris.who.int/handle/10665/345392",
       "modes": [
         "resp"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     },
     {
       "rule_id": "R_MET_01",
@@ -303,7 +359,14 @@
       "source_url": "https://iris.who.int/handle/10665/42330",
       "modes": [
         "met"
-      ]
+      ],
+      "status": "active",
+      "rule_version": 1.0,
+      "created_by": "legacy",
+      "approved_by": null,
+      "approved_at": null,
+      "updated_at": null,
+      "previous_version": null
     }
   ],
   "system_labels": {
