@@ -226,12 +226,16 @@ async def record_upsert(patient_id: str, payload: dict[str, Any]) -> JSONRespons
 
 
 @app.delete("/api/records/{patient_id}")
-def record_delete(patient_id: str, timestamp: str, metric: str) -> JSONResponse:
+def record_delete(patient_id: str, timestamp: str, metric: str = "") -> JSONResponse:
     try:
-        chat_store.delete_value(patient_id, timestamp, metric)
+        if metric:
+            chat_store.delete_value(patient_id, timestamp, metric)
+        else:
+            chat_store.delete_day(patient_id, timestamp)
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=404)
-    return JSONResponse({"ok": True, "deleted": {"timestamp": timestamp, "metric": metric}})
+    return JSONResponse({"ok": True, "deleted": {"timestamp": timestamp,
+                                                 "metric": metric or "*"}})
 
 
 # --------------------------------------------------------------------------- #
@@ -249,7 +253,7 @@ def render_markdown(payload: dict[str, Any]) -> JSONResponse:
     text = str(payload.get("markdown", ""))
     if not text.strip():
         return JSONResponse({"html": ""})
-    html = _md.markdown(text, extensions=["tables", "fenced_code"])
+    html = _md.markdown(text, extensions=["tables", "fenced_code", "nl2br"])
     return JSONResponse({"html": html})
 
 
@@ -329,6 +333,79 @@ def benchmark_explain(payload: dict[str, Any]) -> JSONResponse:
     results = explain_patient(values, model_keys=model_keys, rules=context.get("rules"),
                               score_context=score_context)
     return JSONResponse({"results": results, "clinical": context})
+
+
+@app.get("/api/benchmark/research")
+def benchmark_research() -> JSONResponse:
+    """Dữ liệu trang nghiên cứu: robustness K2-K4 + provenance + evidence status."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    def _load(rel: str) -> dict[str, Any]:
+        p = _Path("experiments") / rel
+        return _json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+
+    summary = _read_json(EXPERIMENTS_DIR / "summary.json") or {}
+    label = _load("LABEL-SENSITIVITY/summary.json")
+    baseline = _load("BASELINE-STABILITY/summary.json")
+    weight = _load("WEIGHT-SENSITIVITY/summary.json")
+
+    dc = summary.get("data_completeness") or {}
+    cal_ok = any((EXPERIMENTS_DIR / f"EXP-{m}-42" / "calibration.json").exists()
+                 for m in ("LGBM", "XGB", "LR"))
+    evidence_status = [
+        {"item": "Phát triển & kiểm định nội bộ (phân tầng, không rò rỉ)",
+         "state": "done",
+         "note": "Imputer fit trên train; split 70/15/15 theo seed cố định."},
+        {"item": "Baseline cá nhân (z-score theo cửa sổ)",
+         "state": "done",
+         "note": "Tầng 1 dùng baseline N ngày của chính người dùng."},
+        {"item": "Đánh giá độ nhạy định nghĩa nhãn (K2)",
+         "state": "done",
+         "note": "AUC nhãn B=1.00 vs A=0.935 — vòng lặp nhãn–đầu vào được chứng minh."},
+        {"item": "Hiệu chỉnh xác suất (calibration)",
+         "state": "done" if cal_ok else "partial",
+         "note": "Isotonic fit trên validation cho mọi model; ECE test ≤ 1.7%."},
+        {"item": "Ổn định baseline theo cửa sổ (K3)",
+         "state": "done",
+         "note": "N<7 ngày: |Δμ|≈0.6σ, lật band 21.5% → UI yêu cầu tối thiểu 7–14 ngày."},
+        {"item": "Nhạy cảm trọng số fusion (K4)",
+         "state": "done",
+         "note": "Đồng thuận mức giữa các bộ trọng số ≥ 96%."},
+        {"item": "Kiểm định thời gian (temporal / prospective)",
+         "state": "todo",
+         "note": "Chưa có — KHÔNG được gọi là 'cảnh báo sớm' cho đến khi có (P2)."},
+        {"item": "Kiểm định ngoài (external dataset khác NHANES)",
+         "state": "todo",
+         "note": "Cần dataset độc lập; chưa thực hiện."},
+        {"item": "Thử nghiệm lâm sàng có kiểm soát",
+         "state": "todo",
+         "note": "Ngoài phạm vi đồ án; ghi nhận là hạn chế."},
+    ]
+    return JSONResponse({
+        "label_sensitivity": {
+            "overlap": label.get("labels_overlap"),
+            "aggregate": label.get("aggregate"),
+            "oracle_note": label.get("oracle_note"),
+        },
+        "baseline_stability": {
+            "design": baseline.get("design"),
+            "results": baseline.get("results", []),
+        },
+        "weight_sensitivity": {
+            "versions": weight.get("versions"),
+            "pairs": weight.get("pairs"),
+        },
+        "provenance": {
+            "dataset": summary.get("dataset"),
+            "n": summary.get("n"),
+            "positive": summary.get("positive"),
+            "seeds": summary.get("seeds"),
+            "missing_rates": dc.get("missing_rates"),
+            "completeness_confidence": dc.get("confidence"),
+        },
+        "evidence_status": evidence_status,
+    })
 
 
 @app.get("/api/evidence/ml")

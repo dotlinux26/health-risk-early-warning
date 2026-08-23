@@ -7,3 +7,5 @@
 {"ts": "2026-08-23T15:46:06+00:00", "actor": "bs_an", "action": "transition", "rule_id": "R_TEST_EDIT", "detail": {"to": "review", "version": 1.0, "note": ""}}
 {"ts": "2026-08-23T15:46:06+00:00", "actor": "bs_an", "action": "edit", "rule_id": "R_TEST_EDIT", "detail": {"from_version": 1.0, "to_version": 1.1, "status_reset_to": "draft"}}
 {"ts": "2026-08-23T15:46:06+00:00", "actor": "bs_an", "action": "delete", "rule_id": "R_TEST_EDIT", "detail": {}}
+{"ts": "2026-08-23T16:06:26+00:00", "actor": "bs_test", "action": "create", "rule_id": "R_UI_TEST", "detail": {"version": 1.0}}
+{"ts": "2026-08-23T16:06:26+00:00", "actor": "bs_test", "action": "delete", "rule_id": "R_UI_TEST", "detail": {}}

@@ -13,15 +13,17 @@
   nav{display:flex;gap:6px;margin-left:auto}
   nav button{border:none;background:rgba(255,255,255,.12);color:#e0f2fe;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px}
   nav button.on{background:#fff;color:#0c4a6e;font-weight:600}
-  main{max-width:1060px;margin:16px auto;padding:0 14px}
+  main{max-width:1200px;margin:16px auto;padding:0 14px}
   .tab{display:none}.tab.on{display:block}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
   .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:0 0 10px}
   label{font-size:13px;color:var(--mut)}
-  input,select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+  input,select,textarea{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:14px}
   button.act{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer}
   button.act.sec{background:#475569}
-  button.mini{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  button.mini{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  button.mini:hover{background:#f1f5f9}
+  button.mini.danger{color:var(--red);border-color:#fecaca}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
   .field{display:flex;flex-direction:column;gap:4px}
   /* Evidence surface */
@@ -35,14 +37,32 @@
   table.ev th{color:var(--mut);font-weight:600;font-size:12px}
   .num{text-align:right;font-variant-numeric:tabular-nums}
   .tier-tag{display:inline-block;font-size:11px;font-weight:700;color:var(--blue);background:#e0f2fe;border-radius:6px;padding:2px 8px}
-  .md-body{font-size:14px;line-height:1.55}.md-body table{border-collapse:collapse}.md-body td,.md-body th{border:1px solid var(--line);padding:4px 10px}
+  .md-body{font-size:14px;line-height:1.6}.md-body table{border-collapse:collapse}.md-body td,.md-body th{border:1px solid var(--line);padding:4px 10px}
+  .md-body p{margin:4px 0}
   /* Records */
   table.rec{width:100%;border-collapse:collapse;font-size:13px}
   table.rec th,table.rec td{border:1px solid var(--line);padding:4px 6px}
   table.rec td input{width:100%;border:none;background:transparent;font-size:13px;padding:3px}
   table.rec td input:focus{outline:2px solid #7dd3fc;border-radius:4px}
   .empty{color:#cbd5e1}
-  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 11px;cursor:pointer;user-select:none;background:#fff;color:var(--mut)}
+  .chip.on{background:#e0f2fe;color:var(--blue);border-color:#7dd3fc;font-weight:600}
+  /* Governance */
+  .st{font-size:11px;font-weight:700;color:#fff;border-radius:6px;padding:1px 8px;text-transform:uppercase}
+  .st-active{background:var(--green)}.st-approved{background:#0369a1}
+  .st-review{background:var(--amber)}.st-draft{background:#64748b}.st-rejected{background:var(--red)}
+  .rule-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:#fcfcfd}
+  .rule-card.inactive{opacity:.75;border-style:dashed}
+  .rule-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .rid{font-family:ui-monospace,monospace;font-weight:700;color:var(--blue)}
+  .cond{font-size:13px;margin-top:5px}
+  .meta{font-size:11px;color:var(--mut);margin-top:5px}
+  .ops{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  details.audit summary{cursor:pointer;font-size:13px;color:var(--mut)}
+  table.audit{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  table.audit td,table.audit th{border:1px solid var(--line);padding:4px 8px;text-align:left}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
   .toast.show{opacity:.92}
   iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:12px;background:#fff}
 </style>
@@ -89,24 +109,105 @@
       <button class="act sec" onclick="loadRecords()">↻ Tải bảng</button>
       <button class="act" onclick="addRow()">＋ Thêm ngày</button>
     </div>
-    <p style="font-size:12px;color:var(--mut);margin:8px 0 0">
+    <div style="margin-top:12px">
+      <label style="font-weight:600">Cột hiển thị (bấm để thêm/bớt):</label>
+      <div class="chips" id="col-chips"></div>
+    </div>
+    <p style="font-size:12px;color:var(--mut);margin:10px 0 0">
       Ô trống = chưa đo, hệ thống chấp nhận thiếu dữ liệu từng trường.
-      Sửa số → rời ô là tự động lưu. Nhấn × để xóa một ô.</p>
+      Sửa số → rời ô là tự động lưu. × trên ô: xóa ô · × cuối hàng: xóa cả ngày.</p>
   </div>
   <div class="card" id="rec-wrap" style="overflow-x:auto"></div>
 </section>
 
-<!-- ================= TAB 3+4 ================= -->
-<section class="tab" id="tab-rules"><iframe src="/rules"></iframe></section>
+<!-- ================= TAB 3: LUẬT & QUẢN TRỊ ================= -->
+<section class="tab" id="tab-rules">
+  <div class="card">
+    <div class="row" style="align-items:center">
+      <h2 style="margin:0">Quản trị tri thức y khoa — luồng Draft → Review → Approved → Active</h2>
+      <span style="flex:1"></span>
+      <button class="act sec" onclick="loadRules()">↻ Tải lại</button>
+      <button class="act" onclick="toggleForm()">＋ Thêm luật mới</button>
+    </div>
+    <p style="font-size:12px;color:var(--mut);margin:8px 0 0">
+      Chỉ luật ở trạng thái <span class="st st-active">active</span> mới tham gia chấm điểm production;
+      các trạng thái khác chỉ xem trước. Mọi thay đổi đều ghi audit trail.</p>
+  </div>
+
+  <!-- Form thêm/sửa luật -->
+  <div class="card" id="rule-form-wrap" style="display:none">
+    <h2 id="form-title">Thêm luật mới</h2>
+    <input type="hidden" id="f-edit-id" value="">
+    <div class="row">
+      <div class="field"><label>Mã luật *</label><input id="f-rule-id" placeholder="R_XX_01" style="width:130px"></div>
+      <div class="field" style="flex:1;min-width:220px"><label>Tên tiếng Việt *</label><input id="f-name" placeholder="vd: Huyết áp tâm thu cao" style="width:100%"></div>
+      <div class="field"><label>Hệ *</label>
+        <select id="f-system">
+          <option value="htn">htn — Tăng huyết áp</option><option value="dm">dm — Đái tháo đường</option>
+          <option value="cv">cv — Tim mạch</option><option value="ckd">ckd — Thận mạn</option>
+        </select></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="field"><label>Chỉ số *</label><select id="f-metric"></select></div>
+      <div class="field"><label>Toán tử *</label>
+        <select id="f-op"><option>&gt;</option><option>&gt;=</option><option>&lt;</option><option>&lt;=</option><option>==</option><option>between</option></select></div>
+      <div class="field"><label>Ngưỡng *</label><input id="f-threshold" type="number" step="any" style="width:110px"></div>
+      <div class="field" id="f-th2-wrap" style="display:none"><label>Ngưỡng trên</label><input id="f-threshold2" type="number" step="any" style="width:110px"></div>
+      <div class="field"><label>Cửa sổ (ngày)</label><input id="f-window" type="number" min="0" style="width:90px" placeholder="tùy chọn"></div>
+      <div class="field"><label>Độ nặng (0–1) *</label><input id="f-severity" type="number" min="0" max="1" step="0.05" value="0.5" style="width:110px"></div>
+      <div class="field"><label>Chuyên khoa *</label><input id="f-specialty" value="Tim mạch" style="width:150px"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="field" style="flex:1;min-width:260px"><label>Nguồn URL (PubMed/ guideline)</label><input id="f-source-url" style="width:100%" placeholder="https://pubmed.ncbi.nlm.nih.gov/..."></div>
+      <div class="field"><label>Chế độ áp dụng</label>
+        <div class="chips" id="f-modes">
+          <span class="chip on" data-mode="all">all</span><span class="chip" data-mode="htn">htn</span>
+          <span class="chip" data-mode="dm">dm</span><span class="chip" data-mode="cv">cv</span>
+          <span class="chip" data-mode="ckd">ckd</span><span class="chip" data-mode="met">met</span>
+          <span class="chip" data-mode="resp">resp</span>
+        </div></div>
+    </div>
+    <details style="margin-top:10px"><summary style="font-size:12px;color:var(--mut)">Điều kiện phức tạp (JSON — cho logic AND/OR lồng)</summary>
+      <textarea id="f-cond-json" rows="4" style="width:100%;margin-top:6px;font-family:monospace;font-size:12px" placeholder='{"logic":"and","conditions":[...]}'></textarea></details>
+    <div class="row" style="margin-top:10px">
+      <button class="act" onclick="submitRule()">💾 Lưu (sẽ vào DRAFT nếu là luật mới/nội dung đổi)</button>
+      <button class="act sec" onclick="toggleForm()">Hủy</button>
+    </div>
+    <div id="f-err" style="color:var(--red);font-size:13px;margin-top:6px"></div>
+  </div>
+
+  <div id="rule-list"></div>
+
+  <div class="card">
+    <details class="audit" open>
+      <summary>Audit trail — mọi thao tác governance</summary>
+      <div id="audit-body">Đang tải…</div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= TAB 4: BENCHMARK ================= -->
 <section class="tab" id="tab-bench"><iframe src="/benchmark"></iframe></section>
 </main>
 <div class="toast" id="toast"></div>
 
 <script>
 const $=s=>document.querySelector(s);
-const METRICS=["systolic_bp","diastolic_bp","heart_rate","glucose_fasting","hba1c","creatinine","bmi"];
-const VN={systolic_bp:"HA tâm thu",diastolic_bp:"HA tâm trương",heart_rate:"Nhịp tim",
-  glucose_fasting:"Glucose",hba1c:"HbA1c",creatinine:"Creatinine",bmi:"BMI"};
+const $$=s=>[...document.querySelectorAll(s)];
+const CATALOG=[
+ {k:"systolic_bp",vn:"HA tâm thu",u:"mmHg"},
+ {k:"diastolic_bp",vn:"HA tâm trương",u:"mmHg"},
+ {k:"heart_rate",vn:"Nhịp tim",u:"bpm"},
+ {k:"glucose",vn:"Glucose ngẫu nhiên",u:"mg/dL"},
+ {k:"glucose_fasting",vn:"Glucose lúc đói",u:"mmol/L"},
+ {k:"hba1c",vn:"HbA1c",u:"%"},
+ {k:"creatinine",vn:"Creatinine",u:"mg/dL"},
+ {k:"egfr",vn:"eGFR",u:"mL/min"},
+ {k:"spo2",vn:"SpO₂",u:"%"},
+ {k:"bmi",vn:"BMI",u:"kg/m²"}];
+const VN=Object.fromEntries(CATALOG.map(c=>[c.k,c.vn]));
+const UNIT=Object.fromEntries(CATALOG.map(c=>[c.k,c.u]));
+const SYS_VN={htn:"Tăng huyết áp",dm:"Đái tháo đường",cv:"Tim mạch",ckd:"Thận mạn"};
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
 
 // ---- điều hướng tab ----
@@ -114,6 +215,7 @@ document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on"));
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
   b.classList.add("on");$("#tab-"+b.dataset.tab).classList.add("on");
+  if(b.dataset.tab==="rules")loadRules();
 });
 
 async function j(url,opt){const r=await fetch(url,opt);const d=await r.json().catch(()=>({}));
@@ -138,7 +240,6 @@ async function doAssess(){
   try{
     const st=await j(`/api/records/${encodeURIComponent(pid)}`);
     if(!st.dates.length){$("#assess-status").textContent="Bệnh nhân chưa có dữ liệu — hãy nhập ở tab Bản ghi.";return}
-    // dựng records từ store
     const recs=[];for(const d of st.dates)for(const m of Object.keys(st.grid[d]))
       recs.push({timestamp:d,metric:m,value:st.grid[d][m].value});
     const res=await j("/api/assess",{method:"POST",headers:{"Content-Type":"application/json"},
@@ -153,13 +254,24 @@ async function renderEvidence(pid,res,st){
   try{mlInfo=(await j("/api/evidence/ml")).html_md}catch(e){}
   const lv=res.risk_level||"INSUFFICIENT_DATA";
   const days=st.dates.length;
-  const t1=(res.metrics_detail||[]).map(m=>`<tr>
-     <td>${VN[m.metric]||m.metric}</td><td class="num">${m.value??""}</td>
-     <td class="num">${m.baseline_mean!=null?m.baseline_mean.toFixed(1):"—"}</td>
-     <td class="num">${m.z_score!=null?(m.z_score>0?"+":"")+m.z_score.toFixed(2)+"σ":"—"}</td>
-     <td>${m.flagged?'<b style="color:var(--red)">⚠ bất thường</b>':"<span class='empty'>trong ngưỡng</span>"}</td></tr>`).join("");
-  const t2=(res.evidence||[]).map(e=>`<li><code>${e.rule_id||""}</code> ${e.name||e} 
-     ${e.severity!=null?`· severity ${e.severity}`:""}${e.source_url?` · <a href="${e.source_url}" target="_blank">nguồn</a>`:""}</li>`).join("");
+  const t1=(res.metrics_detail||[]).map(m=>{
+     const z=m.z_score;
+     return `<tr>
+      <td>${m.name||VN[m.metric]||m.metric}${UNIT[m.metric]?` <span class="empty">(${UNIT[m.metric]})</span>`:""}</td>
+      <td class="num">${m.current??""}</td>
+      <td class="num">${m.baseline_mean!=null?m.baseline_mean.toFixed(1):"—"}</td>
+      <td class="num">${z!=null?(z>0?"+":"")+z.toFixed(2)+"σ":"—"}</td>
+      <td>${m.trend_name?esc(m.trend_name):"—"}</td>
+      <td>${m.flagged?'<b style="color:var(--red)">⚠ bất thường</b>':"<span class='empty'>trong ngưỡng</span>"}</td></tr>`}).join("");
+  // TẦNG 2 — mỗi luật một dòng riêng: mã + tên tiếng Việt + hệ + severity + nguồn
+  const t2=(res.evidence||[]).filter(e=>e.rule_id).map(e=>{
+     const sys=e.system?` <span style="color:var(--mut)">· ${esc(e.system)}</span>`:"";
+     const sev=e.severity!=null?` <span style="color:var(--mut)">· độ nặng ${e.severity}</span>`:"";
+     const src=e.source_url?` · <a href="${esc(e.source_url)}" target="_blank" rel="noopener">nguồn ${esc(e.rule_id)}</a>`:"";
+     return `<li style="margin:5px 0"><code>${esc(e.rule_id)}</code> — <b>${esc(e.rule||e.name||"")}</b>${sys}${sev}${src}</li>`;
+   }).join("");
+  const other=(res.evidence||[]).filter(e=>!e.rule_id&&e.message)
+    .map(e=>`<li style="margin:5px 0">${esc(e.message)}</li>`).join("");
   const w={"stat":.30,"knowledge":.35,"ml":.25,"trend":.10};
   const c=res.components||{};
   $("#ev").innerHTML=`
@@ -173,11 +285,12 @@ async function renderEvidence(pid,res,st){
       <b>chưa chứng minh dự báo biến cố tương lai</b>. Kết luận cuối thuộc về bác sĩ.</div>
   </div>
   <div class="card"><span class="tier-tag">TẦNG 1 · CÁ NHÂN</span>
-    <table class="ev"><tr><th>Chỉ số</th><th>Hiện tại</th><th>Baseline μ</th><th>Z-score</th><th>Kết luận</th></tr>
-    ${t1||'<tr><td colspan="5" class="empty">Chưa đủ lịch sử (≥7 điểm) để phân tích chuỗi thời gian.</td></tr>'}</table>
+    <table class="ev"><tr><th>Chỉ số</th><th>Hiện tại</th><th>Baseline μ</th><th>Z-score</th><th>Xu hướng</th><th>Kết luận</th></tr>
+    ${t1||'<tr><td colspan="6" class="empty">Chưa đủ lịch sử (≥7 điểm) để phân tích chuỗi thời gian.</td></tr>'}</table>
   </div>
   <div class="card"><span class="tier-tag">TẦNG 2 · TRI THỨC Y KHOA</span>
-    ${t2?`<ul style="margin:8px 0 0">${t2}</ul>`:'<p class="empty" style="margin:8px 0 0">Không có luật nào kích hoạt.</p>'}
+    ${t2?`<ul style="margin:8px 0 0;padding-left:20px">${t2}</ul>`:'<p class="empty" style="margin:8px 0 0">Không có luật nào kích hoạt.</p>'}
+    ${other?`<ul style="margin:8px 0 0;padding-left:20px">${other}</ul>`:""}
   </div>
   <div class="card"><span class="tier-tag">TẦNG 3 · MACHINE LEARNING</span>
     <div class="md-body" id="ml-md">Đang tải…</div>
@@ -189,7 +302,6 @@ async function renderEvidence(pid,res,st){
     ${res.recommendations?.length?`<details style="margin-top:8px"><summary style="cursor:pointer;font-size:13px">Khuyến nghị (WHY?)</summary>
       <div class="md-body" id="rec-md"></div></details>`:""}
   </div>`;
-  // render markdown chuẩn hóa qua python-markdown (U9)
   try{
     const r=await j("/api/render_markdown",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({markdown:mlInfo})});
@@ -203,6 +315,15 @@ async function renderEvidence(pid,res,st){
 
 // ---- TAB BẢN GHI ----
 let REC=null;
+let COLS=JSON.parse(localStorage.getItem("rec_cols")||"null")||CATALOG.slice(0,7).map(c=>c.k);
+function drawChips(){
+  $("#col-chips").innerHTML=CATALOG.map(c=>
+    `<span class="chip ${COLS.includes(c.k)?"on":""}" onclick="toggleCol('${c.k}')">${c.vn}</span>`).join("");
+}
+function toggleCol(k){
+  COLS.includes(k)?COLS=COLS.filter(x=>x!==k):COLS.push(k);
+  localStorage.setItem("rec_cols",JSON.stringify(COLS));drawChips();drawRecords();
+}
 async function loadRecords(){
   const pid=$("#r-pid").value.trim()||"P001";
   REC=await j(`/api/records/${encodeURIComponent(pid)}`);
@@ -211,15 +332,17 @@ async function loadRecords(){
 function cell(d,m){
   const g=REC.grid[d]&&REC.grid[d][m];
   const v=g?g.value:"";
-  return `<td><input value="${v}" placeholder="—"
+  const u=UNIT[m]?`<span style="font-size:10px;color:var(--mut)">${UNIT[m]}</span>`:"";
+  return `<td><input value="${v}" placeholder="${u||"—"}"
     onchange="saveCell('${d}','${m}',this.value)">
     ${g?`<a href="#" onclick="delCell('${d}','${m}');return false" style="color:var(--red);text-decoration:none;font-size:10px">×</a>`:""}</td>`;
 }
 function drawRecords(){
-  const ms=REC.metrics.length?REC.metrics:METRICS.slice(0,4);
-  const head=`<tr><th>Ngày</th>${ms.map(m=>`<th>${VN[m]||m}</th>`).join("")}</tr>`;
-  const rows=REC.dates.map(d=>`<tr><td><b>${d}</b></td>${ms.map(m=>cell(d,m)).join("")}</tr>`).join("");
-  $("#rec-wrap").innerHTML=`<table class="rec">${head}${rows||'<tr><td colspan="8" class="empty">Chưa có bản ghi — nhấn “Thêm ngày”.</td></tr>'}</table>`;
+  const ms=COLS.length?COLS:CATALOG.slice(0,7).map(c=>c.k);
+  const head=`<tr><th>Ngày</th>${ms.map(m=>`<th>${VN[m]||m}<br><span style="font-weight:400;font-size:10px;color:var(--mut)">${UNIT[m]||""}</span></th>`).join("")}<th></th></tr>`;
+  const rows=REC.dates.map(d=>`<tr><td><b>${d}</b></td>${ms.map(m=>cell(d,m)).join("")}
+    <td><a href="#" onclick="delDay('${d}');return false" title="Xóa cả ngày" style="color:var(--red);text-decoration:none">🗑</a></td></tr>`).join("");
+  $("#rec-wrap").innerHTML=`<table class="rec">${head}${rows||'<tr><td colspan="12" class="empty">Chưa có bản ghi — nhấn “Thêm ngày”.</td></tr>'}</table>`;
 }
 async function saveCell(d,m,v){
   const pid=$("#r-pid").value.trim();
@@ -233,16 +356,171 @@ async function delCell(d,m){
   await j(`/api/records/${encodeURIComponent(pid)}?timestamp=${d}&metric=${m}`,{method:"DELETE"});
   loadRecords();toast("Đã xóa ô");
 }
-async function addRow(){
-  const d=$("#r-newdate").value||new Date().toISOString().slice(0,10);
+async function delDay(d){
+  if(!confirm("Xóa TOÀN BỘ chỉ số của ngày "+d+"?"))return;
   const pid=$("#r-pid").value.trim();
-  await j(`/api/records/${encodeURIComponent(pid)}`,{method:"PUT",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({timestamp:d,metric:"heart_rate",value:null})}).catch(()=>{});
-  loadRecords();
+  await j(`/api/records/${encodeURIComponent(pid)}?timestamp=${d}`,{method:"DELETE"});
+  loadRecords();toast("Đã xóa ngày "+d);
+}
+function addRow(){
+  const d=$("#r-newdate").value||new Date().toISOString().slice(0,10);
+  if(!REC)REC={dates:[],metrics:[],grid:{}};
+  if(!REC.dates.includes(d)){REC.dates.unshift(d);REC.grid[d]={}}
+  drawRecords();toast("Đã thêm dòng "+d+" — nhập số vào ô sẽ tự lưu");
 }
 
-loadPatients();
+// ---- TAB LUẬT & QUẢN TRỊ ----
+let RULES={rules:[],systems:{}};
+const NEXTS={draft:["review","rejected"],review:["approved","draft","rejected"],
+  approved:["active","draft"],active:["draft"],rejected:["draft","review"]};
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+async function loadRules(){
+  try{
+    const d=await j("/api/kb");
+    RULES={rules:d.rules||[],systems:d.systems||d.system_labels||{},metrics:d.metrics||{}};
+    Object.assign(SYS_VN,RULES.systems);
+    fillFormSelects();drawRules();drawAudit();
+  }catch(e){$("#rule-list").innerHTML=`<div class="card">Lỗi tải luật: ${esc(e.message)}</div>`}
+}
+function fillFormSelects(){
+  const sysKeys=Object.keys(RULES.systems);
+  if(sysKeys.length){
+    $("#f-system").innerHTML=sysKeys.map(k=>`<option value="${esc(k)}">${esc(k)} — ${esc(RULES.systems[k])}</option>`).join("");
+    $("#f-system").insertAdjacentHTML("afterbegin",'<option value="khac">khác</option>');
+  }
+  const mk=Object.keys(RULES.metrics);
+  if(mk.length)$("#f-metric").innerHTML=mk.map(k=>{
+    const m=RULES.metrics[k];return `<option value="${esc(k)}">${esc(m.name||k)} (${esc(k)}${m.unit?", "+esc(m.unit):""})</option>`}).join("");
+}
+function fmtCond(cond){
+  if(!cond)return "—";
+  if(cond.logic)return "("+cond.conditions.map(fmtCond).join(" "+cond.logic.toUpperCase()+" ")+")";
+  let s=`<b>${esc(cond.metric)}</b> ${esc(cond.op||">")} ${esc(cond.threshold)}`;
+  if(cond.threshold2!==undefined)s+=` và ≤ ${esc(cond.threshold2)}`;
+  if(cond.window_days)s+=` (cửa sổ ${cond.window_days} ngày)`;
+  return s;
+}
+function drawRules(){
+  const el=$("#rule-list");
+  if(!RULES.rules.length){el.innerHTML='<div class="card empty">KB trống.</div>';return}
+  el.innerHTML=RULES.rules.map(r=>{
+    const st=r.status||"active";
+    const nexts=NEXTS[st]||[];
+    const trans=nexts.map(n=>`<button class="mini" onclick="doTransition('${esc(r.rule_id)}','${n}')">→ ${n}</button>`).join("");
+    const modes=(r.modes&&r.modes.length&&!r.modes.includes("all"))
+      ?r.modes.map(m=>`<code>${esc(m)}</code>`).join(" "):"mọi chế độ";
+    return `<div class="rule-card ${st==="active"?"":"inactive"}">
+      <div class="rule-head">
+        <span class="rid">${esc(r.rule_id)}</span> — <b>${esc(r.name)}</b>
+        <span style="color:var(--mut)">(${esc(SYS_VN[r.system]||r.system)})</span>
+        <span class="st st-${st}">${st}</span>
+        <span style="font-size:11px;color:var(--mut)">v${r.rule_version??"1.0"}${r.previous_version?` (từ v${r.previous_version})`:""}</span>
+      </div>
+      <div class="cond">${fmtCond(r.condition)}</div>
+      <div class="meta">Độ nặng ${r.severity??0} · ${esc(r.specialty||"")} · nguồn: ${esc(r.evidence||"")}
+        ${r.source_url?`· <a href="${esc(r.source_url)}" target="_blank" rel="noopener">link</a>`:""}
+        · chế độ: ${modes}
+        ${r.approved_by?` · duyệt: ${esc(r.approved_by)} (${esc((r.approved_at||"").slice(0,10))})`:""}</div>
+      ${(r.source_excerpt)?`<div class="meta" style="font-style:italic">Trích: “${esc(r.source_excerpt)}”</div>`:""}
+      <div class="meta">${st==="active"?"✓ Đang chạy production":"◐ Chưa active — chỉ preview, KHÔNG chấm điểm production"}
+        ${r.updated_by?` · sửa gần nhất: ${esc(r.updated_by)} lúc ${esc((r.updated_at||"").slice(0,16))}`:""}</div>
+      <div class="ops">${trans}
+        <button class="mini" onclick="editRule('${esc(r.rule_id)}')">✎ Sửa</button>
+        <button class="mini danger" onclick="delRule('${esc(r.rule_id)}')">🗑 Xóa</button>
+      </div></div>`;
+  }).join("");
+}
+async function drawAudit(){
+  try{
+    const d=await j("/api/kb/audit?limit=30");
+    $("#audit-body").innerHTML=d.entries.length?`<table class="audit">
+      <tr><th>Thời điểm</th><th>Người thực hiện</th><th>Hành động</th><th>Luật</th><th>Chi tiết</th></tr>
+      ${d.entries.map(e=>`<tr><td>${esc(e.ts.replace("T"," ").slice(0,19))}</td>
+        <td><b>${esc(e.actor)}</b></td><td>${esc(e.action)}</td>
+        <td class="rid">${esc(e.rule_id)}</td><td style="font-size:11px">${esc(JSON.stringify(e.detail))}</td></tr>`).join("")}
+      </table>`:'<span class="empty">Chưa có thao tác nào.</span>';
+  }catch(e){$("#audit-body").innerHTML=`<span style="color:var(--red)">${esc(e.message)}</span>`}
+}
+function fillMetricSelect(){
+  $("#f-metric").innerHTML=CATALOG.map(c=>`<option value="${c.k}">${c.vn} (${c.k})</option>`).join("");
+}
+function toggleForm(){const w=$("#rule-form-wrap");w.style.display=w.style.display==="none"?"":"none";
+  if(w.style.display==="none"){$("#form-title").textContent="Thêm luật mới";$("#f-edit-id").value=""}}
+$$("#f-modes .chip").forEach(ch=>ch.onclick=()=>ch.classList.toggle("on"));
+$("#f-op").onchange=e=>{$("#f-th2-wrap").style.display=e.target.value==="between"?"":"none"};
+
+async function submitRule(){
+  const errEl=$("#f-err");errEl.textContent="";
+  const editId=$("#f-edit-id").value;
+  const condJson=$("#f-cond-json").value.trim();
+  let condition;
+  if(condJson){try{condition=JSON.parse(condJson)}catch(e){errEl.textContent="JSON điều kiện không hợp lệ";return}}
+  else{
+    condition={metric:$("#f-metric").value,op:$("#f-op").value,
+               threshold:parseFloat($("#f-threshold").value)};
+    if($("#f-op").value==="between")condition.threshold2=parseFloat($("#f-threshold2").value);
+    const win=parseInt($("#f-window").value);if(win>0)condition.window_days=win;
+  }
+  const body={
+    name:$("#f-name").value.trim(),system:$("#f-system").value,condition,
+    severity:parseFloat($("#f-severity").value)||0.5,specialty:$("#f-specialty").value.trim()||"Khác",
+    evidence:"guideline",source_url:$("#f-source-url").value.trim(),
+    modes:$$("#f-modes .chip.on").map(c=>c.dataset.mode),
+  };
+  try{
+    if(editId){
+      await j(`/api/kb/rules/${encodeURIComponent(editId)}`,{method:"PUT",
+        headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,actor:actorOf()})});
+      toast("Đã sửa — version mới về DRAFT chờ duyệt lại");
+    }else{
+      if(!$("#f-rule-id").value.trim()){errEl.textContent="Thiếu mã luật";return}
+      await j("/api/kb/rules",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({...body,rule_id:$("#f-rule-id").value.trim(),actor:actorOf()})});
+      toast("Đã tạo luật ở trạng thái DRAFT v1.0");
+    }
+    toggleForm();loadRules();
+  }catch(e){errEl.textContent="Lỗi: "+e.message}
+}
+function actorOf(){
+  let a=localStorage.getItem("actor");
+  if(!a){a=prompt("Tên người thực hiện (lưu làm mặc định cho các thao tác quản trị):","bs_moibaove")||"bs_moibaove";
+    localStorage.setItem("actor",a)}
+  return a;
+}
+
+function editRule(id){
+  const r=RULES.rules.find(x=>x.rule_id===id);if(!r)return;
+  $("#form-title").textContent="Sửa luật "+id+" (lưu → version mới, về DRAFT)";
+  $("#f-edit-id").value=id;$("#f-rule-id").value=id;$("#f-rule-id").disabled=true;
+  $("#f-name").value=r.name||"";$("#f-system").value=r.system||"htn";
+  $("#f-severity").value=r.severity??0.5;$("#f-specialty").value=r.specialty||"";
+  $("#f-source-url").value=r.source_url||"";
+  $$("#f-modes .chip").forEach(c=>c.classList.toggle("on",(r.modes||[]).includes(c.dataset.mode)));
+  const c=r.condition;
+  if(c&&(c.logic||c.conditions)){$("#f-cond-json").value=JSON.stringify(c,null,2)}
+  else if(c){$("#f-metric").value=c.metric||CATALOG[0].k;
+    $("#f-op").value=["<","<=","==",">",">=","between"].includes(c.op||">=")?c.op||">=":">=";
+    $("#f-threshold").value=c.threshold??"";
+    $("#f-window").value=c.window_days||"";}
+  $("#rule-form-wrap").style.display="";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+async function delRule(id){
+  if(!confirm("Xóa vĩnh viễn luật "+id+"? (đã ghi audit trail)"))return;
+  try{await j(`/api/kb/rules/${encodeURIComponent(id)}?actor=${encodeURIComponent(actorOf())}`,{method:"DELETE"});
+    toast("Đã xóa "+id);loadRules()}catch(e){toast("Lỗi: "+e.message)}
+}
+async function doTransition(id,to){
+  try{
+    await j(`/api/kb/rules/${encodeURIComponent(id)}/transition`,{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify({to,actor:actorOf(),note:""})});
+    toast(`${id}: ${to}`);loadRules();
+  }catch(e){toast("Lỗi: "+e.message)}
+}
+
+// ---- khởi tạo ----
+fillMetricSelect();drawChips();loadPatients();
 if(localStorage.getItem("last_pid")){$("#pid").value=$("#r-pid").value=localStorage.getItem("last_pid")}
 </script>
 </body>

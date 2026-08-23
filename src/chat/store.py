@@ -157,6 +157,15 @@ class ChatStore:
             raise ValueError(f"Không tìm thấy ({metric}, {timestamp}).")
         self._write_rows(patient_id, kept)
 
+    def delete_day(self, patient_id: str, timestamp: str) -> int:
+        """Xóa toàn bộ chỉ số của một ngày; trả về số ô đã xóa."""
+        rows = self._load_rows(patient_id)
+        kept = [r for r in rows if r["timestamp"] != timestamp]
+        if len(kept) == len(rows):
+            raise ValueError(f"Không có dữ liệu ngày {timestamp}.")
+        self._write_rows(patient_id, kept)
+        return len(rows) - len(kept)
+
     def table_by_date(self, patient_id: str) -> dict:
         """Bảng theo ngày: mỗi hàng một ngày, cột là các chỉ số (U10)."""
         rows = self._load_rows(patient_id)

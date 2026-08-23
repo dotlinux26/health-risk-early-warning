@@ -532,6 +532,13 @@
           0.007835914530410205
         ]
       }
+    },
+    "oracle_B_as_score": {
+      "roc_auc_vs_labelA": [
+        0.8153461217681401,
+        0.009444795774406687
+      ]
     }
-  }
+  },
+  "oracle_note": "Dùng nhãn B làm điểm số để xếp hạng nhãn A: nếu chỉ biết tiêu chí không-thuốc, AUC ~0.815 < model 0.935 — model học thêm được tín hiệu thuốc từ mẫu đo."
 }

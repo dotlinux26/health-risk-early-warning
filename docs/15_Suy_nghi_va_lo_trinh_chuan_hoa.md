@@ -345,6 +345,27 @@ Còn lại cho P1: benchmark research page nâng cấp (tab Robustness đọc
 LABEL/WEIGHT/BASELINE-STABILITY summaries — hiện đã có sẵn trang /benchmark cũ
 qua iframe) và evidence status checklist (✓/◐/○).
 
+### 7.2 Cải tiến giao diện theo phản hồi sử dụng (23/08/2026)
+
+Sau khi dùng thử, trang chính được chỉnh lại bốn điểm:
+
+1. **Quản trị luật đưa thẳng vào trang chính** (bỏ iframe): tab "Luật &
+   Quản trị" giờ là giao diện native toàn màn hình — danh sách luật với badge
+   trạng thái + version, nút chuyển trạng thái đúng luồng, form thêm/sửa luật
+   (hệ và chỉ số lấy động từ `/api/kb`), hỗ trợ điều kiện `between` và JSON
+   cho logic AND/OR lồng; audit trail hiển thị ngay dưới danh sách.
+2. **Tầng 2 hiện tên tiếng Việt**: mỗi luật kích hoạt hiển thị
+   `<mã> — <tên luật>` kèm hệ, độ nặng và link nguồn (trước đây chỉ có mã).
+3. **Xuống dòng trong markdown**: thêm extension `nl2br` vào
+   `/api/render_markdown` — mọi dòng đơn đều xuống dòng đúng khi render
+   (trước đây các ý bị dính liền một khối).
+4. **Bản ghi cá nhân đầy đủ hơn**: bộ chọn cột (thêm/bớt chỉ số trong 10 chỉ
+   số hệ thống: HA tâm thu/trương, nhịp tim, glucose ngẫu nhiên/lúc đói,
+   HbA1c, creatinine, eGFR, SpO₂, BMI) lưu vào localStorage; "Thêm ngày" tạo
+   dòng trống ngay không cần ghi dữ liệu ảo; nút xóa cả ngày
+   (`DELETE /api/records/{pid}?timestamp=...` không cần metric); ô nhập hiển
+   thị đơn vị đo; bảng Tầng 1 bổ sung cột xu hướng và đơn vị.
+
 ## 8. Quản lý trạng thái bằng chứng
 
 Thêm panel **SYSTEM EVIDENCE STATUS** (trên `/benchmark` hoặc trang tổng quan):
