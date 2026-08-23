@@ -1,0 +1,73 @@
+{
+  "design": "150 patient tong hop x 150 ngay, seed=42, tham chieu N=90",
+  "metrics_simulated": [
+    "systolic_bp",
+    "diastolic_bp",
+    "heart_rate",
+    "glucose_fasting"
+  ],
+  "windows": [
+    3,
+    5,
+    7,
+    14,
+    30,
+    90
+  ],
+  "results": [
+    {
+      "window_days": 3,
+      "delta_mean_in_sigma": 0.6147,
+      "p95_mean_in_sigma": 1.5026,
+      "delta_std_relative": 0.4596,
+      "band_flip_rate": 0.2152,
+      "risk_flag_flip_rate": 0.027,
+      "n_obs": 30022
+    },
+    {
+      "window_days": 5,
+      "delta_mean_in_sigma": 0.5275,
+      "p95_mean_in_sigma": 1.2817,
+      "delta_std_relative": 0.3627,
+      "band_flip_rate": 0.1897,
+      "risk_flag_flip_rate": 0.028,
+      "n_obs": 32729
+    },
+    {
+      "window_days": 7,
+      "delta_mean_in_sigma": 0.4631,
+      "p95_mean_in_sigma": 1.1184,
+      "delta_std_relative": 0.3087,
+      "band_flip_rate": 0.1654,
+      "risk_flag_flip_rate": 0.0262,
+      "n_obs": 33178
+    },
+    {
+      "window_days": 14,
+      "delta_mean_in_sigma": 0.3306,
+      "p95_mean_in_sigma": 0.7961,
+      "delta_std_relative": 0.2148,
+      "band_flip_rate": 0.1192,
+      "risk_flag_flip_rate": 0.0234,
+      "n_obs": 33133
+    },
+    {
+      "window_days": 30,
+      "delta_mean_in_sigma": 0.206,
+      "p95_mean_in_sigma": 0.4983,
+      "delta_std_relative": 0.1298,
+      "band_flip_rate": 0.0741,
+      "risk_flag_flip_rate": 0.0157,
+      "n_obs": 33233
+    },
+    {
+      "window_days": 90,
+      "delta_mean_in_sigma": 0.0,
+      "p95_mean_in_sigma": 0.0,
+      "delta_std_relative": 0.0,
+      "band_flip_rate": 0.0,
+      "risk_flag_flip_rate": 0.0,
+      "n_obs": 33263
+    }
+  ]
+}

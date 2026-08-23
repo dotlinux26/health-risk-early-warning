@@ -1,0 +1,24 @@
+{
+  "note": "fit+chọn trên validation; test chỉ để đánh giá",
+  "selected": "isotonic",
+  "methods": {
+    "none": {
+      "brier_val": 0.10774379445945588,
+      "ece_val": 0.02373573557543506,
+      "brier_test": 0.10121977732998741,
+      "ece_test": 0.020029692585963377
+    },
+    "platt": {
+      "brier_val": 0.11059911406131327,
+      "ece_val": 0.04505445168283771,
+      "brier_test": 0.10325368145963078,
+      "ece_test": 0.030601849303577212
+    },
+    "isotonic": {
+      "brier_val": 0.10417239278299133,
+      "ece_val": 2.5214552799309786e-10,
+      "brier_test": 0.10124156832418148,
+      "ece_test": 0.017274822805489646
+    }
+  }
+}

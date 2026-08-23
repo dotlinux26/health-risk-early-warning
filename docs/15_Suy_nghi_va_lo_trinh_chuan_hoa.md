@@ -200,6 +200,79 @@ validation label phù hợp.
 - Temporal split (train quá khứ / test tương lai) và lead time — **phải chờ bộ
   dữ liệu dọc có kết cục**; ghi là điều kiện tiên quyết, không hứa ngày.
 
+## 5K. Kết quả thực nghiệm P0 (đợt chạy 23/08/2026)
+
+### K1 — Calibration (chi tiết: `experiments/EXP-ML-*/calibration.json`)
+
+Calibrator fit trên val, chọn theo val Brier; test chỉ báo cáo. Cả 6 model đều
+chọn **isotonic**:
+
+| Model | Brier raw | Brier Platt | Brier Isotonic | ECE raw | ECE isotonic |
+|---|---|---|---|---|---|
+| xgb | 0.0913±0.0023 | 0.0939±0.0021 | 0.0914±0.0022 | 1.49% | 1.50% |
+| lgbm | 0.0916±0.0025 | 0.0940±0.0022 | 0.0920±0.0027 | 1.60% | 1.63% |
+| rf | 0.0956±0.0029 | 0.0947±0.0036 | **0.0936±0.0032** | 4.46% | 1.69% |
+| lr | 0.1375±0.0049 | 0.1405±0.0053 | **0.1329±0.0047** | 5.12% | **1.84%** |
+| mlp | 0.1287±0.0098 | 0.1255±0.0083 | **0.1241±0.0075** | 5.37% | **2.12%** |
+| fttransformer | 0.1028±0.0044 | 0.1045±0.0033 | **0.1020±0.0042** | 2.65% | **1.52%** |
+
+Đọc kết quả: LGBM/XGB đã gần như hiệu chỉnh sẵn (ECE ~1.5%, hiệu chỉnh không
+cải thiện thêm); với LR/MLP/RF/FT, isotonic giảm ECE mạnh (LR 5.1%→1.8%).
+→ UI tầng ML hiển thị cặp Raw vs Calibrated theo bảng này.
+
+### K2 — Label sensitivity (chi tiết: `experiments/LABEL-SENSITIVITY/`)
+
+Nhãn A (có thành phần thuốc HA, positive 49.0%) vs nhãn B (bỏ thuốc, 30.8%);
+2968/16314 ca (18.2%) dương **chỉ nhờ thuốc**:
+
+| Model | ROC-AUC A | ROC-AUC B | Δ AUC |
+|---|---|---|---|
+| lgbm | 0.935±0.003 | **1.000±0.000** | +0.065 |
+| xgb | 0.937±0.003 | **1.000±0.000** | +0.063 |
+| lr | 0.884±0.008 | 0.970±0.002 | +0.086 |
+
+Ba phát hiện định lượng:
+
+1. Nhãn B → AUC = 1.000: bỏ nhiễu thuốc, bài toán **suy biến thành tái lập
+   ngưỡng lâm sàng** (sbp≥140 ∨ dbp≥90 ∨ hba1c≥6.5 ∨ fpg≥7.0 nằm ngay trong
+   feature set). D1 được chứng minh thực nghiệm, không còn là giả định.
+2. Oracle dùng chính nhãn B làm score chỉ đạt AUC 0.827 trên nhãn A — model
+   thật đạt 0.936, tức vượt oracle: một phần hiệu năng đến từ việc **suy ra
+   trạng thái đang điều trị** từ pattern đo được (người uống thuốc HA vẫn để
+   lại dấu vết trong số đo).
+3. Hệ quả diễn giải bắt buộc: AUC 0.9356 của benchmark = khả năng tái lập phân
+   tầng lâm sàng + suy đoán tình trạng điều trị; **không phải dự báo biến cố
+   tương lai**. Ghi vào mọi báo cáo.
+
+### K3 — Baseline stability (chi tiết: `experiments/BASELINE-STABILITY/`)
+
+150 bệnh nhân mô phỏng × 150 ngày × 4 chỉ số, tham chiếu N=90, seed=42:
+
+| N (ngày) | \|Δμ\| (σ₉₀) | \|Δσ\| tương đối | Đổi vùng z | Đổi cờ z≥2σ |
+|---|---|---|---|---|
+| 3 | 0.615 | 0.460 | 21.5% | 2.7% |
+| 7 | 0.463 | 0.309 | 16.5% | 2.6% |
+| 14 | 0.331 | 0.215 | 11.9% | 2.3% |
+| 30 | 0.206 | 0.130 | 7.4% | 1.6% |
+
+→ Cơ sở định lượng cho trạng thái baseline trong UI (U2): <7 ngày = CHƯA ỔN
+ĐỊNH; 7–13 = ĐỦ ĐIỀU KIỆN (band flip ~17%); ≥14 = ỔN ĐỊNH HƠN; khuyến nghị
+hiển thị cảnh báo khi N<14 vì tỉ lệ đảo kết luận z-band còn cao.
+
+### K4 — Weight sensitivity (chi tiết: `experiments/WEIGHT-SENSITIVITY/`)
+
+155 bệnh nhân (5 mẫu thật + 150 giả từ NHANES), pipeline 3 tầng đầy đủ:
+
+| Cặp | Đồng thuận mức | Chuyển mức | std(Δscore) |
+|---|---|---|---|
+| v1 vs v2 | 96.8% | 5 ca TB→THẠP | 0.031 |
+| v1 vs v3 | 99.4% | 1 ca THẠP→TB | 0.029 |
+| v2 vs v3 | 96.1% | 6 ca THẠP→TB | 0.043 |
+
+Không có chuyển đổi đi lên nguy hiểm (Low→High) và không mất case CAO nào.
+→ Risk level khá bền vững với thiết kế trọng số; vẫn ghi rõ trọng số hiện tại
+là thiết kế ban đầu, chưa tối ưu theo outcome (không tune "đẹp số").
+
 ## 6. Kế hoạch chuẩn hóa giao diện
 
 UI trở thành **evidence surface** của nghiên cứu. Các hạng mục (U):
@@ -213,6 +286,29 @@ UI trở thành **evidence surface** của nghiên cứu. Các hạng mục (U):
 | U5 | Score breakdown | Khối tổng hợp stat/knowledge/ml/trend × trọng số = điểm cuối, ấn-mở dạng "WHY?" cho từng kết luận — explainability cấp hệ thống |
 | U6 | Dataset/benchmark panel | `/benchmark` chia tab: Performance (AUC/F1…) · Calibration (Brier trước/sau + curve) · Robustness (5 seed, label sensitivity) · Data provenance (dataset, N, positive rate, missing %, split, preprocessing, định nghĩa nhãn); riêng panel dataset: loại cắt ngang, không có kết cục tương lai, external/clinical validation ✗ |
 | U7 | Wording early warning | Toàn UI đổi "cảnh báo sớm" → "PHÁT HIỆN BẤT THƯỜNG / PHÂN TẦNG NGUY CƠ" + khối "Phạm vi bằng chứng hiện tại": ✓ phân tầng trên dữ liệu hiện có, ✓ phát hiện thay đổi so baseline cá nhân, ⚠ chưa chứng minh dự báo biến cố, ⚠ chưa có lead time |
+| U8 | **Bỏ chatbot — chuyển UI sang dạng biểu mẫu** | Loại bỏ giao diện hội thoại; thay bằng form input/output chuẩn: ô điền tham số (patient_id, ngày đo…), chọn ngày, upload file (PDF/DOCX/TXT), nút chức năng tách bạch ("Đánh giá bệnh nhân", "Nhập file kết quả", "Xem timeline"…). Mục tiêu: UX đơn giản — dễ dùng — dễ hiểu — quy tắc rõ ràng, phù hợp bản chất hệ thống đánh giá đầu vào/đầu ra cố định thay vì hội thoại tự do |
+| U9 | Render markdown chuẩn hóa | Toàn bộ nội dung giải thích/báo cáo động trong UI được render từ Markdown bằng thư viện Python (`python-markdown`, extension `tables` + `fenced_code`) qua endpoint `/api/render_markdown` — không nhồi text thô lộn xộn vào HTML; đảm bảo định dạng bảng/danh sách thống nhất, dễ đọc, đúng và đủ |
+| U10 | **Quản lý bản ghi cá nhân theo ngày** | Vì hệ thống cá nhân hóa, cần trang quản trị dữ liệu cá nhân dạng bảng: mỗi hàng = một ngày đo (sắp xếp theo ngày), cho phép **edit trực tiếp các giá trị số** trên từng hàng (inline edit), **thêm/bớt bản ghi**; ô nào không có dữ liệu thì để trống hoàn toàn bình thường — hệ thống phải chấp nhận missing từng trường và hiển thị rõ trạng thái thiếu. Đây là nền để timeline/baseline (U1/U2) có dữ liệu thật để xem |
+
+### 6.1 Bố cục evidence surface (mục tiêu P1)
+
+Panel kết quả đánh giá một patient hiển thị theo khối, người chấm không cần
+đọc source code vẫn hiểu hệ thống làm gì:
+
+```text
+PHÂN TẦNG NGUY CƠ        TRUNG BÌNH · 0.53
+Phạm vi: dữ liệu hiện có · Chưa chứng minh dự báo biến cố tương lai
+─────────────────────────────────────────────
+TẦNG 1 · CÁ NHÂN      N ngày · baseline μ/σ · z-score từng chỉ số + xu hướng
+TẦNG 2 · TRI THỨC     luật kích hoạt + id/version/source + severity
+TẦNG 3 · ML           model · raw output · calibrated output · phương pháp hiệu chỉnh
+TỔNG HỢP              stat/knowledge/ml/trend × trọng số = điểm cuối → mức nguy cơ
+```
+
+`/benchmark` trở thành trang nghiên cứu: Performance · Calibration (raw vs
+calibrated Brier/ECE + curve) · Robustness (5 seed, label sensitivity,
+missingness, weight sensitivity) · Data provenance · Evidence status
+(✓/◐/○ theo TRIPOD+AI & DECIDE-AI — xem mục 13 R1/R2).
 
 ## 7. Quản trị tri thức (WS4)
 

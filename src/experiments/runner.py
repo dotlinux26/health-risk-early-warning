@@ -30,6 +30,7 @@ from sklearn.calibration import calibration_curve
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import roc_curve, precision_recall_curve, roc_auc_score
 
+from src.experiments.calibration import apply_calibration, compare_methods
 from src.experiments.models import build_model
 from src.experiments.protocol import (
     NHANES_FEATURES,
@@ -85,11 +86,25 @@ class BenchmarkRunner:
         proba_te = model.predict_proba(X_te)[:, 1]
         proba_va = model.predict_proba(X_va)[:, 1]
 
+        # --- P0.1 Hiệu chỉnh xác suất: fit trên VAL, chọn theo VAL Brier ------
+        # Test chỉ dùng để báo cáo. Đầu ra thô (raw) KHÔNG phải xác suất bệnh.
+        cal_info = compare_methods(proba_va, y_va, proba_te, y_te)
+        selected = cal_info["selected"]
+        proba_te_cal = apply_calibration(cal_info["calibrators"].get(selected), proba_te) \
+            if selected != "none" else np.asarray(proba_te)
+
         metrics = evaluate_metrics(y_te, proba_te)
         metrics["train_seconds"] = train_seconds
         metrics["n_train"] = int(len(X_tr))
         metrics["n_val"] = int(len(X_va))
         metrics["n_test"] = int(len(X_te))
+        # Raw = đầu ra gốc của model; platt/isotonic = sau hiệu chỉnh trên val.
+        metrics["brier_platt"] = cal_info["methods"]["platt"]["brier_test"]
+        metrics["brier_isotonic"] = cal_info["methods"]["isotonic"]["brier_test"]
+        metrics["ece_raw"] = cal_info["methods"]["none"]["ece_test"]
+        metrics["ece_platt"] = cal_info["methods"]["platt"]["ece_test"]
+        metrics["ece_isotonic"] = cal_info["methods"]["isotonic"]["ece_test"]
+        metrics["calibration_method"] = selected
 
         # Evidence package
         self.exp_dir.mkdir(parents=True, exist_ok=True)
@@ -100,18 +115,45 @@ class BenchmarkRunner:
         (self.exp_dir / "metrics.json").write_text(
             json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8"
         )
+        (self.exp_dir / "calibration.json").write_text(
+            json.dumps(
+                {
+                    "note": "fit+chọn trên validation; test chỉ để đánh giá",
+                    "selected": selected,
+                    "methods": cal_info["methods"],
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        import joblib as _jl
+
+        for m, cal in cal_info.get("calibrators", {}).items():
+            _jl.dump(cal, self.exp_dir / f"calibrator_{m}.joblib")
         pred_df = pd.DataFrame(
-            {"y_true": y_te, "proba": proba_te, "seed": seed}
+            {
+                "y_true": y_te,
+                "proba": proba_te,
+                "proba_calibrated": proba_te_cal,
+                "calibration_method": selected,
+                "seed": seed,
+            }
         )
         pred_df.to_csv(self.exp_dir / "predictions.csv", index=False)
         joblib.dump(model, self.exp_dir / "model.joblib")
 
-        self._save_curves(y_te, proba_te)
+        self._save_curves(y_te, proba_te, proba_te_cal)
         self._save_importance(model, X_tr, y_tr, X_va, y_va)
 
         return metrics
 
-    def _save_curves(self, y_true: np.ndarray, proba: np.ndarray) -> None:
+    def _save_curves(
+        self,
+        y_true: np.ndarray,
+        proba: np.ndarray,
+        proba_cal: np.ndarray | None = None,
+    ) -> None:
         fpr, tpr, _ = roc_curve(y_true, proba)
         precision, recall, _ = precision_recall_curve(y_true, proba)
         prob_true, prob_pred = calibration_curve(y_true, proba, n_bins=10)
@@ -126,9 +168,13 @@ class BenchmarkRunner:
         axes[1].set_title("PR Curve")
         axes[1].set_xlabel("Recall")
         axes[1].set_ylabel("Precision")
-        axes[2].plot(prob_pred, prob_true, marker="o")
+        axes[2].plot(prob_pred, prob_true, marker="o", label="raw")
+        if proba_cal is not None:
+            cal_true, cal_pred = calibration_curve(y_true, proba_cal, n_bins=10)
+            axes[2].plot(cal_pred, cal_true, marker="s", label="calibrated")
+            axes[2].legend(fontsize=8)
         axes[2].plot([0, 1], [0, 1], "--", color="gray")
-        axes[2].set_title("Calibration")
+        axes[2].set_title("Calibration (raw vs calibrated)")
         axes[2].set_xlabel("Predicted")
         axes[2].set_ylabel("Actual")
         fig.tight_layout()
@@ -250,6 +296,31 @@ def run_benchmark(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     md = "# Bảng tổng hợp benchmark\n\n" + _fmt_metric_table(agg) + "\n"
+
+    # --- Khối hiệu chỉnh xác suất (P0.1): raw vs platt vs isotonic ----------
+    cal_lines = [
+        "| Model | Brier raw | Brier Platt | Brier Isotonic | ECE raw | ECE Platt | ECE Isotonic | Chọn (theo val) |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for key, rows in rows_by_model.items():
+        def _ms(name: str) -> str:
+            vals = np.array([r[name] for r in rows], dtype=float)
+            return f"{vals.mean():.4f}±{vals.std():.4f}"
+
+        sel = [r["calibration_method"] for r in rows]
+        chosen = max(set(sel), key=sel.count)
+        cal_lines.append(
+            f"| {key} | {_ms('brier')} | {_ms('brier_platt')} "
+            f"| {_ms('brier_isotonic')} | {_ms('ece_raw')} | {_ms('ece_platt')} "
+            f"| {_ms('ece_isotonic')} | {chosen} |"
+        )
+    md += (
+        "\n## Hiệu chỉnh xác suất (P0.1)\n\n"
+        "Calibrator fit trên validation; chọn phương pháp theo Brier trên "
+        "validation; test chỉ dùng để báo cáo. `brier` trong bảng trên là "
+        "đầu ra THÔ của model — không được diễn giải là xác suất bệnh khi "
+        "chưa hiệu chỉnh.\n\n" + "\n".join(cal_lines) + "\n"
+    )
     md += "\n## Mức độ đầy đủ dữ liệu\n"
     md += f"- **Confidence tổng thể: {data_completeness['confidence']}**\n"
     for f in features:

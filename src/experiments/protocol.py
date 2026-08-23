@@ -98,8 +98,14 @@ def evaluate_metrics(y_true: np.ndarray, proba: np.ndarray) -> dict[str, float]:
 
 
 def aggregate_seeds(rows: list[dict[str, float]]) -> dict[str, dict[str, float]]:
-    """Gộp kết quả nhiều seed -> {metric: {"mean": x, "std": y}}."""
-    keys = [k for k in rows[0] if k not in {"seed"}]
+    """Gộp kết quả nhiều seed -> {metric: {"mean": x, "std": y}}.
+
+    Bỏ qua các key phi số (ví dụ calibration_method là tên phương pháp).
+    """
+    keys = [
+        k for k in rows[0]
+        if k not in {"seed"} and isinstance(rows[0][k], (int, float))
+    ]
     out: dict[str, dict[str, float]] = {}
     for k in keys:
         vals = np.array([r[k] for r in rows], dtype=float)

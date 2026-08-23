@@ -10,5 +10,11 @@
   "train_seconds": 0.38,
   "n_train": 11419,
   "n_val": 2447,
-  "n_test": 2448
+  "n_test": 2448,
+  "brier_platt": 0.13658861772411182,
+  "brier_isotonic": 0.13118670703079713,
+  "ece_raw": 0.041092430877664406,
+  "ece_platt": 0.06252957105163758,
+  "ece_isotonic": 0.011757235561749046,
+  "calibration_method": "isotonic"
 }

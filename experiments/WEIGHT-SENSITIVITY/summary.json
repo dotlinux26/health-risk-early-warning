@@ -1,0 +1,79 @@
+{
+  "dataset": "data/sample_long.csv",
+  "versions": {
+    "v1_30_35_25_10": {
+      "weights": {
+        "stat": 0.3,
+        "knowledge": 0.35,
+        "ml": 0.25,
+        "trend": 0.1
+      },
+      "n_assessed": 155,
+      "level_distribution": {
+        "THAP": 115,
+        "TRUNG_BINH": 38,
+        "CAO": 2
+      },
+      "score_mean": 0.2536,
+      "score_std": 0.1465
+    },
+    "v2_25_40_25_10": {
+      "weights": {
+        "stat": 0.25,
+        "knowledge": 0.4,
+        "ml": 0.25,
+        "trend": 0.1
+      },
+      "n_assessed": 155,
+      "level_distribution": {
+        "THAP": 120,
+        "TRUNG_BINH": 33,
+        "CAO": 2
+      },
+      "score_mean": 0.2579,
+      "score_std": 0.1562
+    },
+    "v3_30_30_30_10": {
+      "weights": {
+        "stat": 0.3,
+        "knowledge": 0.3,
+        "ml": 0.3,
+        "trend": 0.1
+      },
+      "n_assessed": 155,
+      "level_distribution": {
+        "THAP": 114,
+        "TRUNG_BINH": 39,
+        "CAO": 2
+      },
+      "score_mean": 0.2827,
+      "score_std": 0.1401
+    }
+  },
+  "pairs": {
+    "v1_30_35_25_10|v2_25_40_25_10": {
+      "n_common": 155,
+      "level_agreement": 0.9677,
+      "transitions": {
+        "TRUNG_BINH→THAP": 5
+      },
+      "score_diff_std": 0.0154
+    },
+    "v1_30_35_25_10|v3_30_30_30_10": {
+      "n_common": 155,
+      "level_agreement": 0.9935,
+      "transitions": {
+        "THAP→TRUNG_BINH": 1
+      },
+      "score_diff_std": 0.0118
+    },
+    "v2_25_40_25_10|v3_30_30_30_10": {
+      "n_common": 155,
+      "level_agreement": 0.9613,
+      "transitions": {
+        "THAP→TRUNG_BINH": 6
+      },
+      "score_diff_std": 0.0253
+    }
+  }
+}

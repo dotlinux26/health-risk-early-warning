@@ -7,8 +7,14 @@
   "specificity": 0.9551641313050441,
   "f1": 0.8554491564067488,
   "brier": 0.09010825659012667,
-  "train_seconds": 0.62,
+  "train_seconds": 0.67,
   "n_train": 11419,
   "n_val": 2447,
-  "n_test": 2448
+  "n_test": 2448,
+  "brier_platt": 0.09282417585465068,
+  "brier_isotonic": 0.09010974568725948,
+  "ece_raw": 0.017409325452305856,
+  "ece_platt": 0.03900068386420629,
+  "ece_isotonic": 0.017476563061427,
+  "calibration_method": "isotonic"
 }
