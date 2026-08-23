@@ -1,6 +1,6 @@
 # 02. Kế hoạch dự án (Project Plan)
 
-**Đề tài:** *Hệ thống cảnh báo sớm nguy cơ sức khỏe cá nhân hóa dựa trên khung hỗ trợ quyết định lâm sàng tích hợp học máy.*
+**Đề tài:** *Hệ thống đánh giá nguy cơ sức khỏe cá nhân hóa tích hợp học máy và hỗ trợ quyết định lâm sàng.* (Tên chính thức cập nhật ngày 23/08/2026; tên cũ và lý do đổi xem `docs/15` mục 14.)
 
 ---
 

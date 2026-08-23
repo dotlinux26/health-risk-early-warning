@@ -1,4 +1,6 @@
-# Hệ thống cảnh báo sớm nguy cơ sức khỏe cá nhân hóa dựa trên khung hỗ trợ quyết định lâm sàng tích hợp học máy
+# Hệ thống đánh giá nguy cơ sức khỏe cá nhân hóa tích hợp học máy và hỗ trợ quyết định lâm sàng
+
+*A Personalized Health Risk Assessment System Integrating Machine Learning and Clinical Decision Support*
 
 ## Đội ngũ thực hiện
 
@@ -22,6 +24,9 @@
 - [10. Bài toán lựa chọn mô hình học máy](docs/10_Bai_toan_lua_chon_mo_hinh_ML.md)
 - [11. Kết quả benchmark lần 1 (NHANES 1 chu kỳ)](docs/11_Ket_qua_benchmark_lan_1.md)
 - [12. Báo cáo giai đoạn: trợ lý chat + đánh giá đa mô hình + benchmark mở rộng](docs/12_Bao_cao_giai_doan_chat_tong_hop.md)
+- [13. Nhận xét của giảng viên hướng dẫn và đối sách của nhóm nghiên cứu](docs/13_Nhan_xet_giang_vien_va_doi_sach.md)
+- [14. Mô tả chi tiết kiến trúc hệ thống: đầu vào/ra, dữ liệu huấn luyện, nhãn, hạn chế, kết quả](docs/14_Kien_truc_he_thong_chi_tiet.md)
+- [15. Định hướng chuẩn hóa, kiểm chứng và hoàn thiện hệ thống (roadmap sau phản biện)](docs/15_Suy_nghi_va_lo_trinh_chuan_hoa.md)
 
 ## Kiến trúc 3 tầng
 

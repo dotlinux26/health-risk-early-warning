@@ -1,4 +1,4 @@
-"""Hệ thống cảnh báo sớm nguy cơ sức khỏe (3 tầng).
+"""Hệ thống đánh giá nguy cơ sức khỏe cá nhân hóa (3 tầng).
 
 Gói Python gồm:
   - data:        nạp, làm sạch, đặc trưng hóa dữ liệu chuỗi chỉ số cơ thể

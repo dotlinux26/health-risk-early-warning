@@ -33,7 +33,7 @@ from src.chat.agent import ChatAgent
 from src.chat.store import ChatStore
 
 app = FastAPI(
-    title="HealthRisk API — Cảnh báo sớm nguy cơ sức khỏe (3 tầng)",
+    title="HealthRisk API — Đánh giá nguy cơ sức khỏe cá nhân hóa (3 tầng)",
     version="0.3.0",
     description="Hệ thống hỗ trợ quyết định. Không thay thế chẩn đoán của bác sĩ.",
 )
@@ -55,7 +55,7 @@ def index() -> str:
     return """
     <!doctype html><html lang="vi"><head><meta charset="utf-8">
     <title>HealthRisk Demo</title></head><body style="font-family:sans-serif">
-    <h2>Cảnh báo sớm nguy cơ sức khỏe</h2>
+    <h2>Đánh giá nguy cơ sức khỏe cá nhân hóa</h2>
     <form method="post" action="/api/assess_docs" enctype="multipart/form-data">
       <label>Bệnh nhân: <input name="patient_id" value="P001"></label><br><br>
       <label>File PDF/DOCX: <input type="file" name="file" accept=".pdf,.docx,.doc,.txt"></label><br><br>

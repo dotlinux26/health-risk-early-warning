@@ -22,7 +22,7 @@ from src.tier3_risk.scoring import RiskScorer
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Hệ thống cảnh báo sớm nguy cơ sức khỏe 3 tầng")
+    parser = argparse.ArgumentParser(description="Hệ thống đánh giá nguy cơ sức khỏe cá nhân hóa 3 tầng")
     parser.add_argument("--input", type=str, required=True, help="CSV đầu vào (schema chuẩn)")
     parser.add_argument("--output", type=str, default="report", help="Thư mục báo cáo")
     parser.add_argument("--json-out", type=str, default=None, help="Xuất toàn bộ ra file JSON")
