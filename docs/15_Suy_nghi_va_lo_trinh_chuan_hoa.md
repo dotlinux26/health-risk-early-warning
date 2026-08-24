@@ -404,6 +404,13 @@ Giai đoạn P2 bắt đầu bằng việc giải quyết gốc chung của các
 - Bổ sung mục tiêu **P2.7**: xin quyền MIMIC-IV (CITI + DUA), khảo sát
   EHRSHOT/CardioEHR để chuyển huấn luyện sang outcome biến cố.
 
+**Bổ sung 24/08/2026 — P2.2 complete-case check** (`experiments/COMPLETE-CASE-CHECK/`,
+cùng split + seed với arm impute): LightGBM/XGB ổn định khi bỏ mẫu thiếu glucose
+(|ΔAUC| trung bình −0.0059/−0.0045 < 0.01) → impute median vô hại cho model sản
+xuất; LR lệch có hệ thống +0.0158 nghiêng về complete-case → khi báo cáo baseline
+tuyến tính phải ghi chú phương sai do impute. Pipeline không đổi. Chi tiết:
+docs/16 §3.5.
+
 Chi tiết đầy đủ: **docs/18**.
 
 ## 8. Quản lý trạng thái bằng chứng

@@ -160,6 +160,23 @@ kết quả ổn định (< 0.01) thì impute vô hại; nếu lệch lớn thì
 quan glucose phải báo cáo kèm phương sai do impute. Chưa chạy vì ưu tiên P1;
 khi chạy sẽ lưu vào `experiments/COMPLETE-CASE-CHECK/`.
 
+**Kết quả 24/08/2026 — đã chạy (`experiments/COMPLETE-CASE-CHECK/`):**
+
+| Model | AUC imputed | AUC complete-case | Δ AUC |
+|---|---|---|---|
+| LightGBM | 0.9349±0.0030 | 0.9290±0.0057 | **−0.0059** |
+| XGBoost | 0.9356±0.0027 | 0.9311±0.0061 | −0.0045 |
+| LR | 0.8844±0.0078 | 0.9002±0.0074 | **+0.0158** |
+
+- Mô hình **cây** (LightGBM/XGBoost — gồm model sản xuất): ổn định, |ΔAUC|
+  trung bình < 0.01 → impute median chấp nhận được cho production.
+- Mô hình **tuyến tính**: impute median làm GIẢM AUC ~0.016 một cách có hệ
+  thống (glucose bị đặc thành một giá trị ở 52% mẫu làm mờ quan hệ tuyến tính);
+  complete-case tốt hơn cho LR dù chỉ giữ ~45% số dòng test.
+- Kết luận áp dụng: giữ nguyên impute median trong sản xuất (LightGBM); khi báo
+  cáo kết quả của mô hình tuyến tính (LR dùng làm baseline giải thích), ghi chú
+  phương sai do impute. Không cần đổi pipeline.
+
 ---
 
 ## 4. Lộ trình P2 với tiêu chí nghiệm thu
@@ -175,9 +192,12 @@ khi chạy sẽ lưu vào `experiments/COMPLETE-CASE-CHECK/`.
 
 *Cập nhật 24/08/2026:* ngoài các bước trên, đã hoàn thành **temporal validation
 cấp cohort trên NHANES-LMF** (AUC tử vong 12 tháng 0.821, lead time trung vị
-9 tháng — chi tiết docs/18 §4) và mở thêm **P2.7: xin quyền MIMIC-IV (CITI +
+9 tháng — chi tiết docs/18 §4), mở thêm **P2.7: xin quyền MIMIC-IV (CITI +
 DUA), đồng thời khảo sát EHRSHOT/CardioEHR** để chuyển huấn luyện sang outcome
-biến cố tương lai.
+biến cố tương lai, và hoàn thành **P2.2 complete-case check**
+(`experiments/COMPLETE-CASE-CHECK/`): LightGBM/XGB ổn định (|ΔAUC| < 0.01 →
+impute vô hại cho production), LR lệch +0.0158 nghiêng về complete-case — giữ
+impute cho sản xuất, ghi chú phương sai khi báo cáo baseline tuyến tính.
 
 ## 5. Những gì hệ thống KHÔNG tuyên bố (cho tới khi P2 hoàn thành)
 

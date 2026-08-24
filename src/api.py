@@ -381,6 +381,10 @@ def benchmark_research() -> JSONResponse:
          "state": "partial",
          "note": "Hold-out theo thời gian 2017-18 đạt (AUC drop 0.02 ≤ 0.05); "
                  "external theo địa lý/quần thể chưa có."},
+        {"item": "Complete-case check khuyết dữ liệu glucose 52%",
+         "state": "done",
+         "note": "LightGBM/XGB ổn định (|ΔAUC| < 0.01) → impute vô hại cho "
+                 "production; LR lệch +0.016 — ghi chú khi báo cáo baseline."},
         {"item": "Thử nghiệm lâm sàng có kiểm soát",
          "state": "todo",
          "note": "Ngoài phạm vi đồ án; ghi nhận là hạn chế."},
