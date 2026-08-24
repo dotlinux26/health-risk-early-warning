@@ -373,15 +373,45 @@ def benchmark_research() -> JSONResponse:
          "state": "done",
          "note": "Đồng thuận mức giữa các bộ trọng số ≥ 96%."},
         {"item": "Kiểm định thời gian (temporal / prospective)",
-         "state": "todo",
-         "note": "Chưa có — KHÔNG được gọi là 'cảnh báo sớm' cho đến khi có (P2)."},
+         "state": "partial",
+         "note": "NHANES-LMF: AUC tử vong ≤12m 0.821 (split theo thời gian), "
+                 "lead time trung vị 9 tháng — cấp cohort/horizon tháng. "
+                 "Cửa sổ 30/90 ngày chờ dữ liệu dọc theo ngày."},
         {"item": "Kiểm định ngoài (external dataset khác NHANES)",
-         "state": "todo",
-         "note": "Cần dataset độc lập; chưa thực hiện."},
+         "state": "partial",
+         "note": "Hold-out theo thời gian 2017-18 đạt (AUC drop 0.02 ≤ 0.05); "
+                 "external theo địa lý/quần thể chưa có."},
         {"item": "Thử nghiệm lâm sàng có kiểm soát",
          "state": "todo",
          "note": "Ngoài phạm vi đồ án; ghi nhận là hạn chế."},
     ]
+    temporal = {}
+    _temporal_path = _Path("experiments") / "EXP-TEMPORAL-LMF" / "summary.json"
+    if _temporal_path.exists():
+        try:
+            t = json.loads(_temporal_path.read_text(encoding="utf-8"))
+            a = t.get("tasks", {}).get("death_within_12m", {})
+            lt = t.get("tasks", {}).get("lead_time", {})
+            surv = t.get("tasks", {}).get("survival_c_index", {})
+            lr, lg = a.get("lr", {}), a.get("lgbm", {})
+            temporal = {
+                "source": t.get("data", {}).get("source"),
+                "n_train": t.get("data", {}).get("n_train"),
+                "n_test": t.get("data", {}).get("n_test"),
+                "lr": {
+                    "auc_temporal": lr.get("temporal_split_test", {}).get("roc_auc"),
+                    "auc_random": lr.get("random_split_test", {}).get("roc_auc"),
+                    "c_index": surv.get("lr", {}).get("c_index_test_full_followup"),
+                },
+                "lgbm": {
+                    "auc_temporal": lg.get("temporal_split_test", {}).get("roc_auc"),
+                    "auc_random": lg.get("random_split_test", {}).get("roc_auc"),
+                    "c_index": surv.get("lgbm", {}).get("c_index_test_full_followup"),
+                },
+                "lead_time": lt,
+            }
+        except Exception:
+            temporal = {}
     return JSONResponse({
         "label_sensitivity": {
             "overlap": label.get("labels_overlap"),
@@ -404,6 +434,7 @@ def benchmark_research() -> JSONResponse:
             "missing_rates": dc.get("missing_rates"),
             "completeness_confidence": dc.get("confidence"),
         },
+        "temporal_validation": temporal,
         "evidence_status": evidence_status,
     })
 

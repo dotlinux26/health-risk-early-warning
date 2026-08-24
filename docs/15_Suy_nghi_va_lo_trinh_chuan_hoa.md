@@ -382,6 +382,30 @@ Sau khi dùng thử, trang chính được chỉnh lại bốn điểm:
    (`DELETE /api/records/{pid}?timestamp=...` không cần metric); ô nhập hiển
    thị đơn vị đo; bảng Tầng 1 bổ sung cột xu hướng và đơn vị.
 
+### 7.4 Khởi động P2 — temporal validation trên NHANES-LMF (24/08/2026)
+
+Giai đoạn P2 bắt đầu bằng việc giải quyết gốc chung của các vấn đề còn lại
+(T7/T8/T10): thiếu dữ liệu có biến cố tương lai. Kết quả đầu tiên:
+
+- **Tích hợp NHANES Public-Use Linked Mortality File 2019** (công khai, không
+  cần credential): `scripts/fetch_nhanes_mortality.py` parse file fixed-width
+  10 chu kỳ 1999–2018 và ghép với dataset hiện có qua SEQN — 10 065 người lớn
+  có tình trạng sống/chết + số tháng follow-up (chi tiết docs/18 §3).
+- **Thí nghiệm `EXP-TEMPORAL-LMF`** (`scripts/run_temporal_validation.py`):
+  split theo thời gian 2015-16 → 2017-18, dự báo tử vong ≤12 tháng từ một kỳ
+  khám. Kết quả: LR AUC **0.821** temporal / 0.841 random (gap chỉ 0.02),
+  C-index 0.822, isotonic ECE 0.40%; lead time trung vị **9 tháng** với top-20%
+  nguy cơ phủ 56% tử vong ≤24 tháng; đối chứng nhãn cắt ngang cũ chỉ đạt
+  0.57–0.63 trên cùng outcome.
+- Ý nghĩa: lần đầu có bằng chứng prospective không vòng lặp nhãn; tiêu chí
+  "lead time trung vị > 0" của §3.1 đạt ở cấp cohort/horizon tháng; random
+  split được chứng minh chỉ lạc quan hơn ~0.01–0.02 AUC. Chữ "cảnh báo sớm"
+  vẫn chưa dùng trong sản phẩm (chờ dữ liệu dọc theo ngày — P2.4/P2.5).
+- Bổ sung mục tiêu **P2.7**: xin quyền MIMIC-IV (CITI + DUA), khảo sát
+  EHRSHOT/CardioEHR để chuyển huấn luyện sang outcome biến cố.
+
+Chi tiết đầy đủ: **docs/18**.
+
 ## 8. Quản lý trạng thái bằng chứng
 
 Thêm panel **SYSTEM EVIDENCE STATUS** (trên `/benchmark` hoặc trang tổng quan):

@@ -120,6 +120,7 @@
 <div class="panel" id="tab-prov" style="display:none">
   <h2>Nguồn dữ liệu &amp; danh mục bằng chứng</h2>
   <div class="grid2">
+    <div><h3>Validation theo thời gian (NHANES-LMF)</h3><div id="temporal-body"></div></div>
     <div><h3>Nguồn dữ liệu & tiền xử lý</h3><div id="prov-body"></div></div>
     <div><h3>Evidence status — còn thiếu gì</h3><div id="status-body"></div></div>
   </div>
@@ -327,6 +328,18 @@ function renderResearch(){
   $('k4-body').innerHTML = wh;
 
   // --- TAB 4 ---
+  const tv = r.temporal_validation || {};
+  let th = '';
+  if (tv.source) {
+    const lt = tv.lead_time || {};
+    const row = (k, o) => `<tr><td>${k}</td><td class="num">${o.auc_temporal}</td><td class="num">${o.auc_random}</td><td class="num">${o.c_index}</td></tr>`;
+    th += `<p class="sub">Split theo thời gian: train chu kỳ 2015-16 (n=${tv.n_train}) → test 2017-18 (n=${tv.n_test}). Outcome: tử vong toàn bộ ≤12 tháng (độc lập đầu vào — không vòng lặp nhãn).</p>
+      <table><tr><th>Model</th><th>AUC temporal</th><th>AUC random</th><th>C-index ≤60m</th></tr>
+      ${row('LR', tv.lr||{})}${row('LightGBM', tv.lgbm||{})}</table>
+      <p style="margin-top:8px">Lead time: top-20% nguy cơ bắt <b>${lt.caught_by_top20}/${lt.n_deceased_24m_test}</b> ca tử vong ≤24 tháng, trung vị <b>${lt.median_lead_time_months_top20} tháng</b> trước sự kiện.</p>`;
+  } else th = '<span class="sub">Chưa chạy EXP-TEMPORAL-LMF.</span>';
+  $('temporal-body').innerHTML = th;
+
   const pv = r.provenance || {};
   let ph = '';
   if (pv.dataset) {

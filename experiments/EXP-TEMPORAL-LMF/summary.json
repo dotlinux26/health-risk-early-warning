@@ -1,0 +1,125 @@
+{
+  "experiment": "EXP-TEMPORAL-LMF",
+  "seed": 42,
+  "data": {
+    "source": "NHANES Public-Use Linked Mortality File 2019 (NCHS)",
+    "url": "https://ftp.cdc.gov/pub/Health_Statistics/NCHS/datalinkage/linked_mortality/",
+    "features": [
+      "systolic_bp",
+      "diastolic_bp",
+      "heart_rate",
+      "glucose_fasting",
+      "hba1c",
+      "creatinine",
+      "bmi",
+      "age",
+      "sex"
+    ],
+    "train_cycle": "2015_2016",
+    "test_cycle": "2017_2018",
+    "n_train": 5048,
+    "n_test": 4773,
+    "death_12m_train": 49,
+    "note": "follow-up đến 31/12/2019; chu kỳ 2017-18 có cửa sổ tối đa ~37 tháng → nhiệm vụ chính dùng horizon 12 tháng (hợp lệ cả hai chu kỳ)"
+  },
+  "tasks": {
+    "death_within_12m": {
+      "lr": {
+        "temporal_split_train": {
+          "n": 5048,
+          "events": 49,
+          "prevalence": 0.00971,
+          "roc_auc": 0.8977,
+          "auprc": 0.1081,
+          "brier": 0.00912,
+          "ece_10bin": 0.00084
+        },
+        "temporal_split_test": {
+          "n": 4773,
+          "events": 67,
+          "prevalence": 0.01404,
+          "roc_auc": 0.8209,
+          "auprc": 0.0794,
+          "brier": 0.01364,
+          "ece_10bin": 0.00391
+        },
+        "test_isotonic": {
+          "brier": 0.01375,
+          "ece_10bin": 0.00397,
+          "roc_auc": 0.7999
+        },
+        "random_split_test": {
+          "n": 4773,
+          "events": 61,
+          "prevalence": 0.01278,
+          "roc_auc": 0.8411,
+          "auprc": 0.0839,
+          "brier": 0.01221,
+          "ece_10bin": 0.00262
+        }
+      },
+      "lgbm": {
+        "temporal_split_train": {
+          "n": 5048,
+          "events": 49,
+          "prevalence": 0.00971,
+          "roc_auc": 1.0,
+          "auprc": 1.0,
+          "brier": 0.00167,
+          "ece_10bin": 0.00676
+        },
+        "temporal_split_test": {
+          "n": 4773,
+          "events": 67,
+          "prevalence": 0.01404,
+          "roc_auc": 0.7709,
+          "auprc": 0.0459,
+          "brier": 0.0142,
+          "ece_10bin": 0.01168
+        },
+        "test_isotonic": {
+          "brier": 0.01661,
+          "ece_10bin": 0.01689,
+          "roc_auc": 0.5054
+        },
+        "random_split_test": {
+          "n": 4773,
+          "events": 61,
+          "prevalence": 0.01278,
+          "roc_auc": 0.781,
+          "auprc": 0.0662,
+          "brier": 0.01247,
+          "ece_10bin": 0.00928
+        }
+      }
+    },
+    "survival_c_index": {
+      "lr": {
+        "c_index_test_full_followup": 0.8217
+      },
+      "lgbm": {
+        "c_index_test_full_followup": 0.7763
+      },
+      "note": "risk score lấy từ model nhiệm vụ A (dự báo tử vong 12 tháng); censoring tại 60 tháng"
+    },
+    "cvd_death_24m_descriptive": {
+      "train_events": 29,
+      "test_events": 21,
+      "definition": "tử vong do bệnh tim (UCOD_LEADING=1) trong 24 tháng",
+      "note": "ít kiện → không huấn luyện riêng; bản perturbed không tách được đột quỵ/ĐTĐ/bệnh thận khỏi 'nguyên nhân khác'"
+    },
+    "lead_time": {
+      "threshold_quintile_top20": 0.0038,
+      "n_deceased_24m_test": 94,
+      "caught_by_top20": 53,
+      "capture_rate": 0.5638,
+      "median_lead_time_months_top20": 9.0,
+      "median_lead_time_months_rest": 8.0,
+      "note": "lead time = số tháng tử vong xảy ra sau ngày khám MEC; nhóm top-20% nguy cơ được phát hiện trung vị 9.0 tháng trước sự kiện"
+    },
+    "cross_sectional_label_baseline_on_test": {
+      "label_htn": 0.6281,
+      "label_dm": 0.5731
+    }
+  }
+}

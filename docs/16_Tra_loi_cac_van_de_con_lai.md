@@ -97,6 +97,13 @@ giai đoạn thử nghiệm có kiểm soát; (b) dataset công khai dọc có n
 Đây là mục P2 duy nhất chặn việc dùng chữ "cảnh báo sớm" — cho đến khi có kết quả
 thỏa tiêu chí trên, hệ thống chỉ gọi tên **phân tầng nguy cơ cắt ngang**.
 
+**Tiến độ 24/08/2026 (docs/18):** đã tìm được nguồn công khai không cần credential
+— NHANES Public-Use Linked Mortality File — và chạy được giao thức ở cấp cohort:
+split theo thời gian 2015-16 → 2017-18, dự báo tử vong ≤12 tháng đạt AUC 0.821,
+lead time trung vị **9 tháng > 0**, top-20% nguy cơ phủ 56% tử vong ≤24 tháng.
+Tiêu chí "lead time trung vị > 0" đã đạt ở cấp tháng; tiêu chí AUC cửa sổ
+30/90/180 ngày vẫn chờ dữ liệu dọc theo ngày (P2.4/P2.5).
+
 ### 3.2 Vòng lặp nhãn–đầu vào (T8)
 
 Đã trả lời bằng số (§2.2): phần "học lại ngưỡng" chiếm bao nhiêu, phần tín hiệu
@@ -106,6 +113,12 @@ tại thời điểm đặc trưng; (b) nhãn từ nguồn độc lập (chẩn 
 trước/sau, không sinh từ ngưỡng đo). Trong phạm vi dữ liệu hiện có, giới hạn
 này được **công bố thay vì giấu**: mọi báo cáo AUC đều kèm diễn giải "tái lập
 phân tầng theo ngưỡng lâm sàng".
+
+**Tiến độ 24/08/2026 (docs/18):** con đường (a) đã chứng minh khả thi trên dữ
+liệu thật — mô hình huấn luyện từ biến cố tương lai (tử vong) đạt AUC 0.821,
+trong khi nhãn cắt ngang cũ chỉ đạt 0.57–0.63 khi dự báo đúng outcome đó trên
+cùng tập test. Việc chuyển hẳn huấn luyện sản xuất sang outcome biến cố thuộc
+P2.7 (MIMIC-IV / EHRSHOT).
 
 ### 3.3 Mô hình chuỗi thời gian (T9)
 
@@ -134,6 +147,10 @@ KNHANES (Hàn Quốc — cấu trúc khảo sát tương đồng, công khai), M
 Việt Nam chưa có bộ dữ liệu mở tương thích schema; nếu hợp tác cơ sở y tế trong
 nước thì gộp chung mục tiêu với T7.
 
+**Tiến độ 24/08/2026 (docs/18):** hold-out theo thời gian 2017-18 đã chạy với
+mô hình outcome tử vong — AUC drop 0.02 (0.841 random → 0.821 temporal), đạt
+tiêu chí ≤ 0.05. Xác nhận ngoài theo địa lý/quần thể vẫn mở (P2.3).
+
 ### 3.5 Khuyết dữ liệu glucose_fasting 52% (T11)
 
 Impute median fit-train là lựa chọn mặc định an toàn nhưng chưa được đối chiếu.
@@ -155,6 +172,12 @@ khi chạy sẽ lưu vào `experiments/COMPLETE-CASE-CHECK/`.
 | P2.4 | Thu thập dữ liệu dọc qua kênh nhập hệ thống (§3.1) | ≥ 50 người dùng thật × ≥ 30 ngày là mốc đánh giá giữa |
 | P2.5 | Temporal validation + lead time khi P2.4 đạt ngưỡng | Theo tiêu chí §3.1 |
 | P2.6 | Chuỗi thời gian khi đủ dữ liệu (§3.3) | LightGBM+lag là baseline bắt buộc phải thắng |
+
+*Cập nhật 24/08/2026:* ngoài các bước trên, đã hoàn thành **temporal validation
+cấp cohort trên NHANES-LMF** (AUC tử vong 12 tháng 0.821, lead time trung vị
+9 tháng — chi tiết docs/18 §4) và mở thêm **P2.7: xin quyền MIMIC-IV (CITI +
+DUA), đồng thời khảo sát EHRSHOT/CardioEHR** để chuyển huấn luyện sang outcome
+biến cố tương lai.
 
 ## 5. Những gì hệ thống KHÔNG tuyên bố (cho tới khi P2 hoàn thành)
 
