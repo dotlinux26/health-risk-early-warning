@@ -201,7 +201,9 @@ impute cho sản xuất, ghi chú phương sai khi báo cáo baseline tuyến t�
 KNHANES đã xác minh có mortality linkage nhưng chỉ phân tích được tại RDC của
 KDCA sau duyệt đề cương (docs/18 §1). UI v2 (dark mode, biểu đồ xu hướng,
 xuất CSV bản ghi + audit) và bộ e2e chính thức `scripts/e2e_test.py`
-(35 PASS / 0 FAIL) ghi tại docs/15 §7.4. Tổng kết toàn dự án: **docs/19**.
+(35 PASS / 0 FAIL) ghi tại docs/15 §7.4. Tổng kết toàn dự án kèm phân tích
+giới hạn cốt lõi của NCKH sinh viên (người dùng thật, bác sĩ thật, quyền dữ
+liệu thể chế) và hướng xử lý khả thi: **docs/19** (mục 7).
 
 ## 5. Những gì hệ thống KHÔNG tuyên bố (cho tới khi P2 hoàn thành)
 

@@ -93,6 +93,25 @@ python3 scripts/e2e_test.py                  # terminal 2 → 35 PASS / 0 FAIL (
 2. **P2.4–P2.6** — Chờ tích lũy dữ liệu dọc theo ngày từ người dùng thật qua hệ thống.
 3. Có thể làm ngay nếu muốn: lập checklist TRIPOD-AI (G9).
 
+## 7. Giới hạn cốt lõi của NCKH sinh viên và hướng xử lý khả thi
+
+Sau khi phần kỹ thuật trong tầm tay đã hoàn tất (mục 2), ba giới hạn còn lại
+của đề tài đều thuộc loại **không tạo ra được bằng code**: người dùng thật,
+chuyên môn y khoa thật, và quyền truy cập dữ liệu thể chế. Đây là ranh giới
+tài nguyên, không phải ranh giới phương pháp — và đã được khai báo trung thực
+ở bảng G1–G9 thay vì giấu. Mỗi giới hạn có phương án xử lý khả thi trong phạm
+vi sinh viên:
+
+| Còn thiếu | Vì sao khó với NCKH sinh viên | Hướng xử lý khả thi |
+|---|---|---|
+| Người dùng thật (P2.4–2.6 cần ≥50 người × ≥30 ngày) | Không ai cung cấp dữ liệu sức khỏe hằng ngày cho một đồ án | Pilot nội bộ: bạn bè/người thân tự nhập chỉ số của chính mình 2–4 tuần qua kênh nhập sẵn có; công bố rõ là pilot phi lâm sàng, đủ để minh họa lead time nhỏ |
+| Bác sĩ thật (duyệt luật, ký governance) | Luồng draft→review→approved hiện do tên tự đặt duyệt | Mời một bác sĩ (giảng viên hướng dẫn, hoặc quen biết cá nhân) làm reviewer cho 9 luật hiện có; một lần phê duyệt thật đưa governance từ "mô phỏng" thành "có chuyên môn tham gia" |
+| Dữ liệu bệnh viện/EHR (MIMIC-IV, KNHANES RDC) | Thủ tục hành chính; RDC cần đơn vị bảo lãnh | MIMIC-IV **không yêu cầu bác sĩ**: tự đăng ký PhysioNet + hoàn thành khóa CITI online miễn phí (~3–5 giờ) + ký DUA là nhận dữ liệu ~40 nghìn bệnh nhân ICU |
+
+Việc rẻ nhất mà nâng giá trị đề tài ngay, không phụ thuộc ai:
+**(1)** hồ sơ CITI + xin quyền MIMIC-IV (G1/P2.7), **(2)** checklist TRIPOD-AI (G9).
+Cả hai chỉ tiêu thời gian cá nhân.
+
 ---
 
 *Báo cáo tổng kết phiên làm việc ngày 24/08/2026. Mọi con số truy ngược được tới
