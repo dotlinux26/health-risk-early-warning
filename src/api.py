@@ -345,13 +345,13 @@ def benchmark_research() -> JSONResponse:
         p = _Path("experiments") / rel
         return _json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
-    summary = _read_json(EXPERIMENTS_DIR / "summary.json") or {}
+    summary = _load("summary.json")
     label = _load("LABEL-SENSITIVITY/summary.json")
     baseline = _load("BASELINE-STABILITY/summary.json")
     weight = _load("WEIGHT-SENSITIVITY/summary.json")
 
     dc = summary.get("data_completeness") or {}
-    cal_ok = any((EXPERIMENTS_DIR / f"EXP-{m}-42" / "calibration.json").exists()
+    cal_ok = any((_Path("experiments") / f"EXP-{m}-42" / "calibration.json").exists()
                  for m in ("LGBM", "XGB", "LR"))
     evidence_status = [
         {"item": "Phát triển & kiểm định nội bộ (phân tầng, không rò rỉ)",

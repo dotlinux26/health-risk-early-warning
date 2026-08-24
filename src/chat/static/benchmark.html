@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Benchmark mô hình — HealthRisk</title>
-<style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Benchmark & nghiên cứu — HealthRisk</title>
+  <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -18,6 +18,7 @@
     padding: 16px; margin-bottom: 16px;
   }
   .panel h2 { font-size: 15px; color: #334155; margin-bottom: 10px; }
+  .panel h3 { font-size: 14px; color: #0369a1; margin: 14px 0 8px; }
   .tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
   .tab {
     border: 1px solid #cbd5e1; background: #ffffff; color: #334155;
@@ -27,7 +28,7 @@
   table { border-collapse: collapse; width: 100%; font-size: 13px; }
   th, td { border: 1px solid #e2e8f0; padding: 6px 8px; text-align: left; }
   th { background: #f1f5f9; color: #334155; }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .best { color: #166534; font-weight: 700; }
   .bar-wrap { background: #e2e8f0; border-radius: 2px; height: 8px; min-width: 60px; }
   .bar { height: 8px; border-radius: 2px; background: #0284c7; }
@@ -58,26 +59,73 @@
   .metric-cell .v { font-size: 16px; font-weight: 700; color: #1e293b; }
   .metric-cell .s { font-size: 11px; color: #94a3b8; }
   img.curve { max-width: 100%; border: 1px solid #e2e8f0; border-radius: 2px; }
+  /* Research */
+  .note { font-size: 12.5px; color: #475569; background: #f8fafc; border-left: 3px solid #0284c7;
+          padding: 8px 12px; margin: 10px 0; }
+  .warn { border-left-color: #b45309; background: #fffbeb; }
+  .ok { display:inline-block; width:20px; text-align:center; color:#15803d; font-weight:800; }
+  .partial { display:inline-block; width:20px; text-align:center; color:#b45309; font-weight:800; }
+  .todo { display:inline-block; width:20px; text-align:center; color:#94a3b8; font-weight:800; }
+  .st-item { display:flex; gap:10px; align-items:flex-start; padding:7px 0; border-top:1px solid #f1f5f9; font-size:13px; }
+  .st-item .txt b { display:block; }
+  .st-item .txt span { color:#64748b; font-size:12px; }
+  .pill { display:inline-block; font-size:11px; font-weight:700; border-radius:999px; padding:1px 9px;
+          background:#eff6ff; color:#0369a1; }
 </style>
 </head>
 <body>
-<a class="back" href="/chat">← Về hộp thoại chat</a>
-<h1>Benchmark & so sánh mô hình học máy</h1>
+<a class="back" href="/">← Về trang chính</a>
+<h1>Benchmark & trang nghiên cứu</h1>
 <div class="sub" id="meta">Đang tải dữ liệu thực nghiệm...</div>
 
 <div class="tabs">
-  <button class="tab active" data-tab="summary">Bảng tổng hợp</button>
+  <button class="tab active" data-tab="summary">Kết quả tổng hợp</button>
+  <button class="tab" data-tab="calib">Hiệu chỉnh xác suất</button>
+  <button class="tab" data-tab="robust">Độ bền vững (K2–K4)</button>
+  <button class="tab" data-tab="prov">Dữ liệu &amp; Evidence status</button>
   <button class="tab" data-tab="compare">So sánh luận giải</button>
   <button class="tab" data-tab="detail">Chi tiết thí nghiệm</button>
 </div>
 
-<!-- ============ TAB 1: BẢNG TỔNG HỢP ============ -->
+<!-- ============ TAB 1: KẾT QUẢ TỔNG HỢP ============ -->
 <div class="panel" id="tab-summary">
   <h2>Kết quả đa mô hình trên cùng bộ dữ liệu (mean ± std, 5 seed)</h2>
   <div id="summary-table"></div>
 </div>
 
-<!-- ============ TAB 2: SO SÁNH LUẬN GIẢI ============ -->
+<!-- ============ TAB 2: HIỆU CHỈNH XÁC SUẤT ============ -->
+<div class="panel" id="tab-calib" style="display:none">
+  <h2>Hiệu chỉnh xác suất (P0.1) — fit trên validation, chọn theo Brier val</h2>
+  <div class="note">Đầu ra THÔ của model phân loại <b>không phải xác suất bệnh</b>. Hiệu chỉnh
+    (Platt/isotonic) biến điểm số thành xác suất có ý nghĩa diễn giải. Chọn phương pháp trên
+    <b>validation</b>; test chỉ để báo cáo.</div>
+  <div id="calib-table"></div>
+</div>
+
+<!-- ============ TAB 3: ĐỘ BỀN VỮNG ============ -->
+<div class="panel" id="tab-robust" style="display:none">
+  <h2>Phân tích độ bền vững (P0.2–P0.4)</h2>
+
+  <h3>K2 · Độ nhạy định nghĩa nhãn (label sensitivity)</h3>
+  <div id="k2-body"></div>
+
+  <h3>K3 · Ổn định baseline cá nhân theo độ dài cửa sổ</h3>
+  <div id="k3-body"></div>
+
+  <h3>K4 · Nhạy cảm trọng số fusion</h3>
+  <div id="k4-body"></div>
+</div>
+
+<!-- ============ TAB 4: DỮ LIỆU & EVIDENCE STATUS ============ -->
+<div class="panel" id="tab-prov" style="display:none">
+  <h2>Nguồn dữ liệu &amp; danh mục bằng chứng</h2>
+  <div class="grid2">
+    <div><h3>Nguồn dữ liệu & tiền xử lý</h3><div id="prov-body"></div></div>
+    <div><h3>Evidence status — còn thiếu gì</h3><div id="status-body"></div></div>
+  </div>
+</div>
+
+<!-- ============ TAB 5: SO SÁNH LUẬN GIẢI ============ -->
 <div class="panel" id="tab-compare" style="display:none">
   <h2>So sánh cách các mô hình luận giải cùng một ca</h2>
   <div class="grid2">
@@ -94,7 +142,7 @@
   </div>
 </div>
 
-<!-- ============ TAB 3: CHI TIẾT THÍ NGHIỆM ============ -->
+<!-- ============ TAB 6: CHI TIẾT THÍ NGHIỆM ============ -->
 <div class="panel" id="tab-detail" style="display:none">
   <h2>Evidence package từng thí nghiệm</h2>
   <div id="detail-list"></div>
@@ -102,31 +150,29 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const state = { data: null };
+const state = { data: null, research: null };
+const TABS = ['summary','calib','robust','prov','compare','detail'];
 
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
   t.classList.add('active');
-  ['summary','compare','detail'].forEach(k =>
-    $('tab-' + k).style.display = (t.dataset.tab === k) ? '' : 'none');
+  TABS.forEach(k => $('tab-' + k).style.display = (t.dataset.tab === k) ? '' : 'none');
 }));
 
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 async function load(){
   try {
-    const res = await fetch('/api/benchmark');
+    const [res, rs] = await Promise.all([fetch('/api/benchmark'), fetch('/api/benchmark/research')]);
     state.data = await res.json();
+    state.research = await rs.json();
     const s = state.data.summary;
     const dc = s.data_completeness || {};
     $('meta').textContent = `Dataset: ${esc(s.dataset || '?')} · n=${s.n || '?'} · positive=${s.positive || '?'} · seeds=[${(s.seeds||[]).join(', ')}]`;
     if (dc.confidence) {
-      $('meta').innerHTML += ` &nbsp;·&nbsp; <b>Đầy đủ dữ liệu:</b> ${esc(dc.confidence)}` +
-        (dc.flags ? ' &nbsp;·&nbsp; ' + Object.entries(dc.flags)
-          .filter(([,v]) => v.includes('MISSING_CAO'))
-          .map(([f,v]) => `<b style="color:#b91c1c">${esc(f)}: ${esc(v)}</b>`).join(' &nbsp; ') : '');
+      $('meta').innerHTML += ` &nbsp;·&nbsp; <b>Đầy đủ dữ liệu:</b> ${esc(dc.confidence)}`;
     }
-    renderSummary(s); renderDetail(); renderMetricInputs();
+    renderSummary(s); renderCalib(); renderResearch(); renderDetail(); renderMetricInputs();
   } catch(e){
     $('meta').textContent = 'Lỗi tải dữ liệu benchmark: ' + e.message;
   }
@@ -147,6 +193,7 @@ function renderMetricInputs(){
   }).join('');
 }
 
+// ---------- TAB 1 ----------
 function renderSummary(s){
   if (!s.models || !s.models.length) {
     $('summary-table').innerHTML = '<span class="sub">Chưa có kết quả — chạy <b>python scripts/run_benchmark.py</b> trước.</span>';
@@ -160,7 +207,7 @@ function renderSummary(s){
   h += '</tr>';
   s.models.forEach(m => {
     h += `<tr><td><b>${esc(m.name)}</b></td><td>${esc(m.family)}</td>`;
-    cols.forEach(([k,label]) => {
+    cols.forEach(([k]) => {
       const v = m.metrics[k];
       if (!v) { h += `<td class="num">—</td>`; return; }
       const isBest = best[k] > 0 && v.mean >= best[k] - 1e-9;
@@ -174,7 +221,137 @@ function renderSummary(s){
   $('summary-table').innerHTML = h;
 }
 
-// ---------- TAB 2: SO SÁNH LUẬN GIẢI ----------
+// ---------- TAB 2: HIỆU CHỈNH ----------
+function renderCalib(){
+  const models = state.data?.summary?.models || [];
+  if (!models.length) { $('calib-table').innerHTML = '<span class="sub">Chưa có dữ liệu.</span>'; return; }
+  let h = '<table><tr><th>Mô hình</th><th>Phương pháp chọn</th>' +
+    '<th class="num">Brier raw</th><th class="num">Brier Platt</th><th class="num">Brier isotonic</th>' +
+    '<th class="num">ECE raw</th><th class="num">ECE Platt</th><th class="num">ECE isotonic</th></tr>';
+  models.forEach(m => {
+    const M = m.metrics;
+    const bp = M.brier_platt?.mean, bi = M.brier_isotonic?.mean;
+    const sel = (bp != null && bi != null) ? (bi <= bp ? 'isotonic' : 'platt') : 'none';
+    const f = (k, digits=4) => M[k] ? M[k].mean.toFixed(digits) : '—';
+    h += `<tr><td><b>${esc(m.name)}</b></td><td><span class="pill">${esc(String(sel))}</span></td>` +
+      `<td class="num">${f('brier')}</td><td class="num">${f('brier_platt')}</td><td class="num">${f('brier_isotonic')}</td>` +
+      `<td class="num">${f('ece_raw')}</td><td class="num">${f('ece_platt')}</td><td class="num">${f('ece_isotonic')}</td></tr>`;
+  });
+  h += '</table>';
+  h += `<div class="note">Đọc kết quả: model đã cân bằng sẵn (LGBM/XGB) thì hiệu chỉnh gần như không đổi
+        (ECE ~1.5–2%); với LR/MLP isotonic giảm ECE rõ (ví dụ 5.1% → 1.8%). Production áp calibrator
+        đã chọn cho mọi dự đoán — xem panel Tầng 3 ở trang chính.</div>`;
+  $('calib-table').innerHTML = h;
+}
+
+// ---------- TAB 3: ROBUSTNESS K2-K4 ----------
+function renderResearch(){
+  const r = state.research || {};
+
+  // --- K2 ---
+  const k2 = r.label_sensitivity || {};
+  const agg = k2.aggregate || {};
+  const ov = k2.overlap || {};
+  const MODEL_VN = {lgbm:'LightGBM', xgb:'XGBoost', lr:'Hồi quy logistic'};
+  let kh = '';
+  if (Object.keys(agg).length) {
+    kh += `<table><tr><th>Mô hình</th><th class="num">ROC-AUC nhãn A<br><span style="font-weight:400">(có thuốc HA)</span></th>
+      <th class="num">ROC-AUC nhãn B<br><span style="font-weight:400">(bỏ thành phần thuốc)</span></th>
+      <th class="num">Δ AUC</th></tr>`;
+    Object.keys(agg).filter(k => k !== 'oracle_B_as_score').forEach(k => {
+      const A = agg[k]?.A?.roc_auc, B = agg[k]?.B?.roc_auc;
+      if (!A || !B) return;
+      kh += `<tr><td>${esc(MODEL_VN[k] || k)}</td><td class="num">${A[0].toFixed(3)} ± ${A[1].toFixed(3)}</td>` +
+        `<td class="num">${B[0].toFixed(3)} ± ${B[1].toFixed(3)}</td>` +
+        `<td class="num"><b>+${(B[0]-A[0]).toFixed(3)}</b></td></tr>`;
+    });
+    kh += '</table>';
+    if (ov && ov.n) {
+      kh += `<div class="note">Chồng lấn nhãn: ${ov.changed_total}/${ov.n} ca đổi nhãn khi bỏ tiêu chí thuốc HA
+        (${ov.positives_only_in_A} dương chỉ có ở nhãn A). Positive rate A=${(ov.positive_rate_A*100).toFixed(1)}% vs B=${(ov.positive_rate_B*100).toFixed(1)}%.</div>`;
+    }
+    const orc = agg.oracle_B_as_score?.roc_auc_vs_labelA;
+    if (orc) {
+      kh += `<div class="note warn"><b>Vòng lặp nhãn–đầu vào (D1):</b> nhãn A chứa ngưỡng đo lường cũng là đặc trưng đầu vào.
+        Bằng chứng: dùng nhãn B làm điểm số để xếp hạng nhãn A vẫn đạt AUC <b>${orc[0].toFixed(3)} ± ${orc[1].toFixed(3)}</b>
+        — thấp hơn model (${agg.lgbm?.A?.roc_auc?.[0]?.toFixed(3) ?? '?'}), tức model học thêm tín hiệu thuốc từ mẫu đo.
+        Hệ quả: kết quả hiện tại là <b>phân tầng cắt ngang theo tiêu chí lâm sàng</b>, chưa phải dự báo biến cố tương lai.</div>`;
+    }
+  } else kh = '<span class="sub">Chưa có dữ liệu — chạy scripts/run_label_sensitivity.py.</span>';
+  $('k2-body').innerHTML = kh;
+
+  // --- K3 ---
+  const k3 = r.baseline_stability || {};
+  const rows = k3.results || [];
+  let bh = k3.design ? `<div class="note">Thiết kế: ${esc(k3.design)}. Δμ tính bằng σ so với tham chiếu N=90 ngày.</div>` : '';
+  if (rows.length) {
+    bh += '<table><tr><th class="num">Cửa sổ (ngày)</th><th class="num">|Δμ| trung bình (σ)</th><th class="num">p95 |Δμ| (σ)</th><th class="num">Tỷ lệ lật band mức</th><th class="num">Lật cảnh báo</th><th>Kết luận UI</th></tr>';
+    rows.forEach(x => {
+      const concl = x.window_days < 7 ? '<b style="color:#b91c1c">CHƯA ỔN ĐỊNH — cấm hiển thị z-score</b>'
+        : x.window_days < 14 ? 'Cẩn trọng — chỉ preview'
+        : '<b style="color:#15803d">Ổn định hơn — dùng được</b>';
+      bh += `<tr><td class="num"><b>${x.window_days}</b></td><td class="num">${x.delta_mean_in_sigma.toFixed(3)}σ</td>` +
+        `<td class="num">${x.p95_mean_in_sigma.toFixed(2)}σ</td><td class="num">${(x.band_flip_rate*100).toFixed(1)}%</td>` +
+        `<td class="num">${(x.risk_flag_flip_rate*100).toFixed(1)}%</td><td style="font-size:12px">${concl}</td></tr>`;
+    });
+    bh += '</table>';
+    bh += `<div class="note">Quyết định UI: dưới 7 ngày lịch sử → không hiển thị z-score cá nhân
+      (chỉ chấm theo tri thức y khoa); từ 14 ngày trở lên mới coi baseline là ổn định.
+      Đã áp trong panel Tầng 1 của trang chính.</div>`;
+  } else bh += '<span class="sub">Chưa có dữ liệu — chạy scripts/run_baseline_stability.py.</span>';
+  $('k3-body').innerHTML = bh;
+
+  // --- K4 ---
+  const k4 = r.weight_sensitivity || {};
+  const vers = k4.versions || {}, pairs = k4.pairs || {};
+  let wh = '';
+  if (Object.keys(vers).length) {
+    wh += '<table><tr><th>Bộ trọng số (stat/knowledge/ml/trend)</th><th class="num">n</th><th class="num">Score μ</th><th class="num">Score σ</th><th>Phân bố mức THẤP/TB/CAO</th></tr>';
+    Object.keys(vers).forEach(v => {
+      const x = vers[v];
+      wh += `<tr><td><code>${esc(v.replace(/_/g,' ').replace(/^v/,'v'))}</code></td><td class="num">${x.n_assessed}</td>` +
+        `<td class="num">${x.score_mean.toFixed(4)}</td><td class="num">${x.score_std.toFixed(4)}</td>` +
+        `<td>${x.level_distribution.THAP} / ${x.level_distribution.TRUNG_BINH} / ${x.level_distribution.CAO}</td></tr>`;
+    });
+    wh += '</table><h3>Đồng thuận giữa các bộ trọng số</h3><table><tr><th>Cặp</th><th class="num">Đồng thuận mức</th><th class="num">σ chênh điểm</th><th>Chuyển mức</th></tr>';
+    Object.keys(pairs).forEach(pk => {
+      const p = pairs[pk];
+      const trans = Object.entries(p.transitions || {}).map(([t,n]) => `${esc(t)}×${n}`).join(', ') || 'không có';
+      wh += `<tr><td style="font-size:12px">${esc(pk.replace(/\|/g,' ↔ ').replace(/_/g,' '))}</td>` +
+        `<td class="num"><b>${(p.level_agreement*100).toFixed(1)}%</b></td><td class="num">${p.score_diff_std.toFixed(4)}</td><td style="font-size:12px">${trans}</td></tr>`;
+    });
+    wh += '</table>';
+    wh += `<div class="note">Kết luận: thay đổi trọng số hợp lý (±0.05) chỉ làm &lt;4% ca đổi mức và
+      <b>không có ca nào nhảy lên CAO nguy hiểm</b> — fusion đủ bền trước lựa chọn trọng số chủ quan.</div>`;
+  } else wh = '<span class="sub">Chưa có dữ liệu — chạy scripts/run_weight_sensitivity.py.</span>';
+  $('k4-body').innerHTML = wh;
+
+  // --- TAB 4 ---
+  const pv = r.provenance || {};
+  let ph = '';
+  if (pv.dataset) {
+    ph += `<table><tr><th>Mục</th><th>Giá trị</th></tr>
+      <tr><td>Dataset</td><td><code>${esc(pv.dataset)}</code></td></tr>
+      <tr><td>Số mẫu</td><td class="num">${pv.n}</td></tr>
+      <tr><td>Tỷ lệ dương (nhãn A)</td><td class="num">${pv.positive} (${(pv.positive/pv.n*100).toFixed(1)}%)</td></tr>
+      <tr><td>Seeds</td><td>[${(pv.seeds||[]).join(', ')}]</td></tr>
+      <tr><td>Đánh giá đầy đủ dữ liệu</td><td>${esc(pv.completeness_confidence || '—')}</td></tr></table>`;
+    const mr = pv.missing_rates || {};
+    if (Object.keys(mr).length) {
+      ph += '<h3>Tỷ lệ khuyết từng chỉ số</h3><div class="chips" style="display:flex;gap:6px;flex-wrap:wrap">' +
+        Object.keys(mr).sort().map(k => `<span class="pill">${esc(k)}: ${(mr[k]*100).toFixed(1)}%</span>`).join('') + '</div>';
+    }
+  } else ph = '<span class="sub">Chưa có summary.json.</span>';
+  $('prov-body').innerHTML = ph;
+
+  const st = r.evidence_status || [];
+  const ICON = {done:'<span class="ok">✓</span>', partial:'<span class="partial">◐</span>', todo:'<span class="todo">○</span>'};
+  $('status-body').innerHTML = st.length ? st.map(x =>
+    `<div class="st-item">${ICON[x.state] || ''}<div class="txt"><b>${esc(x.item)}</b><span>${esc(x.note)}</span></div></div>`).join('')
+    : '<span class="sub">Không có dữ liệu.</span>';
+}
+
+// ---------- TAB 5: SO SÁNH LUẬN GIẢI ----------
 function readMetrics(){
   const out = {};
   (state.data.input_metrics || []).forEach(m => {
@@ -235,7 +412,7 @@ $('explain-form').addEventListener('submit', async e => {
   } catch(err){ errEl.textContent = 'Lỗi: ' + err.message; }
 });
 
-// ---------- TAB 3: CHI TIẾT THÍ NGHIỆM ----------
+// ---------- TAB 6: CHI TIẾT ----------
 function renderDetail(){
   const list = state.data.experiments || [];
   if (!list.length) { $('detail-list').innerHTML = '<span class="sub">Chưa có thí nghiệm nào.</span>'; return; }

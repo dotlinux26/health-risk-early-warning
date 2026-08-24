@@ -332,8 +332,7 @@ async function loadRecords(){
 function cell(d,m){
   const g=REC.grid[d]&&REC.grid[d][m];
   const v=g?g.value:"";
-  const u=UNIT[m]?`<span style="font-size:10px;color:var(--mut)">${UNIT[m]}</span>`:"";
-  return `<td><input value="${v}" placeholder="${u||"—"}"
+  return `<td><input value="${v}" placeholder="${UNIT[m]||"—"}"
     onchange="saveCell('${d}','${m}',this.value)">
     ${g?`<a href="#" onclick="delCell('${d}','${m}');return false" style="color:var(--red);text-decoration:none;font-size:10px">×</a>`:""}</td>`;
 }

@@ -113,6 +113,10 @@ class ChatStore:
     def list_patients(self) -> list[str]:
         return sorted(p.stem for p in self.base_dir.glob("*.jsonl"))
 
+    def list_rows(self, patient_id: str) -> list[dict]:
+        """Toàn bộ dòng (timestamp, metric, value, unit) của một bệnh nhân."""
+        return self._load_rows(patient_id)
+
     # ------------------------------------------------------------------ #
     # P1 — Quản lý bản ghi cá nhân theo ngày (docs/15 U10)
     # ------------------------------------------------------------------ #

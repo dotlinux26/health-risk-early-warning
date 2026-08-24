@@ -354,10 +354,12 @@ class KnowledgeBase:
             raise ValueError("; ".join(errors))
         if any(r["rule_id"] == rule["rule_id"] for r in self.rules):
             raise ValueError(f"rule_id '{rule['rule_id']}' đã tồn tại.")
-        clean = {k: rule[k] for k in (
+        clean = {k: rule.get(k) for k in (
             "rule_id", "name", "system", "condition", "severity",
             "specialty", "evidence", "source_url",
         )}
+        if not clean["source_url"]:
+            clean["source_url"] = ""
         for k in ("source_page", "source_section", "source_excerpt"):
             v = rule.get(k)
             if isinstance(v, str) and v.strip():

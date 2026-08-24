@@ -341,9 +341,25 @@ năng nhìn thấy được.
 | U8 Bỏ chatbot | `/` giờ là SPA biểu mẫu `app.html`: Đánh giá · Bản ghi · Luật · Benchmark; không còn giao diện hội thoại | ✓ |
 | Evidence surface | Panel phân tầng: badge mức + score + phạm vi dữ liệu; Tầng 1 (z-score/baseline), Tầng 2 (luật+nguồn), Tầng 3 (`/api/evidence/ml` — raw vs calibrated isotonic, cảnh báo không diễn giải), Tổng hợp components × trọng số | ✓ |
 
-Còn lại cho P1: benchmark research page nâng cấp (tab Robustness đọc
-LABEL/WEIGHT/BASELINE-STABILITY summaries — hiện đã có sẵn trang /benchmark cũ
-qua iframe) và evidence status checklist (✓/◐/○).
+### 7.3 Hoàn tất P1 (23/08/2026)
+
+- **Benchmark → trang nghiên cứu**: `/benchmark` có 6 tab — Kết quả tổng hợp,
+  Hiệu chỉnh xác suất (Brier/ECE raw vs Platt vs isotonic), Độ bền vững K2–K4
+  (đọc trực tiếp từ `/api/benchmark/research`), Dữ liệu & Evidence status
+  (checklist ✓ done / ◐ partial / ○ todo), So sánh luận giải, Chi tiết thí nghiệm.
+- **Calibration vào production**: `_ml_score_for` áp calibrator isotonic lên điểm
+  ML trước khi fusion — đối sách S4 hoàn trọn, không chỉ dừng ở hiển thị.
+- **Dữ liệu demo**: `scripts/seed_demo_data.py` seed P001–P005 (từ sample_long)
+  và hai ca tổng hợp DEMO_HYPERTENSIVE / DEMO_DIABETIC (45 ngày, có cú sốc 7
+  ngày cuối để thử Tầng 1).
+- **Kiểm thử e2e**: 32/32 PASS (trang tĩnh, đánh giá 5 ca seeded, CRUD bản ghi,
+  luồng governance đầy đủ, nl2br, evidence/ml, research endpoint). Lỗi phát hiện
+  khi test: `add_rule` KeyError khi thiếu source_url — đã sửa (`rules.py`).
+- Sửa lỗi render bảng bản ghi (placeholder chứa HTML làm vỡ ô nhập).
+
+→ Toàn bộ mục "Còn lại cho P1" đã xong. Các vấn đề chưa giải quyết (temporal
+validation, external validation, chuỗi thời gian…) được chốt sổ và trả lời trong
+**docs/16**, kèm tiêu chí nghiệm thu cho từng mục P2.
 
 ### 7.2 Cải tiến giao diện theo phản hồi sử dụng (23/08/2026)
 
