@@ -31,7 +31,7 @@ và biến cố tương lai**:
 | EHRSHOT / INSPECT / MedAlign (Stanford STARR, OMOP) | EHR ngoại + nội trú dài hạn, ~26k bệnh nhân | 15 tác vụ few-shot, tử vong, tái nhập viện | Redivis DUA + CITI | ứng viên P2.7+ |
 | CardioEHR (Bệnh viện Union Vũ Hán, 73k BN tim mạch 2010–2024) | lần khám/nhập viện, lab theo thời gian | chẩn đoán tim mạch, tử vong | controlled access OMIX012906 + DUA | ứng viên dài hạn (gần schema VN hơn) |
 | UK Biobank | khảo sát + follow-up quốc gia | rộng | đơn vị nghiên cứu, phí | ngoài tầm hiện tại |
-| KNHANES (Hàn Quốc) | cắt ngang; mortality linkage **chưa xác nhận bản công khai** | — | cần kiểm tra tiếp | theo dõi |
+| KNHANES–Cause of Death linkage (Hàn Quốc) | tháng từ kỳ khám đến tử vong (2007→2019+, follow-up TB 8.4 năm) | tử vong toàn bộ + nguyên nhân theo KCD | **đã xác nhận tồn tại** ('07–'22: 69 855 người, linkage 97.5%) nhưng chỉ phân tích tại **Research Data Center của KDCA** sau khi đề cương được duyệt — không tải về | ứng viên P2.3 (cần nộp đề cương); nguồn: kdca.go.kr, e-epih.e2022021 |
 | Kênh nhập hệ thống (P2.4 docs/16) | ngày, tự tích lũy | tự định nghĩa qua governance | nội bộ | đang chạy |
 
 Lý do chọn NHANES-LMF làm bước đầu: (i) **khớp SEQN trực tiếp** với
@@ -140,9 +140,18 @@ Thiết kế (chốt trước khi nhìn kết quả — theo tinh thần §3.1 d
 | Bước | Công việc | Ghi chú |
 |---|---|---|
 | ~~P2.1 (mới)~~ | ✅ Temporal validation trên NHANES-LMF | mục này |
-| P2.2 | Complete-case check glucose 52% | `experiments/COMPLETE-CASE-CHECK/` |
-| P2.3 | Xác nhận ngoài theo địa lý | KNHANES (kiểm tra mortality linkage), hoặc MIMIC-IV |
+| P2.2 | ✅ Complete-case check glucose 52% | `experiments/COMPLETE-CASE-CHECK/` — cây ổn định (<0.01), LR lệch +0.016; giữ impute production (docs/16 §3.5) |
+| P2.3 | Xác nhận ngoài theo địa lý | KNHANES linkage **đã xác nhận tồn tại** nhưng chỉ chạy tại RDC của KDCA (nộp đề cương); thực tế hơn: MIMIC-IV sau khi có quyền (P2.7) |
 | P2.4 | Dữ liệu dọc qua kênh nhập hệ thống | ≥50 người × ≥30 ngày là mốc giữa |
 | P2.5 | Lead time theo ngày khi có P2.4 | áp đúng tiêu chí §3.1 docs/16 |
 | P2.6 | Chuỗi thời gian khi đủ dữ liệu | LightGBM+lag là baseline bắt buộc |
 | **P2.7 (mới)** | Xin quyền MIMIC-IV (CITI + DUA) làm nguồn biến cố nhập viện; đồng thời đánh giá EHRSHOT/CardioEHR | chuyển huấn luyện sang outcome tương lai |
+
+### Hồ sơ nghiên cứu đã đồng bộ (24/08/2026)
+
+Cùng ngày, docs 01–07 được rà soát theo trạng thái hiện tại: docs/06 cập nhật
+model sản xuất (n=16 314, AUC 0.9356), thêm §2.4 calibration production, đánh
+dấu các giới hạn đã giải quyết (temporal split, imputer, calibration), bảng
+kết quả demo đo lại sau isotonic; docs/03 bổ sung mô tả governance vòng đời
+luật; docs/02/04/07 chỉnh định vị thuật ngữ "cảnh báo sớm" theo docs/15 §14;
+`experiments/README.md` liệt kê đủ các evidence package K1–K4 + P2.
