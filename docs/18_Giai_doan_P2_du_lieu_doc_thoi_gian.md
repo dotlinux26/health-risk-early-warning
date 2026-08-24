@@ -182,6 +182,31 @@ thông báo "three step process" và thông báo chậm duyệt tháng 06/2026:
 Chi phí toàn bộ: thời gian học ~3–5 giờ + thời gian chờ duyệt. Không mất phí,
 không cần chữ ký của bác sĩ hay cơ quan.
 
+**Tiến độ 24/08/2026:** khóa CITI "Data or Specimens Only Research" (MIT
+Affiliates) đã **hoàn thành** — 9/9 module qua quiz. Việc còn lại phía người
+nghiên cứu: (1) tải Completion Report (bản PDF đầy đủ, không phải certificate)
+từ mục Records trên CITI; (2) tạo tài khoản physionet.org và điền profile;
+(3) nộp report ở trang *Training* + thông tin cá nhân và người tham chiếu ở
+trang *Credentialing*; (4) chờ duyệt; (5) ký DUA của MIMIC-IV.
+
+### Kế hoạch phân tích MIMIC-IV (soạn sẵn trong lúc chờ duyệt hồ sơ)
+
+Mục tiêu: khắc phục G3/G8 — chuyển từ outcome tử vong công khai sang biến cố
+dọc theo ngày, và có external validation theo quần thể thật (G1).
+
+1. **Nguồn**: MIMIC-IV (phiên bản mới nhất tại thời điểm được cấp quyền),
+   ~40 nghìn bệnh nhân nhập viện BIDMC 2008–2019, module `hosp` + `icu`.
+   Bản demo công khai dùng để thử pipeline trước khi có quyền chính thức.
+2. **Câu hỏi nghiên cứu**: dự báo tử vong nội viện / tái nhập viện 30 ngày từ
+   chỉ số sinh hiệu + xét nghiệm 24 giờ đầu; đo lead-time theo ngày.
+3. **Ánh xạ đặc trưng**: HR/BP/SpO₂/glucose/creatinine qua `d_items` +
+   `labevents` (itemid) → cùng bộ đặc trưng với NHANES để so sánh chuyển miền:
+   model NHANES-trained → test trực tiếp trên MIMIC = xác nhận ngoài theo
+   quần thể đúng nghĩa (tiêu chí docs/16 §3.4: AUC drop ≤ 0.05, ECE ≤ 0.05).
+4. **Vận hành tuân thủ DUA**: dữ liệu tải về đặt ngoài git (cấm tái phân phối);
+   chỉ commit script ETL (`scripts/`) và kết quả tổng hợp không định danh;
+   trích dẫn Johnson et al. + Goldberger et al. khi công bố.
+
 ### Hồ sơ nghiên cứu đã đồng bộ (24/08/2026)
 
 Cùng ngày, docs 01–07 được rà soát theo trạng thái hiện tại: docs/06 cập nhật
