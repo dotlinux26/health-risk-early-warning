@@ -251,7 +251,8 @@ async function doAssess(){
 
 async function renderEvidence(pid,res,st){
   let mlInfo="";
-  try{mlInfo=(await j("/api/evidence/ml")).html_md}catch(e){}
+  const mlq=res.ml_score!=null?`?score=${res.ml_score}`:"";
+  try{mlInfo=(await j("/api/evidence/ml"+mlq)).html_md}catch(e){}
   const lv=res.risk_level||"INSUFFICIENT_DATA";
   const days=st.dates.length;
   const t1=(res.metrics_detail||[]).map(m=>{
