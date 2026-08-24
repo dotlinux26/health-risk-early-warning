@@ -181,14 +181,14 @@ khi chạy sẽ lưu vào `experiments/COMPLETE-CASE-CHECK/`.
 
 ## 4. Lộ trình P2 với tiêu chí nghiệm thu
 
-| Bước | Công việc | Điều kiện/tiêu chí xong |
-|---|---|---|
-| P2.1 | Hoàn thiện hồ sơ nghiên cứu: cập nhật docs 01–07 theo trạng thái mới (calibration, governance, đổi tên đề tài) | Mọi con số trong docs truy xuất được tới evidence package hiện tại |
-| P2.2 | Complete-case check (§3.5) | Có `experiments/COMPLETE-CASE-CHECK/summary.json` + kết luận |
-| P2.3 | Hold-out ngoài bằng chu kỳ NHANES chưa dùng (§3.4) | AUC drop ≤ 0.05, ECE ≤ 0.05 |
-| P2.4 | Thu thập dữ liệu dọc qua kênh nhập hệ thống (§3.1) | ≥ 50 người dùng thật × ≥ 30 ngày là mốc đánh giá giữa |
-| P2.5 | Temporal validation + lead time khi P2.4 đạt ngưỡng | Theo tiêu chí §3.1 |
-| P2.6 | Chuỗi thời gian khi đủ dữ liệu (§3.3) | LightGBM+lag là baseline bắt buộc phải thắng |
+| Bước | Công việc | Điều kiện/tiêu chí xong | Trạng thái 24/08 |
+|---|---|---|---|
+| P2.1 | Hoàn thiện hồ sơ nghiên cứu: cập nhật docs 01–07 theo trạng thái mới (calibration, governance, đổi tên đề tài) | Mọi con số trong docs truy xuất được tới evidence package hiện tại | ✅ (commit `86aef9b`) |
+| P2.2 | Complete-case check (§3.5) | Có `experiments/COMPLETE-CASE-CHECK/summary.json` + kết luận | ✅ |
+| P2.3 | Hold-out ngoài bằng chu kỳ NHANES chưa dùng (§3.4) / xác nhận ngoài theo địa lý | AUC drop ≤ 0.05, ECE ≤ 0.05; KNHANES cần đề cương KDCA RDC | ⏳ chờ thủ tục |
+| P2.4 | Thu thập dữ liệu dọc qua kênh nhập hệ thống (§3.1) | ≥ 50 người dùng thật × ≥ 30 ngày là mốc đánh giá giữa | ⏳ chờ dữ liệu |
+| P2.5 | Temporal validation + lead time khi P2.4 đạt ngưỡng | Theo tiêu chí §3.1 | ⏳ chờ P2.4 |
+| P2.6 | Chuỗi thời gian khi đủ dữ liệu (§3.3) | LightGBM+lag là baseline bắt buộc phải thắng | ⏳ chờ P2.4 |
 
 *Cập nhật 24/08/2026:* ngoài các bước trên, đã hoàn thành **temporal validation
 cấp cohort trên NHANES-LMF** (AUC tử vong 12 tháng 0.821, lead time trung vị
@@ -198,6 +198,10 @@ biến cố tương lai, và hoàn thành **P2.2 complete-case check**
 (`experiments/COMPLETE-CASE-CHECK/`): LightGBM/XGB ổn định (|ΔAUC| < 0.01 →
 impute vô hại cho production), LR lệch +0.0158 nghiêng về complete-case — giữ
 impute cho sản xuất, ghi chú phương sai khi báo cáo baseline tuyến tính.
+KNHANES đã xác minh có mortality linkage nhưng chỉ phân tích được tại RDC của
+KDCA sau duyệt đề cương (docs/18 §1). UI v2 (dark mode, biểu đồ xu hướng,
+xuất CSV bản ghi + audit) và bộ e2e chính thức `scripts/e2e_test.py`
+(35 PASS / 0 FAIL) ghi tại docs/15 §7.4. Tổng kết toàn dự án: **docs/19**.
 
 ## 5. Những gì hệ thống KHÔNG tuyên bố (cho tới khi P2 hoàn thành)
 

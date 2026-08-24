@@ -160,8 +160,17 @@ Lần sử dụng thực tế này củng cố trạng thái đã chốt:
 4. Bảng bản ghi hiển thị tối ưu cho desktop; mobile cần cuộn ngang (đã chấp nhận
    trong phạm vi đồ án).
 
+**Cập nhật 24/08/2026 (UI v2):** mục 3 đã khắc phục — thêm nút "⬇ Xuất CSV"
+cho cả audit trail (tab Luật & Quản trị) và bảng bản ghi cá nhân (tab Bản ghi,
+định dạng dài patient_id/date/metric/value/unit, có BOM để mở đúng tiếng Việt
+bằng Excel). Mục 4 giảm bớt: biểu đồ xu hướng SVG tự co giãn theo bề ngang;
+bảng vẫn cần cuộn ngang khi chọn nhiều cột. Đồng thời bổ sung dark mode
+(nút 🌙/☀️ ở header, lưu lựa chọn trong localStorage) và tab Đánh giá hỗ trợ
+đầy đủ 6 chế độ chuyên khoa (htn/dm/cv/ckd/met/resp).
+
 ---
 
 *Kết quả ghi lại từ phiên sử dụng ngày 23–24/08/2026 trên server cục bộ; e2e
-32/32 PASS. Mọi con số truy xuất được tới API/evidence package tương ứng. Không
-thay thế chẩn đoán của bác sĩ.*
+35/35 PASS từ 24/08/2026 (bộ test chính thức tại `scripts/e2e_test.py`). Mọi
+con số truy xuất được tới API/evidence package tương ứng. Không thay thế
+chẩn đoán của bác sĩ.*

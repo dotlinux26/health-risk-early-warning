@@ -413,6 +413,21 @@ docs/16 §3.5.
 
 Chi tiết đầy đủ: **docs/18**.
 
+**Bổ sung 24/08/2026 — UI v2 + bộ e2e chính thức:**
+
+- Bộ kiểm thử end-to-end chuyển vào repo tại `scripts/e2e_test.py`
+  (trước nằm tạm ở /tmp): 35 kiểm tra — trang tĩnh, đánh giá 5 bệnh nhân
+  seeded, CRUD bản ghi, luồng governance đầy đủ, evidence/research payload.
+  Kết quả 24/08/2026: **35 PASS / 0 FAIL**.
+- Nâng cấp giao diện: dark mode (CSS variables + nút chuyển ở header, lưu
+  localStorage), biểu đồ xu hướng SVG trong tab Bản ghi (mỗi chỉ số một đường,
+  chuẩn hóa min–max, legend giá trị cuối), xuất CSV cho bảng bản ghi và audit
+  trail (khắc phục hạn chế mục 3, docs/17 §6), chọn chế độ chuyên khoa đầy đủ
+  6 hệ (htn/dm/cv/ckd/met/resp).
+- `/api/benchmark/research` bổ sung trường `complete_case`; trang Benchmark
+  có panel riêng bên cạnh "Validation theo thời gian".
+- Tổng kết đã giải quyết / giới hạn còn lại của cả dự án: **docs/19**.
+
 ## 8. Quản lý trạng thái bằng chứng
 
 Thêm panel **SYSTEM EVIDENCE STATUS** (trên `/benchmark` hoặc trang tổng quan):

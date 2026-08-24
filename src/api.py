@@ -416,6 +416,25 @@ def benchmark_research() -> JSONResponse:
             }
         except Exception:
             temporal = {}
+    cc = {}
+    _cc_path = _Path("experiments") / "COMPLETE-CASE-CHECK" / "summary.json"
+    if _cc_path.exists():
+        try:
+            c = json.loads(_cc_path.read_text(encoding="utf-8"))
+            cc = {
+                "missing_glucose": c.get("missing_glucose"),
+                "aggregate": {
+                    k: {
+                        "auc_imputed": v.get("roc_auc", {}).get("imputed"),
+                        "auc_cc": v.get("roc_auc", {}).get("complete_case"),
+                        "delta": v.get("roc_auc", {}).get("delta"),
+                    }
+                    for k, v in (c.get("aggregate") or {}).items()
+                },
+                "verdict": c.get("verdict"),
+            }
+        except Exception:
+            cc = {}
     return JSONResponse({
         "label_sensitivity": {
             "overlap": label.get("labels_overlap"),
@@ -439,6 +458,7 @@ def benchmark_research() -> JSONResponse:
             "completeness_confidence": dc.get("confidence"),
         },
         "temporal_validation": temporal,
+        "complete_case": cc,
         "evidence_status": evidence_status,
     })
 

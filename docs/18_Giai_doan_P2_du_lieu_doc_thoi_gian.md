@@ -155,3 +155,10 @@ dấu các giới hạn đã giải quyết (temporal split, imputer, calibratio
 kết quả demo đo lại sau isotonic; docs/03 bổ sung mô tả governance vòng đời
 luật; docs/02/04/07 chỉnh định vị thuật ngữ "cảnh báo sớm" theo docs/15 §14;
 `experiments/README.md` liệt kê đủ các evidence package K1–K4 + P2.
+
+**Bổ sung cuối ngày 24/08/2026:** UI v2 (dark mode, biểu đồ xu hướng SVG,
+xuất CSV bản ghi + audit trail — khắc phục hạn chế docs/17 §6 mục 3) và bộ
+kiểm thử end-to-end chính thức `scripts/e2e_test.py` — 35 PASS / 0 FAIL,
+gồm cả check cho payload `temporal_validation` và `complete_case` của
+`/api/benchmark/research`. Báo cáo tổng kết đã giải quyết / giới hạn còn lại:
+**docs/19**.

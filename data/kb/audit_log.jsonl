@@ -33,3 +33,15 @@
 {"ts": "2026-08-24T03:51:46+00:00", "actor": "tester", "action": "transition", "rule_id": "R_E2E_TEST", "detail": {"to": "active", "version": 1.0, "note": ""}}
 {"ts": "2026-08-24T03:51:46+00:00", "actor": "tester", "action": "edit", "rule_id": "R_E2E_TEST", "detail": {"from_version": 1.0, "to_version": 1.1, "status_reset_to": "draft"}}
 {"ts": "2026-08-24T03:51:46+00:00", "actor": "tester", "action": "delete", "rule_id": "R_E2E_TEST", "detail": {}}
+{"ts": "2026-08-24T04:29:36+00:00", "actor": "tester", "action": "create", "rule_id": "R_E2E_TEST", "detail": {"version": 1.0}}
+{"ts": "2026-08-24T04:29:36+00:00", "actor": "tester", "action": "transition", "rule_id": "R_E2E_TEST", "detail": {"to": "review", "version": 1.0, "note": ""}}
+{"ts": "2026-08-24T04:29:36+00:00", "actor": "tester", "action": "transition", "rule_id": "R_E2E_TEST", "detail": {"to": "approved", "version": 1.0, "note": ""}}
+{"ts": "2026-08-24T04:29:36+00:00", "actor": "tester", "action": "transition", "rule_id": "R_E2E_TEST", "detail": {"to": "active", "version": 1.0, "note": ""}}
+{"ts": "2026-08-24T04:29:36+00:00", "actor": "tester", "action": "edit", "rule_id": "R_E2E_TEST", "detail": {"from_version": 1.0, "to_version": 1.1, "status_reset_to": "draft"}}
+{"ts": "2026-08-24T04:29:36+00:00", "actor": "tester", "action": "delete", "rule_id": "R_E2E_TEST", "detail": {}}
+{"ts": "2026-08-24T04:30:20+00:00", "actor": "tester", "action": "create", "rule_id": "R_E2E_TEST", "detail": {"version": 1.0}}
+{"ts": "2026-08-24T04:30:20+00:00", "actor": "tester", "action": "transition", "rule_id": "R_E2E_TEST", "detail": {"to": "review", "version": 1.0, "note": ""}}
+{"ts": "2026-08-24T04:30:20+00:00", "actor": "tester", "action": "transition", "rule_id": "R_E2E_TEST", "detail": {"to": "approved", "version": 1.0, "note": ""}}
+{"ts": "2026-08-24T04:30:20+00:00", "actor": "tester", "action": "transition", "rule_id": "R_E2E_TEST", "detail": {"to": "active", "version": 1.0, "note": ""}}
+{"ts": "2026-08-24T04:30:20+00:00", "actor": "tester", "action": "edit", "rule_id": "R_E2E_TEST", "detail": {"from_version": 1.0, "to_version": 1.1, "status_reset_to": "draft"}}
+{"ts": "2026-08-24T04:30:20+00:00", "actor": "tester", "action": "delete", "rule_id": "R_E2E_TEST", "detail": {}}

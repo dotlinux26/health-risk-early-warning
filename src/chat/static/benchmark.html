@@ -121,6 +121,7 @@
   <h2>Nguồn dữ liệu &amp; danh mục bằng chứng</h2>
   <div class="grid2">
     <div><h3>Validation theo thời gian (NHANES-LMF)</h3><div id="temporal-body"></div></div>
+    <div><h3>Complete-case check — khuyết glucose 52%</h3><div id="cc-body"></div></div>
     <div><h3>Nguồn dữ liệu & tiền xử lý</h3><div id="prov-body"></div></div>
     <div><h3>Evidence status — còn thiếu gì</h3><div id="status-body"></div></div>
   </div>
@@ -339,6 +340,18 @@ function renderResearch(){
       <p style="margin-top:8px">Lead time: top-20% nguy cơ bắt <b>${lt.caught_by_top20}/${lt.n_deceased_24m_test}</b> ca tử vong ≤24 tháng, trung vị <b>${lt.median_lead_time_months_top20} tháng</b> trước sự kiện.</p>`;
   } else th = '<span class="sub">Chưa chạy EXP-TEMPORAL-LMF.</span>';
   $('temporal-body').innerHTML = th;
+
+  const ccv = r.complete_case || {};
+  let ch = '';
+  if (ccv.verdict) {
+    const rows = Object.entries(ccv.aggregate || {}).map(([k, v]) =>
+      `<tr><td>${esc(k.toUpperCase())}</td><td class="num">${v.auc_imputed}</td><td class="num">${v.auc_cc}</td>
+       <td class="num" style="color:${Math.abs(v.delta) >= 0.01 ? '#b45309' : '#15803d'}">${v.delta >= 0 ? '+' : ''}${v.delta}</td></tr>`).join('');
+    ch += `<p class="sub">So sánh impute median vs bỏ mẫu thiếu (cùng split + seed). Δ dương = complete-case tốt hơn.</p>
+      <table><tr><th>Model</th><th>AUC imputed</th><th>AUC complete-case</th><th>Δ AUC</th></tr>${rows}</table>
+      <p style="margin-top:8px"><b>Kết luận:</b> ${esc(ccv.verdict)}</p>`;
+  } else ch = '<span class="sub">Chưa chạy COMPLETE-CASE-CHECK.</span>';
+  $('cc-body').innerHTML = ch;
 
   const pv = r.provenance || {};
   let ph = '';

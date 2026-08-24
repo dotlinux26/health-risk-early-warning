@@ -6,7 +6,11 @@
 <title>HealthRisk · Đánh giá nguy cơ sức khỏe cá nhân hóa</title>
 <style>
   :root{--bg:#f1f5f9;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;
-    --blue:#0369a1;--green:#15803d;--amber:#b45309;--red:#b91c1c}
+    --blue:#0369a1;--green:#15803d;--amber:#b45309;--red:#b91c1c;
+    --soft:#e0f2fe;--hover:#f1f5f9;--card2:#fcfcfd}
+  [data-theme=dark]{--bg:#0b1220;--card:#111a2c;--ink:#e2e8f0;--mut:#94a3b8;--line:#24324a;
+    --blue:#7dd3fc;--green:#4ade80;--amber:#fbbf24;--red:#f87171;
+    --soft:#0e3a5c;--hover:#1a2740;--card2:#0e1626}
   *{box-sizing:border-box}body{margin:0;font-family:system-ui,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink)}
   header{background:linear-gradient(90deg,#0c4a6e,#0369a1);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   header h1{font-size:17px;margin:0;font-weight:700}
@@ -21,8 +25,8 @@
   input,select,textarea{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:14px}
   button.act{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer}
   button.act.sec{background:#475569}
-  button.mini{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer}
-  button.mini:hover{background:#f1f5f9}
+  button.mini{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+  button.mini:hover{background:var(--hover)}
   button.mini.danger{color:var(--red);border-color:#fecaca}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
   .field{display:flex;flex-direction:column;gap:4px}
@@ -36,7 +40,7 @@
   table.ev td,table.ev th{border-top:1px solid var(--line);padding:6px 8px;text-align:left}
   table.ev th{color:var(--mut);font-weight:600;font-size:12px}
   .num{text-align:right;font-variant-numeric:tabular-nums}
-  .tier-tag{display:inline-block;font-size:11px;font-weight:700;color:var(--blue);background:#e0f2fe;border-radius:6px;padding:2px 8px}
+  .tier-tag{display:inline-block;font-size:11px;font-weight:700;color:var(--blue);background:var(--soft);border-radius:6px;padding:2px 8px}
   .md-body{font-size:14px;line-height:1.6}.md-body table{border-collapse:collapse}.md-body td,.md-body th{border:1px solid var(--line);padding:4px 10px}
   .md-body p{margin:4px 0}
   /* Records */
@@ -46,13 +50,13 @@
   table.rec td input:focus{outline:2px solid #7dd3fc;border-radius:4px}
   .empty{color:#cbd5e1}
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 11px;cursor:pointer;user-select:none;background:#fff;color:var(--mut)}
-  .chip.on{background:#e0f2fe;color:var(--blue);border-color:#7dd3fc;font-weight:600}
+  .chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 11px;cursor:pointer;user-select:none;background:var(--card);color:var(--mut)}
+  .chip.on{background:var(--soft);color:var(--blue);border-color:#7dd3fc;font-weight:600}
   /* Governance */
   .st{font-size:11px;font-weight:700;color:#fff;border-radius:6px;padding:1px 8px;text-transform:uppercase}
   .st-active{background:var(--green)}.st-approved{background:#0369a1}
   .st-review{background:var(--amber)}.st-draft{background:#64748b}.st-rejected{background:var(--red)}
-  .rule-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:#fcfcfd}
+  .rule-card{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card2)}
   .rule-card.inactive{opacity:.75;border-style:dashed}
   .rule-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .rid{font-family:ui-monospace,monospace;font-weight:700;color:var(--blue)}
@@ -64,7 +68,15 @@
   table.audit td,table.audit th{border:1px solid var(--line);padding:4px 8px;text-align:left}
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:8px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
   .toast.show{opacity:.92}
-  iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:12px;background:#fff}
+  iframe{width:100%;height:calc(100vh - 120px);border:none;border-radius:12px;background:var(--card)}
+  /* Biểu đồ xu hướng */
+  #trend-svg text{fill:var(--mut)}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .legend span{font-size:12px;display:flex;align-items:center;gap:5px;color:var(--mut)}
+  .legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+  header .theme-btn{margin-left:4px;background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;
+    border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
+  @media(max-width:720px){header{padding:8px 10px}.risk-badge{font-size:17px;padding:6px 14px}}
 </style>
 </head>
 <body>
@@ -75,6 +87,7 @@
     <button data-tab="records">Bản ghi cá nhân</button>
     <button data-tab="rules">Luật &amp; Quản trị</button>
     <button data-tab="bench">Benchmark</button>
+    <button class="theme-btn" id="theme-btn" title="Chuyển giao diện sáng/tối">🌙</button>
   </nav>
 </header>
 <main>
@@ -90,7 +103,9 @@
       <div class="field"><label>Chế độ luật</label>
         <select id="mode" style="min-width:150px">
           <option value="">Tất cả chuyên khoa</option><option value="htn">Tăng huyết áp</option>
-          <option value="dm">Đái tháo đường</option><option value="ckd">Bệnh thận mạn</option>
+          <option value="dm">Đái tháo đường</option><option value="cv">Tim mạch</option>
+          <option value="ckd">Bệnh thận mạn</option><option value="met">Rối loạn chuyển hóa</option>
+          <option value="resp">Hô hấp</option>
         </select></div>
       <button class="act" onclick="doAssess()">▶ Đánh giá</button>
       <span id="assess-status" style="font-size:12px;color:var(--mut)"></span>
@@ -108,6 +123,7 @@
       <div class="field"><label>Ngày mới</label><input id="r-newdate" type="date"></div>
       <button class="act sec" onclick="loadRecords()">↻ Tải bảng</button>
       <button class="act" onclick="addRow()">＋ Thêm ngày</button>
+      <button class="act sec" onclick="exportCSV()">⬇ Xuất CSV</button>
     </div>
     <div style="margin-top:12px">
       <label style="font-weight:600">Cột hiển thị (bấm để thêm/bớt):</label>
@@ -118,6 +134,8 @@
       Sửa số → rời ô là tự động lưu. × trên ô: xóa ô · × cuối hàng: xóa cả ngày.</p>
   </div>
   <div class="card" id="rec-wrap" style="overflow-x:auto"></div>
+  <div class="card"><h2>Xu hướng theo ngày (chuẩn hóa min–max từng chỉ số)</h2>
+    <div id="trend-body"></div></div>
 </section>
 
 <!-- ================= TAB 3: LUẬT & QUẢN TRỊ ================= -->
@@ -181,6 +199,7 @@
   <div class="card">
     <details class="audit" open>
       <summary>Audit trail — mọi thao tác governance</summary>
+      <button class="mini" style="margin:6px 0" onclick="exportAuditCSV()">⬇ Xuất CSV</button>
       <div id="audit-body">Đang tải…</div>
     </details>
   </div>
@@ -209,6 +228,14 @@ const VN=Object.fromEntries(CATALOG.map(c=>[c.k,c.vn]));
 const UNIT=Object.fromEntries(CATALOG.map(c=>[c.k,c.u]));
 const SYS_VN={htn:"Tăng huyết áp",dm:"Đái tháo đường",cv:"Tim mạch",ckd:"Thận mạn"};
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
+
+// ---- dark mode ----
+function applyTheme(t){
+  document.documentElement.dataset.theme=t;
+  $("#theme-btn").textContent=t==="dark"?"☀️":"🌙";
+  localStorage.setItem("theme",t);
+}
+$("#theme-btn").onclick=()=>applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
 
 // ---- điều hướng tab ----
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
@@ -343,6 +370,7 @@ function drawRecords(){
   const rows=REC.dates.map(d=>`<tr><td><b>${d}</b></td>${ms.map(m=>cell(d,m)).join("")}
     <td><a href="#" onclick="delDay('${d}');return false" title="Xóa cả ngày" style="color:var(--red);text-decoration:none">🗑</a></td></tr>`).join("");
   $("#rec-wrap").innerHTML=`<table class="rec">${head}${rows||'<tr><td colspan="12" class="empty">Chưa có bản ghi — nhấn “Thêm ngày”.</td></tr>'}</table>`;
+  drawTrend();
 }
 async function saveCell(d,m,v){
   const pid=$("#r-pid").value.trim();
@@ -367,6 +395,67 @@ function addRow(){
   if(!REC)REC={dates:[],metrics:[],grid:{}};
   if(!REC.dates.includes(d)){REC.dates.unshift(d);REC.grid[d]={}}
   drawRecords();toast("Đã thêm dòng "+d+" — nhập số vào ô sẽ tự lưu");
+}
+
+// ---- biểu đồ xu hướng SVG ----
+const PALETTE=["#0369a1","#15803d","#b45309","#b91c1c","#7c3aed","#0891b2","#be185d","#4d7c0f"];
+function drawTrend(){
+  const el=$("#trend-body");
+  if(!REC||REC.dates.length<2){el.innerHTML='<span class="empty">Cần ≥2 ngày dữ liệu để vẽ biểu đồ.</span>';return}
+  const dates=[...REC.dates].reverse(); // cũ → mới
+  const W=1000,H=220,P=34;
+  const series=[];
+  COLS.forEach((m,i)=>{
+    const pts=dates.map(d=>REC.grid[d]&&REC.grid[d][m]?REC.grid[d][m].value:null);
+    const vals=pts.filter(v=>v!=null&&isFinite(v));
+    if(vals.length<2)return;
+    const mn=Math.min(...vals),mx=Math.max(...vals),rg=mx-mn||1;
+    const xy=pts.map((v,j)=>v==null?null:[
+      P+(W-2*P)*(dates.length===1?0.5:j/(dates.length-1)),
+      H-P-(H-2*P)*((v-mn)/rg)]);
+    series.push({m,color:PALETTE[i%PALETTE.length],xy,mn,mx,last:vals[vals.length-1]});
+  });
+  if(!series.length){el.innerHTML='<span class="empty">Không có chỉ số nào có ≥2 điểm đo.</span>';return}
+  const paths=series.map(s=>{
+    let d="",pen=false;
+    s.xy.forEach(p=>{if(p){d+=(pen?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1);pen=true}else pen=false});
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`
+      +s.xy.map(p=>p?`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" fill="${s.color}"/>`:"").join("");
+  }).join("");
+  const gridY=[0,.25,.5,.75,1].map(t=>
+    `<line x1="${P}" x2="${W-P}" y1="${H-P-(H-2*P)*t}" y2="${H-P-(H-2*P)*t}" stroke="var(--line)" stroke-width="1"/>`).join("");
+  const lbl=(i,anchor)=>`<text x="${anchor}" y="${H-10}" font-size="11" text-anchor="${i<0.5?"start":i>0.95?"end":"middle"}">${esc(dates[Math.round(i*(dates.length-1))])}</text>`;
+  el.innerHTML=`<svg id="trend-svg" viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${gridY}${paths}
+    ${lbl(0,"start")}${lbl(.5,"middle")}${lbl(1,"end")}</svg>
+    <div class="legend">${series.map(s=>`<span><i style="background:${s.color}"></i>${VN[s.m]||s.m}
+      <b style="color:var(--ink)">${(+s.last).toFixed(1)} ${UNIT[s.m]||""}</b>
+      <span>[${s.mn.toFixed(1)}–${s.mx.toFixed(1)}]</span></span>`).join("")}</div>`;
+}
+function dl(name,text){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob(["\ufeff"+text],{type:"text/csv;charset=utf-8"}));
+  a.download=name;a.click();URL.revokeObjectURL(a.href);
+}
+function exportCSV(){
+  if(!REC||!REC.dates.length){toast("Chưa có dữ liệu để xuất");return}
+  const pid=$("#r-pid").value.trim()||"P001";
+  const lines=["patient_id,date,metric,metric_vn,value,unit"];
+  [...REC.dates].reverse().forEach(d=>CATALOG.forEach(c=>{
+    const g=REC.grid[d]&&REC.grid[d][c.k];
+    if(g&&g.value!=null)lines.push([pid,d,c.k,c.vn,g.value,c.u].map(x=>`"${String(x).replaceAll('"','""')}"`).join(","));
+  }));
+  dl(`records_${pid}_${new Date().toISOString().slice(0,10)}.csv`,lines.join("\n"));
+  toast("Đã xuất CSV bản ghi "+pid);
+}
+async function exportAuditCSV(){
+  try{
+    const d=await j("/api/kb/audit?limit=1000");
+    const lines=["timestamp,actor,action,rule_id,detail"];
+    d.entries.forEach(e=>lines.push([e.ts,e.actor,e.action,e.rule_id,JSON.stringify(e.detail)]
+      .map(x=>`"${String(x??"").replaceAll('"','""')}"`).join(",")));
+    dl(`audit_trail_${new Date().toISOString().slice(0,10)}.csv`,lines.join("\n"));
+    toast(`Đã xuất ${d.entries.length} dòng audit`);
+  }catch(e){toast("Lỗi: "+e.message)}
 }
 
 // ---- TAB LUẬT & QUẢN TRỊ ----
@@ -521,6 +610,7 @@ async function doTransition(id,to){
 
 // ---- khởi tạo ----
 fillMetricSelect();drawChips();loadPatients();
+applyTheme(localStorage.getItem("theme")||"light");
 if(localStorage.getItem("last_pid")){$("#pid").value=$("#r-pid").value=localStorage.getItem("last_pid")}
 </script>
 </body>
