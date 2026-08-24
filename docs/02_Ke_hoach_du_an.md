@@ -7,7 +7,7 @@
 ## 1. Mục tiêu & Phạm vi (SMART)
 
 ### Mục tiêu tổng quát
-Xây dựng hệ thống **đa tầng, minh bạch** phân tích chuỗi chỉ số cơ thể (theo thời gian) của từng cá nhân để cảnh báo sớm nguy cơ bệnh, kèm giải thích truy xuất được.
+Xây dựng hệ thống **đa tầng, minh bạch** phân tích chuỗi chỉ số cơ thể (theo thời gian) của từng cá nhân để phân tầng nguy cơ và hỗ trợ quyết định lâm sàng, kèm giải thích truy xuất được. *(Thuật ngữ "cảnh báo sớm" chỉ dùng khi đã chứng minh outcome tương lai — xem `docs/15` §14.3, `docs/16` §5; kết quả đầu tiên ở `docs/18`.)*
 
 ### Mục tiêu cụ thể (SMART)
 - **S1:** Thiết kế bộ phát hiện bất thường cá nhân hóa (Z-Score, Isolation Forest, xu hướng EWMA/STL) đạt F1 ≥ 0,8 trên dữ liệu thử nghiệm.

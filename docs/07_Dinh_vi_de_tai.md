@@ -133,7 +133,7 @@ So sánh phải **cùng cấp độ**:
 |--------|-----------------|
 | Cấp khung (framework) | Khung 3 tầng của nhóm vs các hệ thống CDSS khác — theo tiêu chí **kiến trúc**: cá nhân hóa, khả năng giải thích, chi phí, tính thay thế mô hình |
 | Cấp mô hình ML (thành phần Tầng 3) | LightGBM vs LSTM/GRU vs Transformer thời gian — trên **cùng bộ dữ liệu**, cùng metric AUROC/AUPRC (đây là benchmark mà đề tài báo cáo được) |
-| Cấp bài toán | Đề tài giải bài toán **cảnh báo sớm (early warning)**; Delphi/Foresight giải bài toán **dự đoán diễn tiến bệnh (disease trajectory prediction)** — đây là hai bài toán khác nhau, không thể đem so trực tiếp |
+| Cấp bài toán | Đề tài giải bài toán **cảnh báo sớm (early warning)**; Delphi/Foresight giải bài toán **dự đoán diễn tiến bệnh (disease trajectory prediction)** — đây là hai bài toán khác nhau, không thể đem so trực tiếp. *Ghi chú 24/08: trong sản phẩm/báo cáo hiện tại dùng "phân tầng nguy cơ cắt ngang" cho đến khi có dữ liệu dọc theo ngày — điều kiện và kết quả đầu tiên xem `docs/15` §14.3, `docs/18`.* |
 
 ---
 

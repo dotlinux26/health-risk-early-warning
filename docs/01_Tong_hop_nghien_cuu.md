@@ -51,7 +51,7 @@ Từ tổng hợp 5 bài báo, nổi lên **4 khoảng trống** mà đề tài 
 ```
 
 - **Kế thừa** bài báo 2 (RNN/LSTM chứng minh giá trị dữ liệu dọc) và bài báo 1 (GBM đạt hiệu năng tương đương foundation model với chi phí thấp).
-- **Khác biệt hóa** so với bài báo 3, 4 (transformer tạo sinh): thay vì "đoán sự kiện tiếp theo", hệ thống **cảnh báo sớm + giải thích được** dựa trên sai lệch cá nhân hóa và luật y khoa.
+- **Khác biệt hóa** so với bài báo 3, 4 (transformer tạo sinh): thay vì "đoán sự kiện tiếp theo", hệ thống **phân tầng nguy cơ giải thích được** dựa trên sai lệch cá nhân hóa và luật y khoa (mục tiêu dài hạn: cảnh báo sớm — điều kiện dùng thuật ngữ xem `docs/15` §14.3; kết quả outcome tương lai đầu tiên: `docs/18`).
 - **Trả lời** cho bài báo 5 (rào cản EHR) bằng thiết kế chạy được trên dữ liệu tối giản (chỉ số cơ thể dạng bảng theo thời gian), không đòi hỏi toàn bộ hồ sơ bệnh án phi cấu trúc.
 
 ---

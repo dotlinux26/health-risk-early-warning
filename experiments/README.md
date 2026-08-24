@@ -13,6 +13,17 @@ python scripts/run_benchmark.py --seeds 42 52 62         # chọn seed
 python scripts/run_benchmark.py --out experiments/run1   # thư mục riêng
 ```
 
+Ngoài benchmark chính, các thí nghiệm độ bền vững / validation:
+
+| Thư mục | Script | Câu hỏi |
+|---|---|---|
+| `LABEL-SENSITIVITY/` | `scripts/run_label_sensitivity.py` | Đổi định nghĩa nhãn thì AUC đổi bao nhiêu? (K2) |
+| `BASELINE-STABILITY/` | `scripts/run_baseline_stability.py` | Cửa sổ baseline N ngày ảnh hưởng Tầng 1? (K3) |
+| `WEIGHT-SENSITIVITY/` | `scripts/run_weight_sensitivity.py` | Trọng số fusion thay đổi thì kết luận lật? (K4) |
+| `EXP-ML-*/calibration.json` | `scripts/run_calibration*.py` (xem docs/15 §5F) | Xác suất có "đúng là xác suất"? (K1) |
+| **`EXP-TEMPORAL-LMF/`** | `scripts/fetch_nhanes_mortality.py` + `scripts/run_temporal_validation.py` | Dự báo outcome tương lai thật (tử vong NHANES-LMF), split theo thời gian + lead time (P2, docs/18) |
+| **`COMPLETE-CASE-CHECK/`** | `scripts/run_complete_case_check.py` | Impute median glucose 52% có vô hại? (P2.2, docs/16 §3.5) |
+
 - Dataset mặc định: `data/datasets/nhanes_merged.csv` (NHANES 3 chu kỳ
   2015–2016, 2017–2018, 2021–2023; n = 16.314, positive ~49%).
 - Split: 70 / 15 / 15 (train / val / test), test khóa lại.

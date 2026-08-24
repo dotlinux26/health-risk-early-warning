@@ -70,9 +70,9 @@ nghiên cứu công bố trên cùng bộ dữ liệu. Điều này xác nhận 
 
 ### 2.3. Trên dữ liệu NHANES (CDC) — model sản xuất hiện tại
 
-Từ giai đoạn này, **model đang chạy trong hệ thống được train trên dữ liệu thật**
-NHANES 2017-2018 (CDC/NCHS, khảo sát lâm sàng toàn dân Mỹ, 4949 người trưởng
-thành, 50.6% có tăng huyết áp hoặc đái tháo đường).
+**Model đang chạy trong hệ thống được train trên dữ liệu thật NHANES gộp 3 chu kỳ**
+(2015–2016, 2017–2018, 2021–2023; CDC/NCHS, khảo sát lâm sàng toàn dân Mỹ):
+16 314 người trưởng thành, 48.98% có tăng huyết áp hoặc đái tháo đường.
 
 Đặc trưng dùng TRÙNG schema hệ thống: systolic_bp, diastolic_bp, heart_rate,
 glucose_fasting, hba1c, creatinine, bmi. Nhãn: tăng huyết áp (HA ≥ 140/90 hoặc
@@ -81,17 +81,32 @@ glucose_fasting, hba1c, creatinine, bmi. Nhãn: tăng huyết áp (HA ≥ 140/90
 
 | Tham số | Giá trị |
 |---|---|
-| N | 4949 (dương tính 2503) |
-| AUC (5-fold CV) | **0.9436 ± 0.0041** |
-| AUPRC (5-fold CV) | **0.9580 ± 0.0032** |
-| Đặc trưng quan trọng nhất | hba1c, diastolic_bp, systolic_bp, creatinine |
+| N | 16 314 (dương tính 7991) |
+| AUC (5-fold CV, seed 42) | **0.9356 ± 0.0016** |
+| AUPRC (5-fold CV) | **0.9494** |
+| Đặc trưng quan trọng nhất | hba1c, systolic_bp, diastolic_bp, creatinine |
 | Model sản xuất | `data/models/risk_lgbm_real.joblib` |
 
 > Cảnh báo khoa học: nhãn "tăng huyết áp" được định nghĩa một phần bằng chính
-> huyết áp đo được (cùng dấu hiệu dùng làm đặc trưng), nên AUC cao (0.94) là
-> kỳ vọng và KHÔNG phải là độ chính xác chẩn đoán trên lâm sàng. Điểm cốt lõi
-> của bước này: hệ thống giờ dùng model học từ dữ liệu thực của CDC thay vì
-> dữ liệu tổng hợp.
+> huyết áp đo được (cùng dấu hiệu dùng làm đặc trưng), nên AUC cao (~0.94) là
+> kỳ vọng và KHÔNG phải là độ chính xác chẩn đoán trên lâm sàng. Đã lượng hóa
+> mức độ vòng lặp nhãn này ở `experiments/LABEL-SENSITIVITY/` (K2) và chứng minh
+> hướng khắc phục bằng outcome tử vong thật (docs/18).
+
+### 2.4. Hiệu chỉnh xác suất trong sản xuất (bổ sung 23/08/2026)
+
+Xác suất của model sản xuất được **hiệu chỉnh isotonic** trước khi vào điểm rủi
+ro (`load_ml_calibrator` trong `src/core/pipeline.py`, calibrator từ
+`experiments/EXP-ML-LGBM-42/`). Kết quả trên test:
+
+| Model | ECE trước | ECE sau | Brier trước | Brier sau |
+|---|---|---|---|---|
+| LightGBM | 2.24% | 1.62% | 0.1944 | 0.1938 |
+| Random Forest | 4.46% | 1.69% | — | — |
+| Logistic Regression | 5.12% | 1.84% | — | — |
+
+Chi tiết đầy đủ (30 evidence package, 6 kiến trúc): `experiments/summary.md`
+và trang `/benchmark`.
 
 ---
 
@@ -99,29 +114,33 @@ glucose_fasting, hba1c, creatinine, bmi. Nhãn: tăng huyết áp (HA ≥ 140/90
 
 ### 3.1. Giới hạn về dữ liệu
 
-| Giới hạn | Hệ quả |
-|---|---|
-| Dữ liệu tổng hợp không phải dữ liệu lâm sàng | AUC 0.987 gây ảo tưởng; mô hình học đúng "quy luật sinh" chứ không phải sinh lý thực |
-| Dataset thật là **cắt ngang** (một dòng/bệnh nhân) | Không kiểm chứng được bài toán cốt lõi: cảnh báo sớm theo chuỗi thời gian |
-| Chưa có **dữ liệu dọc có nhãn thật** | Không đánh giá được thời điểm phát hiện sớm so với khởi phát bệnh |
-| Dân số hẹp | Pima là phụ nữ người Mỹ gốc Pima Ấn Độ; Cleveland là dân số tham chiếu nghiên cứu — không đại diện người Việt |
-| Mất cân bằng lớp và định nghĩa nhãn khác nhau | Pima nhãn theo tiêu chuẩn 1988; không tương thích trực tiếp với nhãn "sự kiện" của bài toán hiện tại |
-| Kích thước mẫu nhỏ | Phương sai ước lượng cao; khó suy diễn ở phân nhóm |
+| Giới hạn | Hệ quả | Trạng thái 24/08 |
+|---|---|---|
+| Dữ liệu tổng hợp không phải dữ liệu lâm sàng | AUC 0.987 gây ảo tưởng; mô hình học đúng "quy luật sinh" chứ không phải sinh lý thực | Đã thay bằng NHANES thật làm sản xuất (§2.3) |
+| Dataset thật là **cắt ngang** (một dòng/bệnh nhân) | Không kiểm chứng được bài toán cốt lõi: cảnh báo sớm theo chuỗi thời gian | Đã kiểm chứng cấp cohort qua NHANES-LMF (AUC tử vong 0.821, lead time 9 tháng — docs/18); chuỗi theo ngày vẫn chờ |
+| Chưa có **dữ liệu dọc có nhãn thật** | Không đánh giá được thời điểm phát hiện sớm so với khởi phát bệnh | LMF cho lead time cấp tháng; P2.4/P2.5 chờ dữ liệu dọc theo ngày |
+| Dân số hẹp | Pima là phụ nữ người Mỹ gốc Pima Ấn Độ; Cleveland là dân số tham chiếu nghiên cứu — không đại diện người Việt | Vẫn mở — chỉ dùng làm tham chiếu ngoài |
+| Mất cân bằng lớp và định nghĩa nhãn khác nhau | Pima nhãn theo tiêu chuẩn 1988; không tương thích trực tiếp với nhãn "sự kiện" của bài toán hiện tại | Giữ nguyên ghi chú |
+| Kích thước mẫu nhỏ | Phương sai ước lượng cao; khó suy diễn ở phân nhóm | NHANES gộp 3 chu kỳ giảm một phần |
 
 ### 3.2. Giới hạn về phương pháp
 
 1. **Nhãn tổng hợp không có "ground truth" lâm sàng** — sự kiện trong dữ liệu
    tổng hợp được định nghĩa bằng ngưỡng, không qua xác nhận bác sĩ.
-2. **Chưa có chiến lược đánh giá theo thời gian** (temporal split) — chia ngẫu
-   nhiên theo bệnh nhân dễ lạc quan hơn thực tế triển khai.
-3. **Chưa chuẩn hoá cách xử lý dữ liệu thiếu** giữa train và inference — hiện
-   chỉ fill 0 cho cột thiếu; cần thống nhất pipeline.
-4. **Chưa hiệu chuẩn (calibration)** — xác suất đầu ra chưa phải xác suất thật;
-   chưa tối ưu ngưỡng quyết định theo chi phí lâm sàng.
-5. **Điểm số tổng hợp (stat/knowledge/ml/trend) dùng trọng số tĩnh** — chưa
-   được tối ưu bằng dữ liệu, chưa có lý thuyết phân bổ.
-6. **Chưa có quy trình phiên bản hoá** dữ liệu, mô hình, số liệu đánh giá —
-   khó tái lập kết quả.
+2. ~~**Chưa có chiến lược đánh giá theo thời gian** (temporal split)~~
+   **ĐÃ GIẢI QUYẾT 24/08**: `experiments/EXP-TEMPORAL-LMF` — split theo thời gian
+   2015-16 → 2017-18, random split chỉ lạc quan hơn 0.01–0.02 AUC.
+3. ~~**Chưa chuẩn hoá cách xử lý dữ liệu thiếu**~~ **ĐÃ GIẢI QUYẾT**: cùng
+   `SimpleImputer(median)` fit-train xuyên suốt train/inference; đã đối chiếu với
+   complete-case (`experiments/COMPLETE-CASE-CHECK/`) — vô hại cho LightGBM.
+4. ~~**Chưa hiệu chuẩn (calibration)**~~ **ĐÃ GIẢI QUYẾT 23/08**: isotonic fit
+   trên validation, tích hợp vào production pipeline (§2.4); ECE test ≤ 1.7%.
+5. **Điểm số tổng hợp (stat/knowledge/ml/trend) dùng trọng số tĩnh** — đã đo độ
+   nhạy với 5 bộ trọng số (`experiments/WEIGHT-SENSITIVITY/`, đồng thuận ≥96%)
+   nhưng vẫn chưa học từ dữ liệu.
+6. **Quy trình phiên bản hoá** dữ liệu, mô hình, số liệu đánh giá — mỗi thí
+   nghiệm giờ có evidence package riêng trong `experiments/EXP-*/`; TRIPOD-AI
+   đầy đủ chưa có.
 7. **Thiếu báo cáo tuân theo khuyến nghị TRIPOD-AI** — chưa có bảng đặc trưng,
    mô tả mẫu, phân tích rủi ro thiên lệch.
 
@@ -142,6 +161,12 @@ glucose_fasting, hba1c, creatinine, bmi. Nhãn: tăng huyết áp (HA ≥ 140/90
 Việc đầu tiên nên làm: **xây bộ dữ liệu longitudinal có nhãn** (ví dụ từ NHANES:
 ghép 2–4 kỳ khám theo người tham gia, nhãn = xuất hiện bệnh ở kỳ sau). Đây là
 điều kiện tiên quyết để mô hình có ý nghĩa thực sự cho cảnh báo sớm.
+
+> **Đã thực hiện một phần 24/08 (docs/18):** tích hợp NHANES Public-Use Linked
+> Mortality File — nhãn biến cố tương lai (tử vong, follow-up đến 31/12/2019)
+> cho cùng schema SEQN. Temporal validation đầu tiên: AUC 0.821 (split theo
+> thời gian), lead time trung vị 9 tháng. Chuỗi chỉ số theo ngày cho từng cá
+> nhân vẫn chờ kênh nhập hệ thống (P2.4).
 
 ### 4.2. Về phương pháp huấn luyện
 
@@ -184,10 +209,10 @@ ghép 2–4 kỳ khám theo người tham gia, nhãn = xuất hiện bệnh ở 
 | Giai đoạn | Việc cần làm | Đầu ra mong đợi |
 |---|---|---|
 | G1 ✅ | Xây dataset longitudinal từ NHANES (huyết áp, đường huyết, creatinine, eGFR theo kỳ khám) | `data/datasets/nhanes_2017_2018.csv` — đã xong |
-| G2 ✅ | Huấn luyện LightGBM trên NHANES với 5-fold CV, median-fill khi thiếu chỉ số | `data/models/risk_lgbm_real.joblib` — đã xong, đang là model sản xuất |
-| G3 | Ghép nhiều kỳ NHANES (1999–2020) thành chuỗi thời gian theo từng người; thêm eGFR (CKD-EPI) và tuổi/giới | Dataset longitudinal + model cảnh báo sớm thực sự |
+| G2 ✅ | Huấn luyện LightGBM trên NHANES với 5-fold CV, median-fill khi thiếu chỉ số | `data/models/risk_lgbm_real.joblib` — đã xong, đang là model sản xuất (nay train trên 3 chu kỳ gộp) |
+| G3 ◐ | Ghép nhiều kỳ NHANES thành chuỗi thời gian theo từng người; **đã làm được ở cấp cohort qua Linked Mortality File** (`data/datasets/nhanes_mortality.csv`, 10 065 người có outcome tử vong — docs/18); chuỗi theo ngày từng người chưa có | Dataset longitudinal + outcome biến cố tương lai |
 | G4 | Tích hợp Chronos/TimesFM vào Tầng 1, benchmark lỗi dự báo vs Z-Score | Báo cáo so sánh 2 phương pháp |
-| G5 | Tối ưu trọng số tổng hợp bằng dữ liệu; calibration; báo cáo TRIPOD-AI | Mô hình chuẩn hoá, tái lập được |
+| G5 ◐ | ~~calibration~~ ✅ đã làm (`EXP-ML-*/calibration.json` + production isotonic); trọng số học từ dữ liệu và TRIPOD-AI còn mở | Mô hình chuẩn hoá, tái lập được |
 
 Ghi chú NHANES: bản chất NHANES là khảo sát cắt ngang — mỗi người thường chỉ
 được khám một kỳ. Để có chuỗi thời gian thật cần (a) ghép các kỳ 1999–2020,
@@ -224,9 +249,15 @@ python scripts/export_nhanes_samples.py
 
 ## 7. Báo cáo ứng dụng (demo)
 
+> **Cập nhật 23/08/2026 (P1):** giao diện chat regex đã được **thay thế bằng
+> ứng dụng form-based** tại `http://127.0.0.1:8000/` — nhập bản ghi theo bảng,
+> quản trị luật full-screen kèm audit trail, trang nghiên cứu `/benchmark`.
+> Ảnh chụp chat dưới đây giữ làm tư liệu lịch sử. Chi tiết trải nghiệm thực tế:
+> docs/17.
+
 ### 7.1. Giao diện
 
-| Hộp thoại chat | Kết quả đánh giá |
+| Hộp thoại chat (cũ) | Kết quả đánh giá |
 |---|---|
 | ![Giao diện chat](screenshots/giao_dien_chat.png) | ![Kết quả đánh giá](screenshots/ket_qua_danh_gia.png) |
 
@@ -234,43 +265,57 @@ Giao diện nền sáng, bo góc 2px, thanh xổ trên cùng liệt kê các mã
 có dữ liệu trong `data/chat/` (từ API `/api/chat/patients`); vẫn nhập được mã
 mới bằng ô kế bên.
 
-### 7.2. Cách dùng
+### 7.2. Cách dùng (hiện tại)
 
-1. Khởi động: `./run_api.sh start`, mở **http://127.0.0.1:8000/chat**.
-2. Chọn/nhập mã bệnh nhân, nhập nhật ký hàng ngày:
-   - `Huyết áp 135/85, nhịp tim 80`
-   - `Đường huyết lúc đói 6.9, cân nặng 77`
-   - Hoặc đính kèm file PDF/DOCX (hệ thống đọc cả file thật xuất từ NHANES:
-     `data/sample_nhanes/NHTN0001.pdf` — ca tăng huyết áp 202/62, v.v.)
-3. Tin nhắn không khớp định dạng chỉ số/lệnh sẽ KHÔNG được phản hồi (giữ giao
-   diện sạch); hệ thống không nhận diện bằng AI ngôn ngữ mà bằng mẫu regex.
-4. Lệnh: `trạng thái` · `báo cáo` · `xóa dữ liệu`.
-5. Đủ 7 ngày đo → hệ thống tự đưa báo cáo nguy cơ cá nhân hóa; báo cáo markdown
-   đầy đủ cũng xuất qua `python -m src.main --input ...`.
+1. Khởi động: `./run_api.sh start`, mở **http://127.0.0.1:8000/**.
+2. Tab "Đánh giá": chọn mã bệnh nhân → đánh giá 4 tầng, evidence đầy đủ
+   (luật kích hoạt kèm tên tiếng Việt + nguồn tham chiếu, bảng chỉ số với
+   z-score/xu hướng, panel mô tả ML với cặp điểm Raw vs Calibrated).
+3. Tab "Bản ghi": bảng theo ngày, bộ chọn cột trong 10 chỉ số hệ thống,
+   thêm ngày/xóa ngày trực tiếp.
+4. Tab "Luật & Quản trị": thêm/sửa luật, chuyển trạng thái
+   draft→review→approved→active, xem audit trail.
+5. Trang `/benchmark`: kết quả benchmark + nghiên cứu độ bền vững
+   (K2–K4, calibration, temporal validation).
+
+Cách dùng cũ qua chat (regex): tin nhắn như `Huyết áp 135/85, nhịp tim 80`
+hoặc đính kèm PDF/DOCX (`data/sample_nhanes/NHTN0001.pdf`); lệnh `trạng thái`
+· `báo cáo` · `xóa dữ liệu`.
 
 ### 7.3. Luồng xử lý một đánh giá
 
 ```
-File / tin nhắn → ingest (regex PDF/DOCX) hoặc parser chat
+File / form nhập → ingest (regex PDF/DOCX) hoặc API records
   → tích lũy vào data/chat/{pid}.jsonl
   → assess_patient:
       Tầng 1  Z-Score cá nhân + Isolation Forest + sai số dự báo (EWMA)
-      Tầng 2  Rule engine tri thức y khoa (9 luật / 5 hệ cơ quan)
-      Tầng 3  RiskScorer: stat + knowledge + ml (LightGBM NHANES) + trend
+      Tầng 2  Rule engine tri thức y khoa (9 luật active / 5 hệ cơ quan,
+              có governance draft→review→approved→active + audit trail)
+      Tầng 3  RiskScorer: stat + knowledge + ml (LightGBM NHANES 3 chu kỳ,
+              isotonic-calibrated) + trend
   → báo cáo trình bày theo thứ tự:
       1) Luật lâm sàng kích hoạt — kèm link tham chiếu nguồn (source_url)
       2) Bảng chỉ số theo dõi (giá trị, đường cơ sở, xu hướng, Z-Score, phạm vi)
       3) Hỗ trợ mô hình ML — kèm ghi chú "suy luận bổ sung, không phải chẩn đoán"
+         và bảng Raw vs Calibrated score
 ```
 
-### 7.4. Kết quả thử nghiệm trên dữ liệu thật NHANES (file mẫu)
+### 7.4. Kết quả thử nghiệm trên dữ liệu thật (cập nhật 24/08/2026)
 
-| File mẫu (dữ liệu thật CDC) | Mô tả | Kết quả | ml_score |
-|---|---|---|---|
-| `NOK0001` | Khỏe mạnh, 22 tuổi, HA 118/72 | THAP | 0.04 |
-| `NHTN0001` | Tăng huyết áp tâm thu đơn độc 202/62 | TRUNG_BINH | 0.999 |
-| `NDM0001` | Đái tháo đường, HbA1c ≥ 7% | TRUNG_BINH | 1.0 |
-| `NCKD0001` | Creatinine ≥ 1.5, nghi suy thận | TRUNG_BINH | 0.999 |
+Các ca đo lại trực tiếp qua `POST /api/assess` sau khi tích hợp hiệu chỉnh
+isotonic (điểm `ml` là xác suất SAU hiệu chỉnh — isotonic là hàm bậc thang nên
+vùng điểm cao dồn về 1.0):
+
+| Bệnh nhân | Mô tả | Mức nguy cơ | Điểm tổng | ml (calibrated) |
+|---|---|---|---|---|
+| `P001` | Nhóm khỏe mạnh (seeded từ sample_long) | THẤP | 0.067 | 0.2675 |
+| `P002–P005` | Nhóm bệnh mãn tính nhẹ → vừa | THẤP/TRUNG BÌNH | 0.25–0.55 | 0.64–1.0 |
+| `NHTN0001` | Tăng huyết áp tâm thu đơn độc 202/62 (file mẫu NHANES) | TRUNG BÌNH | 0.500 | 1.0 |
+| `DEMO_HYPERTENSIVE` | Ca tổng hợp drift HA + spike 7 ngày cuối (z=+2.37σ) | CAO | 0.841 | 1.0 |
+| `DEMO_DIABETIC` | Ca tổng hợp glucose/HbA1c tăng dần | CAO | 0.748 | 1.0 |
+
+Tái lập: `python3 scripts/seed_demo_data.py --force` rồi gọi API assess từng
+bệnh nhân. Kịch bản sử dụng thực tế đầy đủ xem docs/17.
 
 ### 7.5. Giới hạn của ứng dụng hiện tại
 

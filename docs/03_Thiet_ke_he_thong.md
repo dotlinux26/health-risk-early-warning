@@ -83,6 +83,13 @@
 
 **Vai trò:** Biến "bất thường" thành "ý nghĩa lâm sàng" bằng luật tĩnh từ hướng dẫn.
 
+**Quản trị vòng đời luật (bổ sung 23/08/2026 — P1):** mỗi luật có `status`
+(`draft → review → approved → active`, kèm `retired`) và `rule_version`; chỉ
+luật **active** tham gia chấm điểm. Mọi thay đổi (tạo/sửa/xóa/chuyển trạng thái)
+ghi vào audit trail JSONL (`data/kb/audit_log.jsonl`). Sửa luật active tự động
+tăng version và đưa bản mới về draft. API: `/api/kb/rules*`, UI: tab "Luật &
+Quản trị" trên trang chính. Chi tiết: docs/15 §7, docs/16 §2.3.
+
 **Cấu trúc luật (JSON — dễ chỉnh sửa, versioning):**
 ```json
 {

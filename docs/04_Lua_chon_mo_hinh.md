@@ -1,6 +1,6 @@
 # 04. Lựa chọn & So sánh mô hình
 
-**Câu hỏi then chốt:** *Với bài toán "cảnh báo sớm + giải thích được + dữ liệu nhỏ", thành phần mô hình học máy nào là tối ưu cho khung hỗ trợ quyết định của đề tài?*
+**Câu hỏi then chốt:** *Với bài toán "phân tầng nguy cơ + giải thích được + dữ liệu nhỏ" (định vị ban đầu: cảnh báo sớm — xem `docs/15` §14), thành phần mô hình học máy nào là tối ưu cho khung hỗ trợ quyết định của đề tài?*
 
 > **Lưu ý định vị (quan trọng):** tài liệu này so sánh các **mô hình học máy**
 > ở Tầng 3 — tức là so sánh **thành phần**, không so sánh toàn hệ thống. Đề tài
@@ -84,7 +84,7 @@ TẦNG 3 (điểm rủi ro):       LightGBM (đặc trưng time-series) + SHAP  
 |----------|--------|
 | Bất thường Tầng 1 | Precision, Recall, F1 (nếu có nhãn); contamination tự ước lượng |
 | Rủi ro Tầng 3 | **AUROC** (ưu tiên), **AUPRC** (quan trọng khi class hiếm), F1, Calibration (Brier score) |
-| Cảnh báo sớm | Lead time (bao lâu trước khi chẩn đoán thực tế), bài học từ bài báo 2 (LSTM phát hiện sớm hơn lâm sàng) |
+| Cảnh báo sớm | Lead time (bao lâu trước khi chẩn đoán thực tế) — **kết quả đầu tiên 24/08: trung vị 9 tháng ở cấp cohort, `experiments/EXP-TEMPORAL-LMF`** (docs/18); bài học từ bài báo 2 (LSTM phát hiện sớm hơn lâm sàng) |
 | Giải thích | Đánh giá bác sĩ (như Foresight: 97% dự báo phù hợp lâm sàng), kiểm tra reason_chain |
 | Thống kê | CV (Stratified K-Fold), DeLong test khi so AUROC 2 mô hình |
 
