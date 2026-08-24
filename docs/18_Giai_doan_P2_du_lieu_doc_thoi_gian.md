@@ -147,6 +147,41 @@ Thiết kế (chốt trước khi nhìn kết quả — theo tinh thần §3.1 d
 | P2.6 | Chuỗi thời gian khi đủ dữ liệu | LightGBM+lag là baseline bắt buộc |
 | **P2.7 (mới)** | Xin quyền MIMIC-IV (CITI + DUA) làm nguồn biến cố nhập viện; đồng thời đánh giá EHRSHOT/CardioEHR | chuyển huấn luyện sang outcome tương lai |
 
+### Hồ sơ từng bước xin quyền MIMIC-IV — P2.7 (kiểm minh 24/08/2026)
+
+Quy trình chính thức của PhysioNet, đã đối chiếu với trang FAQ credentialing,
+thông báo "three step process" và thông báo chậm duyệt tháng 06/2026:
+
+1. **Tài khoản PhysioNet** (`physionet.org` → Register). Dùng email học đường
+   hoặc gắn ORCID có đơn vị để tăng tốc phần xác thực.
+2. **Khóa CITI** — chọn đúng khóa **"Data or Specimens Only Research"**
+   (bản rút gọn cho dữ liệu thứ cấp đã ẩn danh, không phải khóa human-subjects
+   đầy đủ). Đăng ký miễn phí tại `citiprogram.org`, mục affiliation chọn
+   **"Massachusetts Institute of Technology Affiliates"** theo hướng dẫn
+   `physionet.org/about/citi-course/`. Sau khi qua các module + quiz, tải về
+   **Training Report** (báo cáo hoàn thành dạng PDF đầy đủ) — PhysioNet
+   **không chấp nhận trang certificate**.
+3. **Nộp hai mục trên hồ sơ PhysioNet**: trang *Credentialing* (thông tin cá
+   nhân + một người tham chiếu/reference) và trang *Training* (upload báo cáo
+   CITI). Không yêu cầu IRB, không cần đơn vị bảo lãnh — cá nhân tự chịu trách
+   nhiệm theo DUA.
+4. **Chờ duyệt**: thường 24–48 giờ; từ 06/2026 PhysioNet công bố có thể chậm
+   hơn do thiếu nhân sự. Ba cách rút ngắn: nộp training report (không phải
+   certificate), dùng email học đường làm email chính, nhắc người tham chiếu
+   trả lời sớm thư gửi từ `credentialing@physionet.org` (thư nằm cả trong
+   spam).
+5. **Ký DUA riêng cho MIMIC-IV** trong mục *Files* của dataset. Credentialing
+   duyệt một lần dùng chung, nhưng **mỗi phiên bản dataset có một DUA riêng**
+   (MIMIC-IV ≠ MIMIC-IV-ED ≠ MIMIC-CXR…). Nghĩa vụ chính của DUA: không tái
+   nhận diện cá nhân, không chia sẻ dữ liệu thô cho người chưa ký DUA, lưu trữ
+   an toàn, trích dẫn đúng bài của dataset + bài nền PhysioNet khi công bố.
+6. Tải dữ liệu và bắt đầu phân tích. Lưu ý: IRB là câu chuyện phía đơn vị của
+   người nghiên cứu — PhysioNet không hỏi, nhưng nếu trường có quy định thì
+   xác nhận với phòng IRB/văn phòng khoa học.
+
+Chi phí toàn bộ: thời gian học ~3–5 giờ + thời gian chờ duyệt. Không mất phí,
+không cần chữ ký của bác sĩ hay cơ quan.
+
 ### Hồ sơ nghiên cứu đã đồng bộ (24/08/2026)
 
 Cùng ngày, docs 01–07 được rà soát theo trạng thái hiện tại: docs/06 cập nhật

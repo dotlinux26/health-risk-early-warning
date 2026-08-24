@@ -109,7 +109,8 @@ vi sinh viên:
 | Dữ liệu bệnh viện/EHR (MIMIC-IV, KNHANES RDC) | Thủ tục hành chính; RDC cần đơn vị bảo lãnh | MIMIC-IV **không yêu cầu bác sĩ**: tự đăng ký PhysioNet + hoàn thành khóa CITI online miễn phí (~3–5 giờ) + ký DUA là nhận dữ liệu ~40 nghìn bệnh nhân ICU |
 
 Việc rẻ nhất mà nâng giá trị đề tài ngay, không phụ thuộc ai:
-**(1)** hồ sơ CITI + xin quyền MIMIC-IV (G1/P2.7), **(2)** checklist TRIPOD-AI (G9).
+**(1)** hồ sơ CITI + xin quyền MIMIC-IV (G1/P2.7 — hướng dẫn từng bước đã
+kiểm minh: docs/18 §7), **(2)** checklist TRIPOD-AI (G9).
 Cả hai chỉ tiêu thời gian cá nhân.
 
 ---
