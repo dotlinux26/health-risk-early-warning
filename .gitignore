@@ -9,6 +9,17 @@ venv/
 data/chat/
 data/uploads/
 data/datasets/_nhanes_cache/
+
+# Dữ liệu MIMIC-IV — DUA PhysioNet cấm tái phân phối, KHÔNG BAO GIỜ commit
+# (NHANES công khai thì ngược lại: file merged vẫn giữ trong repo làm bằng chứng)
+data/mimic/
+**/mimic*/
+mimic*.zip
+mimic*.csv*
+mimic*.parquet
+*_mimic*
+bypass_*.txt
+
 report/
 api.log
 *.log

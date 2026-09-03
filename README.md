@@ -1,6 +1,6 @@
-# Hệ thống đánh giá nguy cơ sức khỏe cá nhân hóa tích hợp học máy và hỗ trợ quyết định lâm sàng
+# Nghiên cứu xây dựng khung đa tầng hỗ trợ đánh giá nguy cơ sức khỏe tích hợp phân tích cá nhân hóa, tri thức y khoa và học máy
 
-*A Personalized Health Risk Assessment System Integrating Machine Learning and Clinical Decision Support*
+*A Multi-Tier Framework for Personalized Health Risk Assessment Integrating Individual Analysis, Clinical Knowledge, and Machine Learning*
 
 ## Đội ngũ thực hiện
 
@@ -27,24 +27,37 @@
 - [13. Nhận xét của giảng viên hướng dẫn và đối sách của nhóm nghiên cứu](docs/13_Nhan_xet_giang_vien_va_doi_sach.md)
 - [14. Mô tả chi tiết kiến trúc hệ thống: đầu vào/ra, dữ liệu huấn luyện, nhãn, hạn chế, kết quả](docs/14_Kien_truc_he_thong_chi_tiet.md)
 - [15. Định hướng chuẩn hóa, kiểm chứng và hoàn thiện hệ thống (roadmap sau phản biện)](docs/15_Suy_nghi_va_lo_trinh_chuan_hoa.md)
+- [16. Trả lời các vấn đề còn lại](docs/16_Tra_loi_cac_van_de_con_lai.md)
+- [17. Kết quả sử dụng hệ thống mới](docs/17_Ket_qua_su_dung_he_thong_moi.md)
+- [18. Giai đoạn P2: Dữ liệu dọc thời gian](docs/18_Giai_doan_P2_du_lieu_doc_thoi_gian.md)
+- [19. Báo cáo tiến độ P2 — Đã giải quyết và giới hạn](docs/19_Bao_cao_tien_do_P2_da_giai_quyet_va_gioi_han.md)
+- [20. Bộ khung bài báo AI4Industry 2026](docs/20_Bo_cuc_bai_bao_AI4Industry_2026.md)
+- [21. Dàn ý bài báo AI4Industry 2026](docs/21_Dan_y_bai_bao_AI4Industry_2026.md)
 
 ## Kiến trúc 3 tầng
 
 ```
 Tầng 1  Phân tích bất thường & xu hướng cá nhân (Z-Score, Isolation Forest, EWMA/STL,
         sai số dự báo chuỗi thời gian — EWMA offline, sẵn sàng Chronos/TimesFM)
-Tầng 2  Ánh xạ tri thức y khoa (rule engine trên JSON)
+Tầng 2  Ánh xạ tri thức y khoa (rule engine trên JSON, 9 luật từ ESC/ESH, ADA, KDIGO, WHO)
 Tầng 3  Tổng hợp rủi ro & hỗ trợ quyết định (6 mô hình ML XGB/LGBM/RF/FT/MLP/LR,
-        mỗi mô hình cho điểm tổng hợp riêng + báo cáo chi tiết từng chỉ số)
+        hàm tổng hợp Bayesian với trọng số tối ưu)
 ```
 
-Mô hình ML hiện tại: LightGBM được huấn luyện trên **dữ liệu thật NHANES 3 chu kỳ
-(CDC)** — `data/datasets/nhanes_merged.csv` (n = 16.314, nhãn tăng huyết áp/đái
-tháo đường) — AUC 0.9356 ± 0.0016. So sánh 6 mô hình (XGBoost / LightGBM /
-Random Forest / FT-Transformer / MLP / Logistic Regression) cùng bộ dữ liệu:
-`experiments/summary.json` (XGBoost đứng đầu ROC-AUC 0.9356±0.0028, ba model
-boosting/tree gần tương đương). Chi tiết: [docs/06](docs/06_Bao_cao_huong_train_va_gioi_han.md),
-[docs/11](docs/11_Ket_qua_benchmark_lan_1.md), [docs/12](docs/12_Bao_cao_giai_doan_chat_tong_hop.md).
+## Kết quả chính
+
+| Mô hình | ROC-AUC | Ghi chú |
+|---|---|---|
+| XGBoost | **0.9356±0.0028** | Đứng đầu benchmark |
+| LightGBM | 0.9349±0.0031 | Model sản xuất |
+| Random Forest | 0.9338±0.0038 | Gần tương đương |
+| FT-Transformer | 0.9257±0.0043 | |
+| MLP | 0.8975±0.0123 | |
+| Logistic Regression | 0.8844±0.0078 | Baseline tuyến tính |
+
+**Kiểm định temporally** (NHANES-LMF, train 2015-16 / test 2017-18):
+- LR: AUC 0.821, Harrell C-index 0.822
+- Lead time trung vị: 9 tháng (top quintile)
 
 > **Định vị:** đề tài xây dựng một **khung hỗ trợ quyết định lâm sàng** (CDSF),
 > không xây dựng một mô hình AI mới. Mô hình học máy (LightGBM) là một thành phần
@@ -70,6 +83,7 @@ Sau khi chạy `./run_api.sh start`, mở trình duyệt tại **http://127.0.0.
 | Hộp thoại chat | Kết quả đánh giá |
 |---|---|
 | ![Giao diện chat](docs/screenshots/giao_dien_chat.png) | ![Kết quả đánh giá](docs/screenshots/ket_qua_danh_gia.png) |
+
 **Cách dùng:**
 
 1. Chọn hoặc nhập **mã bệnh nhân** ở góc trên (thanh xổ liệt kê các mã đã có dữ liệu trong `data/chat/`).
@@ -160,8 +174,46 @@ scripts/
   train_real_datasets.py    # đánh giá trên dữ liệu thật UCI
   export_nhanes_samples.py  # xuất báo cáo mẫu dạng PDF/DOCX (test ingest)
   gen_sample_data.py        # sinh dữ liệu mẫu
+  fetch_nhanes_mortality.py # tải NHANES Linked Mortality Files
+  run_temporal_validation.py # kiểm định temporally trên NHANES-LMF
+  run_complete_case_check.py # kiểm định complete-case analysis
+  e2e_test.py               # kiểm thử end-to-end (35 checks)
 
-docs/                         # báo cáo nghiên cứu theo giai đoạn (01 → 12)
+docs/                         # báo cáo nghiên cứu theo giai đoạn (01 → 21)
 experiments/                  # evidence package + bảng tổng hợp benchmark
 data/                         # dataset thật + dữ liệu chat mẫu (data/chat/, data/reports/)
 ```
+
+## Tài liệu tham khảo chính
+
+### Hướng dẫn lâm sàng (nguồn tri thức luật)
+
+1. Williams, B., et al. (2018). 2018 ESC/ESH Guidelines for the management of arterial hypertension. *European Heart Journal*, 39(33), 3021–3104. https://doi.org/10.1093/eurheartj/ehy339
+2. American Diabetes Association. (2023). Standards of Care in Diabetes — 2023. *Diabetes Care*, 46(Suppl 1), S1–S291. https://doi.org/10.2337/dc23-Sint
+3. KDIGO 2022 Clinical Practice Guideline for Diabetes Management in CKD. *Kidney International*, 102(5S), S1–S127. https://doi.org/10.1016/j.kint.2022.06.008
+4. World Health Organization. (2000). *Obesity: preventing and managing the global epidemic* (WHO TRS 894). https://iris.who.int/handle/10665/42330
+5. Writing Committee Members et al. (2023). 2023 ACC/AHA/ACCP/HRS Guideline for the Diagnosis and Management of Atrial Fibrillation. https://doi.org/10.1161/CIR.0000000000001193
+6. World Health Organization. (2019). *Guideline on use of pulse oximetry for monitoring of patients*. https://iris.who.int/handle/10665/345392
+
+### Bộ dữ liệu
+
+7. CDC/NCHS. (2020). National Health and Nutrition Examination Survey (NHANES) 2017–2018. https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2017
+8. CDC/NCHS. NHANES Linked Mortality Files 2019. https://ftp.cdc.gov/pub/Health_Statistics/NCHS/datalinkage/linked_mortality/
+9. UCI Machine Learning Repository. *Pima Indians Diabetes Database*. https://archive.ics.uci.edu/dataset/34/diabetes
+10. UCI Machine Learning Repository. *Heart Disease (Cleveland) Data Set*. https://archive.ics.uci.edu/dataset/45/heart+disease
+
+### Nghiên cứu liên quan (5 bài báo nền tảng)
+
+11. Guo, L. L., Fries, J., Steinberg, E., et al. (2024). A multi-center study on the adaptability of a shared foundation model for electronic health records. *npj Digital Medicine*, 7(171). https://doi.org/10.1038/s41746-024-01166-w
+12. Swinckels, L., Bennis, F. C., Ziesemer, K. A., et al. (2024). The Use of Deep Learning and Machine Learning on Longitudinal Electronic Health Records for the Early Detection and Prevention of Diseases: Scoping Review. *Journal of Medical Internet Research*, 26, e48320. https://doi.org/10.2196/48320
+13. Kraljevic, Z., Bean, D., Shek, A., et al. (2024). Foresight — a generative pretrained transformer for modelling of patient timelines using electronic health records: a retrospective modelling study. *The Lancet Digital Health*, 6(4), e281–e290. https://doi.org/10.1016/S2589-7500(24)00025-6
+14. Shmatko, A., Jung, A. W., Gaurav, K., et al. (2025). Learning the natural history of human disease with generative transformers. *Nature*, 647, 248–256. https://doi.org/10.1038/s41586-025-09529-3
+15. Shen, Y., Yu, J., Zhou, J., & Hu, G. (2025). Twenty-Five Years of Evolution and Hurdles in Electronic Health Records and Interoperability in Medical Research: Comprehensive Review. *Journal of Medical Internet Research*, 27, e59024. https://doi.org/10.2196/59024
+
+### Phương pháp
+
+16. Harrell, F.E. (2015). *Regression Modeling Strategies*. Springer. https://doi.org/10.1007/978-3-319-19425-7
+
+---
+
+*Cập nhật lần cuối: 2026-09-03*
