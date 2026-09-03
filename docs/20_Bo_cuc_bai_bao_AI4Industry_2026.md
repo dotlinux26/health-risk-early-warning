@@ -65,7 +65,7 @@ Nội dung cần có:
   1. Kiến trúc ba trụ cột (ML + Knowledge + Bayesian Fusion) với calibration isotonic có thể kiểm định
   2. Hàm tổng hợp Bayesian có trọng số tối ưu bằng CV 5-fold trên ba dữ liệu công khai
   3. Kiểm định temporally trên NHANES-LMF — mô phỏng quá trình ra quyết định thực tế trong bệnh viện
-  4. Hệ thống triển khai完整với giao diện web, phân quyền RBAC, audit trail, xuất CSV có phản chiếu kiểm toán
+  4. Hệ thống triển khai đầy đủ với giao diện web, phân quyền RBAC, audit trail, xuất CSV có phản chiếu kiểm toán
 
 ### 2. Tổng quan liên quan (~1200 chữ — ~2 trang)
 
@@ -96,7 +96,7 @@ Mô tả ba trụ cột:
 | α_ml | 0.25 | cv_grid_search (NHANES 2013–2014) |
 | α_trend | 0.10 | cv_grid_search (NHANES 2013–2014) |
 
-- Chỉ số自信 `conf = |α_ml − α_stat| + (auc − 0.5) × 2`
+- Chỉ số tin cậy `conf = |α_ml − α_stat| + (auc − 0.5) × 2`
 - `INSUFFICIENT_DATA` trả về khi `n_observations < 3`
 
 #### 3.3 Quy tắc kiến thức chuyên gia
@@ -113,7 +113,7 @@ Bảng 9 quy tắc hiện có, trạng thái, minh họa input/output.
 
 #### 4.1 Dữ liệu mô phỏng
 
-- 10 hồ sơ demo bệnh nhân Việt Nam (đã fix伪sau commit)
+- 10 hồ sơ demo bệnh nhân Việt Nam (đã sửa sau commit)
 - 35 kiểm tra e2e (docs/04)
 
 #### 4.2 Dữ liệu công khai NHANES-LMF
