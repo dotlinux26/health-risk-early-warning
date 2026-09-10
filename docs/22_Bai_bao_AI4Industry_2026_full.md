@@ -7,7 +7,7 @@
 **Track:** AI tin cậy, an toàn và có trách nhiệm trong công nghiệp — Đánh giá rủi ro và kiểm định hệ thống AI  
 **Hội nghị:** AI4Industry 2026 — Học viện Công nghệ Bưu chính Viễn thông (HAUI)  
 **Định dạng:** Times New Roman 13, A4 (210×297mm), lề trên/dưới 20mm, trái 35mm, phải 25mm, giãn dòng 1.3, ≤8000 từ  
-**Trạng thái:** BẢN NHÁP — `[template]` cho phần chưa có kết quả MIMIC-IV  
+**Trạng thái:** BẢN NHÁP — Kết quả MIMIC-IV temporal validation đã bổ sung (2026-09-11)  
 
 ---
 
@@ -17,7 +17,9 @@ Nhóm nghiên cứu xây dựng một khung hỗ trợ quyết định lâm sàn
 
 Hệ thống được kiểm định temporally trên dữ liệu công khai NHANES-Limited Mortality Files (2015–2018, n=16.314) theo nguyên tắc train-on-2015-16 / test-on-2017-18. Logistic Regression đạt AUC 0.821, Harrell C-index 0.822, lead time trung vị 9 tháng (top quintile). LightGBM AUC temporal 0.771, ΔAUC so với random split −0.010 (overfitting dữ liệu tĩnh). Complete-case analysis cho thấy LightGBM ổn định (ΔAUC −0.006) khi loại bỏ mẫu impute glucose fasting (thiếu 52%).
 
-Nhóm nghiên cứu phân tích trung thực các giới hạn của NCKH sinh viên: thiếu dữ liệu dọc bệnh nhân thật, thiếu chuyên gia lâm sàng review, chưa có quyền truy cập MIMIC-IV/KNHANES hoàn chỉnh — kèm phương án xử lý khả thi (pilot nội bộ, mời giảng viên review 9 luật, hoàn tất PhysioNet credentialing). Kết quả khẳng định: khung lai (hybrid) thống kê–tri thức–học máy đạt được độ minh bạch, chi phí dữ liệu thấp và kiểm định temporally nghiêm ngặt — phù hợp bối cảnh triển khai thực tế tại Việt Nam.
+**Kiểm định temporally trên MIMIC-IV v3.1** (n=546.028, split shifted years ≤2115 / ≥2116): Logistic Regression AUC 0.752 (ΔAUC −0.010), LightGBM AUC 0.751 (ΔAUC −0.033). LR ổn định hơn trên dữ liệu ICU/ED Mỹ; capture rate top quintile ~53–54%. Kết quả khẳng định mô hình comorbidity-based (từ ICD-10) là driver chính do missingness vitals ~60%.
+
+Nhóm nghiên cứu phân tích trung thực các giới hạn của NCKH sinh viên: thiếu dữ liệu dọc bệnh nhân thật, thiếu chuyên gia lâm sàng review, chưa có quyền truy cập KNHANES — kèm phương án xử lý khả thi (pilot nội bộ, mời giảng viên review 9 luật, hoàn tất PhysioNet credentialing). Kết quả khẳng định: khung lai (hybrid) thống kê–tri thức–học máy đạt được độ minh bạch, chi phí dữ liệu thấp và kiểm định temporally nghiêm ngặt — phù hợp bối cảnh triển khai thực tế tại Việt Nam.
 
 **Từ khóa:** đánh giá nguy cơ sức khỏe cá nhân hóa; học máy; LightGBM; hàm tổng hợp Bayesian; kiểm định temporally; NHANES; NCKH sinh viên
 
@@ -240,13 +242,16 @@ Tham chiếu: `docs/14_Kien_truc_he_thong_chi_tiet.md` §4.1.
 
 Tham chiếu: `scripts/run_temporal_validation.py`, `experiments/EXP-TEMPORAL-LMF/summary.json`.
 
-### 4.5 Dữ liệu MIMIC-IV (đang thu thập)
+### 4.5 Dữ liệu MIMIC-IV — External Validation
 
 - **Nguồn:** MIMIC-IV Clinical Database v3.1 (Credentialed Access, DUA đã ký).
-- **Kích thước:** ~300k patients, 9.8 GB nén.
-- **Files core đã tải:** patients, admissions, diagnoses_icd, procedures_icd, omr, icustays, d_labitems, d_items, d_icd_diagnoses, d_icd_procedures (~108 MB nén).
+- **Kích thước:** 546.028 admissions (364.627 patients), shifted years 2105–2214.
+- **Files core sử dụng:** patients, admissions, diagnoses_icd, omr (~108 MB nén). *Lưu ý: labevents/chartevents không có trong core files.*
+- **Đặc trưng (từ OMR + ICD-10):** systolic_bp, diastolic_bp (parse từ "Blood Pressure"), bmi, weight, height, egfr + 17 comorbidity flags (Charlson/Deyo từ ICD-10).
+- **Missingness:** vitals/anthropometrics ~60% (OMR là outpatient, không phải inpatient), comorbidities 0%.
+- **Nhãn:** mortality_30d (tử vong 30 ngày), in_hospital_mortality.
+- **Temporal split:** Train shifted years ≤2115 (n=22.552), Test ≥2116 (n=523.476).
 - **Mục đích:** External validation temporal trên dữ liệu ICU/ED Mỹ, so sánh với NHANES-LMF (dân cư).
-- **Trạng thái:** `[template]` — chờ chạy pipeline adapter.
 
 ---
 
@@ -306,9 +311,23 @@ Tham chiếu: `experiments/COMPLETE-CASE-CHECK/summary.json`.
 
 Tham chiếu: `src/api.py`, `src/chat/static/app.html`.
 
-### 5.5 [template] Kiểm định trên MIMIC-IV
+### 5.5 Kiểm định temporally trên MIMIC-IV
 
-> [Chờ hoàn tất adapter pipeline → chạy temporal validation trên MIMIC-IV v3.1]
+| Chỉ số | LR | LightGBM |
+|---|---|---|
+| AUC temporal test (shifted ≥2116) | **0.752** | 0.751 |
+| AUC random test (đối chứng) | 0.761 | 0.784 |
+| Δ AUC (temporal − random) | **−0.010** | −0.033 |
+| Capture rate top quintile (mortality_30d) | 52.8% | 54.3% |
+
+**Nhận định chính:**
+
+- LR ổn định hơn: ΔAUC nhỏ (−0.010), phù hợp baseline triển khai.
+- LightGBM overfitting dữ liệu tĩnh: ΔAUC −0.033 lớn hơn.
+- AUC thấp hơn NHANES-LMF (0.75 vs 0.82) do: (1) missingness vitals ~60%, (2) comorbidity flags là driver chính, (3) outcome 30d mortality trong ICU có pattern khác tử vong dân cư.
+- Capture rate ~53–54% top quintile: mô hình phát hiện được >50% ca tử vong 30d trong nhóm rủi ro cao nhất.
+
+> Tham chiếu: `experiments/EXP-TEMPORAL-MIMICIV/summary.json`, `scripts/run_temporal_mimiciv.py`.
 
 ### 5.6 [template] Hiệu suất lâm sàng
 
@@ -338,11 +357,12 @@ Tham chiếu: `src/api.py`, `src/chat/static/app.html`.
 
 ### 6.3 Hạn chế
 
-1. Chỉ dùng NHANES công khai; MIMIC-IV adapter đang phát triển; KNHANES yêu cầu KDCA — **[15] cũng thừa nhận rào cản privacy/data access**.
-2. Outcome = tử vong, không phải thời điểm khởi phát bệnh — **[14] đo được onset vì dùng UK Biobank dọc**.
-3. FIB-4, calcium chưa triển khai (chưa có guideline PDF).
-4. `[template]`: Chưa có kết quả trên bệnh nhân Việt Nam thật.
-5. Chưa có chuyên gia lâm sàng review (nếu nhóm quyết định không làm expert review).
+1. **Missingness vitals ~60% trên MIMIC-IV**: OMR chỉ ghi outpatient measurements, thiếu inpatient vitals/labs (cần labevents/chartevents) → AUC giảm so với NHANES-LMF.
+2. Outcome = tử vong (all-cause), không phải disease onset — **[14] đo được onset vì dùng UK Biobank dọc**.
+3. FIB-4, calcium, eGFR-based CKD staging chưa triển khai (thiếu guideline PDF / OMR không có creatinine).
+4. Chưa có kết quả trên bệnh nhân Việt Nam thật (pilot cần thiết).
+5. Chưa có chuyên gia lâm sàng review 9 luật (governance do tên tự đặt).
+6. KNHANES yêu cầu KDCA RDC proposal — **[15] thừa nhận rào cản privacy/data access**.
 
 Tham chiếu: `docs/19_Bao_cao_tien_do_P2_da_giai_quyet_va_gioi_han.md` §3.
 
@@ -370,13 +390,14 @@ Tham chiếu: `docs/19_Bao_cao_tien_do_P2_da_giai_quyet_va_gioi_han.md` §7.
 
 ## 8. Kết luận
 
-- Hệ thống đã được thiết kế, triển khai, kiểm định trên dữ liệu công khai (NHANES 3 chu kỳ, NHANES-LMF).
-- Kết quả temporally trên NHANES-LMF cho thấy Logistic Regression có tiềm năng triển khai (AUC 0.821, C-index 0.822, lead time 9 tháng).
+- Hệ thống đã được thiết kế, triển khai, kiểm định trên dữ liệu công khai (NHANES 3 chu kỳ, NHANES-LMF, MIMIC-IV v3.1).
+- **NHANES-LMF** (dân cư): LR AUC 0.821, C-index 0.822, lead time 9 tháng — tốt cho screening dân cư.
+- **MIMIC-IV** (ICU/ED Mỹ): LR AUC 0.752, ΔAUC −0.010, capture rate 53% — ổn định nhưng AUC thấp hơn do missingness vitals ~60%, comorbidity-driven.
 - **[11]** Xác nhận GBM là baseline mạnh với chi phí thấp.
-- **[12]** Trả lời cho khoảng trống external validation (chỉ 10% nghiên cứu có).
+- **[12]** Trả lời cho khoảng trống external validation (chỉ 10% nghiên cứu có) — đã validate trên 2 dataset temporal độc lập.
 - **[13,14]** Khác biệt hóa bằng cách nhúng trực tiếp tri thức y khoa thay vì chỉ học từ dữ liệu.
 - **[15]** Thiết kế chạy được trên dữ liệu tối giản, vượt qua rào cản privacy/data access.
-- Hướng tiếp theo: hoàn tất MIMIC-IV temporal validation, KNHANES, pilot study nhỏ.
+- Hướng tiếp theo: KNHANES, pilot study nhỏ, tích hợp labevents/chartevents khi có full MIMIC-IV access.
 
 ---
 
@@ -437,7 +458,7 @@ Tham chiếu: `docs/19_Bao_cao_tien_do_P2_da_giai_quyet_va_gioi_han.md` §7.
 
 ## Checklist trước khi nộp
 
-- [ ] Bổ sung kết quả MIMIC-IV temporal validation nếu hoàn tất trước hạn nộp
+- [x] Bổ sung kết quả MIMIC-IV temporal validation (đã hoàn tất 2026-09-11)
 - [ ] Vẽ lại biểu đồ theo format grayscale-friendly
 - [ ] Liệt kê tài liệu tham khảo đầy đủ theo thứ tự xuất hiện
 - [ ] Đếm từ ≤ 8000 (bao gồm tiêu đề, tóm tắt, TLTK, bảng, hình)
@@ -446,4 +467,4 @@ Tham chiếu: `docs/19_Bao_cao_tien_do_P2_da_giai_quyet_va_gioi_han.md` §7.
 
 ---
 
-*Cập nhật lần cuối: 2026-09-11*
+*Cập nhật lần cuối: 2026-09-11 (MIMIC-IV temporal validation added)*
