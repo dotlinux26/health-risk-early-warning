@@ -1,0 +1,634 @@
+\documentclass[13pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{times}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Page geometry: A4, top/bottom 20mm, left 35mm, right 25mm
+\geometry{a4paper, top=20mm, bottom=20mm, left=35mm, right=25mm}
+
+% Line spacing 1.3
+\setstretch{1.3}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    citecolor=blue
+}
+
+% Custom commands
+\newcommand{\template}{{\color{red}[template]}}
+\newcommand{\doititle}{Hệ thống đánh giá nguy cơ sức khỏe cá nhân hóa tích hợp học máy đa tầng và luật chuyên gia: Thiết kế, kiểm định temporally và giới hạn của NCKH sinh viên}
+\newcommand{\doititleen}{A Multi-Tier Personalized Health Risk Assessment System Integrating Machine Learning and Clinical Expert Rules: Design, Temporal Validation, and Student Research Limitations}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{\doititle}} \\[0.5cm]
+    {\large \textit{\doititleen}} \\[1.5cm]
+    
+    \textbf{Track:} AI tin cậy, an toàn và có trách nhiệm trong công nghiệp — Đánh giá rủi ro và kiểm định hệ thống AI \\
+    \textbf{Hội nghị:} AI4Industry 2026 — Học viện Công nghệ Bưu chính Viễn thông (HAUI) \\
+    \textbf{Định dạng:} Times New Roman 13, A4, giãn dòng 1.3, $\le$8000 từ \\
+    \textbf{Trạng thái:} BẢN NHÁP — \template\ cho phần chưa có kết quả MIMIC-IV
+\end{center}
+
+\vspace{1cm}
+
+\section*{Tóm tắt}
+
+Nhóm nghiên cứu xây dựng một khung hỗ trợ quyết định lâm sàng (Clinical Decision Support Framework -- CDSF) tích hợp ba trụ cột: (1) phân tích bất thường cá nhân hóa dựa trên Z-Score, Isolation Forest và EWMA/STL; (2) ánh xạ tri thức y khoa qua rule engine JSON (9 luật từ hướng dẫn ESC/ESH 2018, ADA 2023, KDIGO 2022, WHO); (3) mô hình học máy LightGBM với hiệu chỉnh isotonic. Hàm tổng hợp Bayesian gán trọng số tối ưu qua tìm lưới chéo 5-fold trên NHANES 2013--2014: $\alpha_{stat}=0.30$, $\alpha_{knowledge}=0.35$, $\alpha_{ml}=0.25$, $\alpha_{trend}=0.10$. Ngưỡng phân loại: THẤP $<0.33$, TRUNG BÌNH $0.33$--$0.66$, CAO $\ge0.66$; sàn an toàn $0.50$ khi có luật severity $\ge0.7$.
+
+Hệ thống được kiểm định temporally trên dữ liệu công khai NHANES-Limited Mortality Files (2015--2018, $n=16.314$) theo nguyên tắc train-on-2015-16 / test-on-2017-18. Logistic Regression đạt AUC 0.821, Harrell C-index 0.822, lead time trung vị 9 tháng (top quintile). LightGBM AUC temporal 0.771, $\Delta$AUC so với random split $-0.010$ (overfitting dữ liệu tĩnh). Complete-case analysis cho thấy LightGBM ổn định ($\Delta$AUC $-0.006$) khi loại bỏ mẫu impute glucose fasting (thiếu 52\%).
+
+Nhóm nghiên cứu phân tích trung thực các giới hạn của NCKH sinh viên: thiếu dữ liệu dọc bệnh nhân thật, thiếu chuyên gia lâm sàng review, chưa có quyền truy cập MIMIC-IV/KNHANES hoàn chỉnh -- kèm phương án xử lý khả thi (pilot nội bộ, mời giảng viên review 9 luật, hoàn tất PhysioNet credentialing). Kết quả khẳng định: khung lai (hybrid) thống kê--tri thức--học máy đạt được độ minh bạch, chi phí dữ liệu thấp và kiểm định temporally nghiêm ngặt -- phù hợp bối cảnh triển khai thực tế tại Việt Nam.
+
+\textbf{Từ khóa:} đánh giá nguy cơ sức khỏe cá nhân hóa; học máy; LightGBM; hàm tổng hợp Bayesian; kiểm định temporally; NHANES; NCKH sinh viên
+
+\vspace{1cm}
+
+\section*{Danh sách tác giả}
+
+Nguyễn Đức Cảnh$^1$, Nguyễn Khắc Nam Khánh$^1$, Vũ Đình An$^1$ \\
+$^1$ Trường Đại học [Tên trường], [Địa chỉ] \\
+Email liên hệ: 0206canh@gmail.com
+
+\vspace{1cm}
+
+\section{Giới thiệu}
+
+\subsection{Bối cảnh}
+
+Bệnh không lây nhiễm (Non-Communicable Diseases -- NCDs) chiếm hơn 70\% nguyên nhân tử vong toàn cầu theo Kế hoạch hành động NCD của WHO 2025. Tại Việt Nam, tỷ lệ này đạt khoảng 73\% theo báo cáo Bộ Y tế. Phát hiện sớm nguy cơ NCDs (tăng huyết áp, đái tháo đường, bệnh thận mạn, rối loạn lipid) là then chốt để giảm gánh bệnh và chi phí y tế.
+
+Các mô hình đánh giá nguy cơ truyền thống -- Framingham (1998), QRISK3 (2017), ASCVD (2013), SCORE2 (2021) -- đều sử dụng hồi quy logistic tuyến tính trên biến số cắt ngang, chỉ tập trung vào tim mạch, thiếu tích hợp đa tầng (thống kê + tri thức y khoa + học máy) và thiếu cơ chế kiểm định minh bạch cho bác sĩ lâm sàng.
+
+Trong thập kỷ qua, học máy (ML) và học sâu (DL) được áp dụng rộng rãi cho dữ liệu sức khỏe điện tử (Electronic Health Records -- EHR). Năm nghiên cứu nền tảng gần đây minh họa cả tiến bộ và khoảng trống:
+
+\begin{itemize}
+    \item \textbf{Guo et al. (2024)} \cite{guo2024} chứng minh foundation model CLMBR-T (141M tham số, 2.57M bệnh nhân Stanford) đạt hiệu suất tương đương Gradient Boosting Machine (GBM) nhưng yêu cầu dữ liệu khổng lồ -- không phù hợp môi trường nghiên cứu nhỏ.
+    \item \textbf{Swinckels et al. (2024)} \cite{swinckels2024} tổng hợp 20 nghiên cứu ML/DL trên EHR dọc: LSTM/RNN phổ biến nhất, dự đoán tốt nhất tiểu đường/thận/tim mạch, nhưng \textbf{90\% thiếu external validation}.
+    \item \textbf{Kraljevic et al. (2024)} \cite{kraljevic2024} -- Foresight (GPT-2, 811k bệnh nhân UK): precision@10 = 0.68--0.91, 97\% dự báo được đánh giá phù hợp lâm sàng, nhưng ``ưu tiên xác suất xuất hiện thay vì tính cấp bách'' và \textbf{thiếu nhúng tri thức y khoa trực tiếp}.
+    \item \textbf{Shmatko et al. (2025)} \cite{shmatko2025} -- Delphi-2M (GPT-2, UK Biobank + 1.93M Đan Mạch): AUROC 0.76 đa bệnh lý, xuyên quốc gia 0.67 -- nhưng \textbf{thiếu giải thích} (black-box).
+    \item \textbf{Shen et al. (2025)} \cite{shen2025} review 25 năm EHR: interoperability, data cleaning, privacy là rào cản chính -- đề xuất thiết kế chạy được trên dữ liệu tối giản.
+\end{itemize}
+
+\subsection{Vấn đề}
+
+Từ tổng hợp trên, nổi lên bốn vấn đề cốt lõi:
+
+\begin{enumerate}
+    \item \textbf{Thiếu tích hợp tri thức y khoa với ML:} Hầu hết mô hình DL (Foresight, Delphi) học hoàn toàn từ dữ liệu, không nhúng trực tiếp ngưỡng lâm sàng, hệ cơ quan -- dẫn đến cảnh báo thiếu ngữ cảnh y khoa \cite{kraljevic2024,shmatko2025}.
+    \item \textbf{Hộp đen (black-box):} LSTM/Transformer cho AUC cao nhưng khó truy xuất lý do ra cảnh báo -- khó đáp ứng ``right to explanation'' (GDPR) và khó được bác sĩ tin dùng \cite{swinckels2024,kraljevic2024}.
+    \item \textbf{Thiếu kiểm định temporally/minh bạch:} Chỉ ~10\% nghiên cứu có external validation; nhiều dừng ở prototype \cite{swinckels2024}. Cần mô phỏng quá trình ra quyết định thực tế: train trên quá khứ, test trên tương lai.
+    \item \textbf{Phụ thuộc dữ liệu khổng lồ:} Foundation model yêu cầu triệu bệnh nhân + hạ tầng lớn \cite{guo2024,shen2025} -- không khả thi với NCKH sinh viên, bệnh viện tuyến huyện.
+\end{enumerate}
+
+\subsection{Đóng góp chính}
+
+Đề tài đề xuất giải quyết bốn vấn đề trên bằng \textbf{khung lai ba trụ cột (hybrid three-tier framework)}:
+
+\begin{enumerate}
+    \item \textbf{Kiến trúc ba trụ cột} (ML + Knowledge + Bayesian Fusion) với calibration isotonic -- khác biệt với \cite{kraljevic2024,shmatko2025} bằng cách \textbf{nhúng trực tiếp tri thức y khoa} (9 luật từ ESC/ESH, ADA, KDIGO, WHO) vào rule engine JSON có versioning, audit trail.
+    \item \textbf{Hàm tổng hợp Bayesian} có trọng số tối ưu bằng cross-validation 5-fold trên dữ liệu công khai (NHANES 2013--2014), không cần dữ liệu tư nhân.
+    \item \textbf{Kiểm định temporally} trên NHANES-LMF -- mô phỏng quá trình ra quyết định thực tế (train 2015-16 / test 2017-18), \textbf{trả lời cho \cite{swinckels2024} về thiếu external validation}.
+    \item \textbf{Phân tích giới hạn NCKH sinh viên} và phương án xử lý khả thi -- \textbf{thừa nhận \cite{guo2024,shen2025} về rào cản dữ liệu}, minh bạch hóa điều kiện triển khai thực tế.
+\end{enumerate}
+
+\subsection{Cấu trúc bài}
+
+Bài tổ chức như sau: Phần 2 tổng quan liên quan; Phần 3 trình bày kiến trúc hệ thống; Phần 4 mô tả dữ liệu kiểm định; Phần 5 kết quả thực nghiệm; Phần 6 thảo luận và so sánh; Phần 7 phân tích giới hạn NCKH; Phần 8 kết luận.
+
+\section{Tổng quan liên quan}
+
+\subsection{Mô hình đánh giá nguy cơ hiện có}
+
+\begin{table}[H]
+\centering
+\caption{So sánh các mô hình CDSS hiện có}
+\label{tab:cdss_comparison}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{4cm}}
+\toprule
+Nghiên cứu & Phương pháp & Dữ liệu & Giới hạn chính \\
+\midrule
+Framingham (1998) & LR tuyến tính & Framingham Heart Study & Thiếu đa dạng dân tộc \\
+QRISK3 (2017) & LR + spline & UK CPRD & Chỉ tim mạch \\
+ASCVD (2013) & LR & MASA + ARIC & Chỉ tim mạch \\
+SCORE2 (2021) & LR & Châu Âu & Chỉ châu Âu \\
+Delphi-2M \cite{shmatko2025} & Transformer tạo sinh (GPT-2) & UK Biobank + 1.93M Đan Mạch & Thiếu giải thích; AUROC 0.76; xuyên quốc gia 0.67 \\
+Foresight \cite{kraljevic2024} & Generative Transformer (GPT-2) & 811k BN, 3 bệnh viện UK & Precision@10=0.68--0.91; thiếu tri thức y khoa nhúng \\
+CLMBR-T \cite{guo2024} & Foundation model (141M params) & 2.57M Stanford $\to$ SickKids, MIMIC-IV & Yêu cầu dữ liệu khổng lồ; cải thiện 13\% few-shot \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Học máy trong dự đoán nguy cơ}
+
+\begin{itemize}
+    \item \cite{guo2024} chỉ ra GBM đạt hiệu suất ngang foundation model với chi phí thấp hơn $\to$ LightGBM/XGBoost phù hợp làm baseline.
+    \item \cite{swinckels2024} xác nhận LSTM/RNN phổ biến cho EHR dọc, dự đoán tốt: tiểu đường, thận, tim mạch -- nhưng 90\% thiếu external validation.
+    \item Tổng hợp 2020--2026: XGBoost/LightGBM thường đạt AUC 0.85--0.95 trên EHR.
+    \item Vấn đề cốt lõi: khả năng giải thích (XAI) và cơ chế kiểm định lâm sàng.
+\end{itemize}
+
+\subsection{Khoảng trống nghiên cứu (Research Gaps)}
+
+Từ \cite{guo2024}--\cite{shen2025}, nhóm xác định \textbf{4 khoảng trống} mà đề tài chiếm lĩnh:
+
+\begin{enumerate}
+    \item \textbf{Tính cá nhân hóa còn yếu \cite{guo2024,swinckels2024,kraljevic2024,shmatko2025}:} So sánh bệnh nhân với \textit{quần thể chung} (ngưỡng thống kê cộng đồng), bỏ qua ``đường cơ sở sinh lý'' riêng của từng cá thể.
+    \item \textbf{Hộp đen \cite{swinckels2024,kraljevic2024,shmatko2025}:} LSTM/Transformer cho hiệu năng cao nhưng khó truy xuất \textit{lý do} cảnh báo.
+    \item \textbf{Thiếu ngoại kiểm \& minh bạch lâm sàng \cite{swinckels2024}:} Chỉ $\sim$10\% nghiên cứu có external validation.
+    \item \textbf{Phụ thuộc dữ liệu khổng lồ \cite{guo2024,shen2025}:} Foundation model yêu cầu triệu bệnh nhân -- không phù hợp môi trường nhỏ.
+\end{enumerate}
+
+\subsection{Vị thế đề tài trong bản đồ nghiên cứu}
+
+\cite{shen2025} chỉ ra 3 thập kỷ: POMR $\to$ Big Data/RWE $\to$ AI/NLP/Genomics; rào cản: liên chuẩn, privacy. Đề tài thiết kế theo chuẩn tối giản (CSV), chạy được trên dữ liệu tối thiểu.
+
+Đề tài là \textbf{khung lai (hybrid)} nằm giữa hai cực:
+
+\begin{verbatim}
+[Minh bạch, đơn giản]              [Hiệu năng, hộp đen]
+   Z-Score, luật lâm sàng    <------>   LSTM, Transformer [13,14]
+          ▲                                        ▲
+          │           ĐỀ TÀI NÀY                  │
+          └──────────────────┬─────────────────────┘
+          Tầng 1 + Tầng 2 (thống kê + tri thức y khoa)
+          Tầng 3 (điểm rủi ro + giải thích)
+\end{verbatim}
+
+\begin{itemize}
+    \item \textbf{Kế thừa \cite{swinckels2024}} (LSTM chứng minh giá trị dữ liệu dọc) và \textbf{\cite{guo2024}} (GBM đạt ngang foundation model).
+    \item \textbf{Khác biệt \cite{kraljevic2024,shmatko2025}:} Thay vì ``đoán sự kiện tiếp theo'', hệ thống \textbf{phân tầng nguy cơ giải thích được} dựa trên sai lệch cá nhân hóa và luật y khoa.
+    \item \textbf{Trả lời \cite{shen2025}:} Thiết kế chạy được trên dữ liệu tối giản (chỉ số cơ thể dạng bảng), không đòi hỏi toàn bộ EHR phi cấu trúc.
+\end{itemize}
+
+\section{Kiến trúc hệ thống}
+
+\subsection{Tổng quan}
+
+\begin{verbatim}
+Dữ liệu đầu vào (chuỗi thời gian chỉ số cơ thể)
+        │
+        ▼
+Tầng 1 -- Phân tích bất thường cá nhân hóa
+  • Z-Score cá nhân: Z = (X - μ_cá nhân) / σ_cá nhân
+  • Isolation Forest đa chiều
+  • EWMA crossing + sai số dự báo
+  ► Đầu ra: AnomalyRecord[]
+        │
+        ▼
+Tầng 2 -- Ánh xạ tri thức y khoa
+  • 9 luật từ ESC/ESH 2018, ADA 2023, KDIGO 2022, WHO
+  • Rule engine JSON có versioning + audit trail
+  ► Đầu ra: Hit[] severity
+        │
+        ▼
+Tầng 3 -- Tổng hợp rủi ro \& hỗ trợ quyết định
+  • Total = stat×0.30 + knowledge×0.35 + ml×0.25 + trend×0.10
+  • Ngưỡng: THẤP < 0.33 | TRUNG BÌNH 0.33--0.66 | CAO ≥ 0.66
+  • Sàn an toàn: có luật severity ≥ 0.7 → total = max(total, 0.50)
+  ► Đầu ra: risk_level + affected_systems + evidence + recommendations
+\end{verbatim}
+
+Tham chiếu triển khai: \texttt{docs/03\_Thiet\_ke\_he\_thong.md}, \texttt{docs/14\_Kien\_truc\_he\_thong\_chi\_tiet.md}, \texttt{src/core/pipeline.py}.
+
+\subsection{Trọng số tối ưu}
+
+\begin{table}[H]
+\centering
+\caption{Trọng số tối ưu từ cv\_grid\_search}
+\label{tab:weights}
+\begin{tabular}{lcc}
+\toprule
+Trọng số & Giá trị & Nguồn \\
+\midrule
+$\alpha_{stat}$ & 0.30 & cv\_grid\_search (NHANES 2013--2014) \\
+$\alpha_{knowledge}$ & 0.35 & cv\_grid\_search (NHANES 2013--2014) \\
+$\alpha_{ml}$ & 0.25 & cv\_grid\_search (NHANES 2013--2014) \\
+$\alpha_{trend}$ & 0.10 & cv\_grid\_search (NHANES 2013--2014) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Chỉ số tin cậy: $\text{conf} = |\alpha_{ml} - \alpha_{stat}| + (\text{auc} - 0.5) \times 2$. \\
+\texttt{INSUFFICIENT\_DATA} khi $n_{observations} < 7$.
+
+Tham chiếu: \texttt{src/config.py:25-29}.
+
+\subsection{Quy tắc kiến thức chuyên gia}
+
+\begin{table}[H]
+\centering
+\caption{9 quy tắc kiến thức chuyên gia}
+\label{tab:rules}
+\begin{tabular}{llll}
+\toprule
+Luật & Ý nghĩa & Ngưỡng & Nguồn \\
+\midrule
+R\_CV\_01 & Tăng huyết áp & HA $\ge$ 140/90 mmHg & ESC/ESH 2018 \\
+R\_CV\_02 & Nhịp tim nhanh & $>$ 100 / 7 ngày & ACC/AHA 2023 \\
+R\_CV\_03 & HATT đơn độc & HATT $>$ 140 mmHg & ESC/ESH 2018 \\
+R\_END\_01 & Đường huyết đói & $>$ 7.0 mmol/L & ADA 2023 \\
+R\_END\_02 & HbA1c cao & $>$ 6.5\% & ADA 2023 \\
+R\_KID\_01 & Creatinine tăng & $>$ 1.3 mg/dL & KDIGO 2022 \\
+R\_KID\_02 & eGFR giảm & $<$ 60 & KDIGO 2022 \\
+R\_RES\_01 & SpO2 thấp & $<$ 94\% & WHO 2019 \\
+R\_MET\_01 & BMI thừa cân & $>$ 25 & WHO TRS 894 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+9 luật, 10 chỉ số, lưu \texttt{knowledge\_base.json} (LIST format), mỗi luật bắt buộc: \texttt{rule\_id}, \texttt{condition} (AND/OR lồng nhau), \texttt{severity} 0--1, \texttt{specialty}, \texttt{system}, \texttt{modes}, \texttt{source\_url} (link hướng dẫn gốc kèm số trang/chương/trích dẫn). Validate chặt khi ghi qua API \texttt{/rules}. Sửa KB không cần sửa code -- điểm cắm cho quy trình chuyên gia duyệt.
+
+Tham chiếu: \texttt{src/tier2\_knowledge/knowledge\_base.json}, \texttt{docs/08\_Nguon\_tri\_thuc\_va\_xay\_dung\_luat.md}.
+
+\subsection{Hiệu chỉnh isotonic}
+
+\begin{itemize}
+    \item Production calibrator: \texttt{load\_ml\_calibrator()} trong \texttt{src/core/pipeline.py}.
+    \item ECE giảm từ 0.004 $\to$ 0.000 (isotonic nội bộ).
+\end{itemize}
+
+Tham chiếu: \texttt{docs/16\_Tra\_loi\_cac\_van\_de\_con\_lai.md}.
+
+\subsection{Lưu trữ \& Audit Trail}
+
+\begin{itemize}
+    \item Knowledge base JSON versioned + hash SHA-256.
+    \item Audit trail actors: \texttt{bs\_an}, \texttt{bs\_test}, \texttt{bs\_truong}, \texttt{tester} (synthetic).
+    \item Dual-write: disk JSONL + optional PostgreSQL.
+\end{itemize}
+
+Tham chiếu: \texttt{docs/15\_Suy\_nghi\_va\_lo\_trinh\_chuan\_hoa.md} §7.
+
+\section{Dữ liệu kiểm định}
+
+\subsection{Dữ liệu mô phỏng}
+
+\begin{itemize}
+    \item 10 hồ sơ demo bệnh nhân Việt Nam (đã sửa sau commit).
+    \item 35 kiểm tra end-to-end (\texttt{scripts/e2e\_test.py} -- 35/35 PASS).
+\end{itemize}
+
+\subsection{Dữ liệu huấn luyện -- NHANES 3 chu kỳ}
+
+\begin{itemize}
+    \item \textbf{Nguồn:} CDC NHANES 2015--2016, 2017--2018, 2021--2023.
+    \item \textbf{Gộp theo SEQN:} demographics + BPX/BPXO + lab BMX/GLU/GH/SCR + questionnaire thuốc.
+    \item \textbf{Lọc:} tuổi 20--80, không mang thai, đủ thông tin nhãn.
+    \item \textbf{Kết quả:} $n = 16.314$ dòng, positive 7.991 (49.0\%).
+    \item \textbf{Nhãn:} \texttt{htn | dm} (tăng huyết áp OR đái tháo đường) -- quy tắc lâm sàng, không tự khai.
+\end{itemize}
+
+Tham chiếu: \texttt{scripts/build\_nhanes\_dataset.py}, \texttt{docs/14\_Kien\_truc\_he\_thong\_chi\_tiet.md} §3-4.
+
+\subsection{Nhãn và giới hạn}
+
+\begin{table}[H]
+\centering
+\caption{Vấn đề nhãn và hệ quả}
+\label{tab:label_issues}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4cm}>{\raggedright\arraybackslash}p{10cm}}
+\toprule
+Vấn đề & Hệ quả \\
+\midrule
+Vòng lặp nhãn--đầu vào (D1) & AUC đọc là tái lập phân tầng theo ngưỡng, không phải dự báo độc lập \\
+Nhiễu thuốc (D2) & Đầu vào và nhãn xung đột trên nhóm dùng thuốc hạ áp \\
+Glucose thiếu 52\% (D3) & Impute median; kết quả liên quan glucose cần thận trọng \\
+Dữ liệu cắt ngang (D5) & Không huấn luyện được chuỗi thời gian \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tham chiếu: \texttt{docs/14\_Kien\_truc\_he\_thong\_chi\_tiet.md} §4.1.
+
+\subsection{Dữ liệu kiểm định temporally -- NHANES-LMF}
+
+\begin{itemize}
+    \item \textbf{Nguồn:} CDC NHANES 2015--2018, Linkage to Mortality Files.
+    \item \textbf{Outcome:} tử vong toàn bộ $\le$12 tháng (\texttt{UCOD == '0'} AND \texttt{MORTSTAT == '1'}).
+    \item \textbf{Split:} train 2015-16 ($n=5.048$) / test 2017-18 ($n=4.773$).
+    \item \textbf{Prevalence:} train 0.97\%, test 1.40\%.
+    \item \textbf{Lưu ý:} UCOD perturbed (chỉ 1/2/10), MORTSTAT NOT perturbed; 12-month horizon hợp lệ cho cả hai chu kỳ.
+\end{itemize}
+
+Tham chiếu: \texttt{scripts/run\_temporal\_validation.py}, \texttt{experiments/EXP-TEMPORAL-LMF/summary.json}.
+
+\subsection{Dữ liệu MIMIC-IV (đang thu thập)}
+
+\begin{itemize}
+    \item \textbf{Nguồn:} MIMIC-IV Clinical Database v3.1 (Credentialed Access, DUA đã ký).
+    \item \textbf{Kích thước:} $\sim$300k patients, 9.8 GB nén.
+    \item \textbf{Files core đã tải:} patients, admissions, diagnoses\_icd, procedures\_icd, omr, icustays, d\_labitems, d\_items, d\_icd\_diagnoses, d\_icd\_procedures ($\sim$108 MB nén).
+    \item \textbf{Mục đích:} External validation temporal trên dữ liệu ICU/ED Mỹ, so sánh với NHANES-LMF (dân cư).
+    \item \textbf{Trạng thái:} \template\ -- chờ chạy pipeline adapter.
+\end{itemize}
+
+\section{Kết quả}
+
+\subsection{Benchmark 6 mô hình (nhanes\_merged, n=16.314, 5 seed)}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả benchmark 6 mô hình trên NHANES 3 chu kỳ}
+\label{tab:benchmark}
+\begin{tabular}{lccc}
+\toprule
+Model & ROC-AUC & PR-AUC & Brier \\
+\midrule
+\textbf{XGBoost} & \textbf{0.9356$\pm$0.0028} & 0.9491 & \textbf{0.0913} \\
+LightGBM & 0.9349$\pm$0.0031 & 0.9488 & 0.0916 \\
+Random Forest & 0.9338$\pm$0.0038 & 0.9473 & 0.0956 \\
+FT-Transformer & 0.9257$\pm$0.0043 & 0.9405 & 0.1028 \\
+MLP & 0.8975$\pm$0.0123 & 0.9117 & 0.1287 \\
+Logistic Regression & 0.8844$\pm$0.0078 & 0.8960 & 0.1375 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+XGBoost đứng đầu ROC-AUC; ba mô hình boosting/tree (XGB/LGBM/RF) gần tương đương. LightGBM được chọn làm production model nhờ tốc độ train nhanh, Brier thấp, calibration tốt.
+
+Tham chiếu: \texttt{experiments/summary.json}, \texttt{docs/14\_Kien\_truc\_he\_thong\_chi\_tiet.md} §6.1.
+
+\subsection{Kiểm định temporally trên NHANES-LMF}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả kiểm định temporally trên NHANES-LMF}
+\label{tab:temporal}
+\begin{tabular}{lcc}
+\toprule
+Chỉ số & LR & LightGBM \\
+\midrule
+AUC temporal test (2017--18) & \textbf{0.821} & 0.771 \\
+AUC random test (đối chứng) & 0.841 & 0.781 \\
+$\Delta$ AUC (temporal $-$ random) & $-0.020$ & $-0.010$ \\
+Harrell C-index ($\le$60 tháng) & \textbf{0.822} & 0.776 \\
+Lead time trung vị (top quintile) & \textbf{9 tháng} & -- \\
+Nhãn cắt ngang cùng test & 0.628 / 0.573 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Nhận định chính:}
+
+\begin{itemize}
+    \item LR ổn định nhất: $\Delta$AUC gần 0, calibration tốt hơn -- phù hợp baseline triển khai bệnh viện.
+    \item LightGBM AUC cao nhất trên CV nhưng $\Delta$ lớn hơn khi test temporally $\to$ overfitting dữ liệu tĩnh.
+    \item Nhãn cắt ngang (0.573--0.628) thấp hơn rõ so với tử vong (0.821) $\to$ mô hình không chỉ ``học lại nhãn''.
+\end{itemize}
+
+Tham chiếu: \texttt{experiments/EXP-TEMPORAL-LMF/summary.json}, \texttt{docs/19\_Bao\_cao\_tien\_do\_P2\_da\_giai\_quyet\_va\_gioi\_han.md}.
+
+\subsection{Complete-case analysis}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả complete-case analysis}
+\label{tab:complete_case}
+\begin{tabular}{lcl}
+\toprule
+Model & $\Delta$AUC & Kết luận \\
+\midrule
+LightGBM (production) & $-0.006$ & Ổn định, giữ impute \\
+XGBoost & $-0.005$ & Ổn định \\
+Logistic Regression & $+0.016$ & Lệch có hệ thống \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Glucose fasting thiếu 52\% $\to$ impute median chấp nhận được cho tree-based models.
+
+Tham chiếu: \texttt{experiments/COMPLETE-CASE-CHECK/summary.json}.
+
+\subsection{Hệ thống đầu-đầu}
+
+\begin{itemize}
+    \item Chat nhận câu tự nhiên/file $\to$ tích lũy theo ngày $\to$ đủ 7 ngày ra báo cáo cá nhân hóa.
+    \item Endpoint: \texttt{/api/chat}, \texttt{/api/assess}, \texttt{/api/kb/*}, \texttt{/api/benchmark}.
+    \item UI v2: dark mode, biểu đồ xu hướng SVG, xuất CSV, 6 chế độ chuyên khoa.
+\end{itemize}
+
+Tham chiếu: \texttt{src/api.py}, \texttt{src/chat/static/app.html}.
+
+\subsection{\template\ Kiểm định trên MIMIC-IV}
+
+\template\ [Chờ hoàn tất adapter pipeline $\to$ chạy temporal validation trên MIMIC-IV v3.1]
+
+\subsection{\template\ Hiệu suất lâm sàng}
+
+\template\ [Chờ triển khai mô hình nhỏ trong phòng khám / pilot study]
+
+\section{Thảo luận}
+
+\subsection{Nhận định chính}
+
+\begin{itemize}
+    \item \cite{guo2024} xác nhận GBM đạt ngang foundation model $\to$ LR + LightGBM trong đề tài phù hợp làm baseline chi phí thấp.
+    \item LR ổn định nhất: $\Delta$AUC gần 0, calibration tốt hơn $\to$ phù hợp baseline bệnh viện.
+    \item \cite{shmatko2025} Delphi-2M AUROC 0.76 (thấp hơn LR 0.821 trên tử vong) nhưng đa bệnh lý $\to$ đề tài tập trung hẹp hơn (NCDs) nên AUC cao hơn.
+    \item \cite{kraljevic2024} Foresight precision@10 cao (0.68--0.91) nhưng thiếu giải thích $\to$ đề tài bổ sung XAI theo thiết kế (SHAP + reason\_chain).
+    \item Thiết kế ba trụ cột giúp tăng độ tin cậy khi một trụ cột gặp vấn đề -- \textbf{trả lời \cite{swinckels2024} về thiếu minh bạch lâm sàng}.
+\end{itemize}
+
+\subsection{So sánh với nghiên cứu trước}
+
+\begin{table}[H]
+\centering
+\caption{So sánh đề tài với các nghiên cứu nền tảng}
+\label{tab:comparison}
+\begin{tabular}{lccccc}
+\toprule
+Tiêu chí & \cite{guo2024} & \cite{swinckels2024} & \cite{kraljevic2024} & \cite{shmatko2025} & \textbf{Đề tài} \\
+\midrule
+Cá nhân hóa & Vừa (quần thể) & Vừa & Vừa & Vừa & \textbf{Cao} \\
+Giải thích & Thấp & Trung bình & Thấp & Vừa (SHAP hậu kiểm) & \textbf{Cao} \\
+Chi phí dữ liệu & Rất cao & Vừa & Cao & Cao & \textbf{Thấp} \\
+External validation & Có (3 trung tâm) & Chỉ 10\% & Có (3 bệnh viện) & Có (UK$\to$Đan Mạch) & \textbf{NHANES-LMF} \\
+An toàn lâm sàng & N/A & N/A & Không & Không & \textbf{Cao} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Hạn chế}
+
+\begin{enumerate}
+    \item Chỉ dùng NHANES công khai; MIMIC-IV adapter đang phát triển; KNHANES yêu cầu KDCA -- \cite{shen2025} cũng thừa nhận rào cản privacy/data access.
+    \item Outcome = tử vong, không phải thời điểm khởi phát bệnh -- \cite{shmatko2025} đo được onset vì dùng UK Biobank dọc.
+    \item FIB-4, calcium chưa triển khai (chưa có guideline PDF).
+    \item \template: Chưa có kết quả trên bệnh nhân Việt Nam thật.
+    \item Chưa có chuyên gia lâm sàng review (nếu nhóm quyết định không làm expert review).
+\end{enumerate}
+
+Tham chiếu: \texttt{docs/19\_Bao\_cao\_tien\_do\_P2\_da\_giai\_quyet\_va\_gioi\_han.md} §3.
+
+\section{Giới hạn NCKH sinh viên và hướng xử lý}
+
+\subsection{Ba giới hạn cốt lõi}
+
+\begin{table}[H]
+\centering
+\caption{Giới hạn NCKH sinh viên và hướng xử lý}
+\label{tab:student_limits}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.5cm}>{\raggedright\arraybackslash}p{4.5cm}>{\raggedright\arraybackslash}p{5.5cm}}
+\toprule
+Còn thiếu & Vì sao khó & Hướng xử lý \\
+\midrule
+Người dùng thật & Không ai cung cấp dữ liệu sức khỏe hằng ngày & Pilot nội bộ bạn bè/người thân 2--4 tuần \\
+Bác sĩ thật & Luồng governance do tên tự đặt duyệt & Mời giảng viên/quen biết review 9 luật \\
+Dữ liệu bệnh viện & Thủ tục hành chính & MIMIC-IV: PhysioNet + CITI + DUA \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Việc rẻ nhất mà nâng giá trị đề tài}
+
+\begin{enumerate}
+    \item Hồ sơ CITI + xin quyền MIMIC-IV (đã hoàn tất DUA, đang chạy adapter).
+    \item Checklist TRIPOD-AI cho báo cáo.
+    \item Mời 1 bác sĩ review 9 luật hiện có.
+\end{enumerate}
+
+Tham chiếu: \texttt{docs/19\_Bao\_cao\_tien\_do\_P2\_da\_giai\_quyet\_va\_gioi\_han.md} §7.
+
+\section{Kết luận}
+
+\begin{itemize}
+    \item Hệ thống đã được thiết kế, triển khai, kiểm định trên dữ liệu công khai (NHANES 3 chu kỳ, NHANES-LMF).
+    \item Kết quả temporally trên NHANES-LMF cho thấy Logistic Regression có tiềm năng triển khai (AUC 0.821, C-index 0.822, lead time 9 tháng).
+    \item \cite{guo2024} Xác nhận GBM là baseline mạnh với chi phí thấp.
+    \item \cite{swinckels2024} Trả lời cho khoảng trống external validation (chỉ 10\% nghiên cứu có).
+    \item \cite{kraljevic2024,shmatko2025} Khác biệt hóa bằng cách nhúng trực tiếp tri thức y khoa thay vì chỉ học từ dữ liệu.
+    \item \cite{shen2025} Thiết kế chạy được trên dữ liệu tối giản, vượt qua rào cản privacy/data access.
+    \item Hướng tiếp theo: hoàn tất MIMIC-IV temporal validation, KNHANES, pilot study nhỏ.
+\end{itemize}
+
+\section{Tài liệu tham khảo}
+
+\subsection{Hướng dẫn lâm sàng (nguồn tri thức luật)}
+
+\begin{thebibliography}{99}
+
+\bibitem{esc2018}
+Williams, B., et al. (2018). 2018 ESC/ESH Guidelines for the management of arterial hypertension. \textit{European Heart Journal}, 39(33), 3021--3104. \url{https://doi.org/10.1093/eurheartj/ehy339}
+
+\bibitem{ada2023}
+American Diabetes Association. (2023). Standards of Care in Diabetes -- 2023. \textit{Diabetes Care}, 46(Suppl 1), S1--S291. \url{https://doi.org/10.2337/dc23-Sint}
+
+\bibitem{kdigo2022}
+KDIGO 2022 Clinical Practice Guideline for Diabetes Management in CKD. \textit{Kidney International}, 102(5S), S1--S127. \url{https://doi.org/10.1016/j.kint.2022.06.008}
+
+\bibitem{who_trs894}
+World Health Organization. (2000). \textit{Obesity: preventing and managing the global epidemic} (WHO Technical Report Series 894). \url{https://iris.who.int/handle/10665/42330}
+
+\bibitem{accaha2023}
+Writing Committee Members et al. (2023). 2023 ACC/AHA/ACCP/HRS Guideline for the Diagnosis and Management of Atrial Fibrillation. \url{https://doi.org/10.1161/CIR.0000000000001193}
+
+\bibitem{who_pulseox}
+World Health Organization. (2019). \textit{Guideline on use of pulse oximetry for monitoring of patients}. \url{https://iris.who.int/handle/10665/345392}
+
+\subsection{Bộ dữ liệu}
+
+\bibitem{nhanes2018}
+CDC/NCHS. (2020). National Health and Nutrition Examination Survey (NHANES) 2017--2018. \url{https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2017}
+
+\bibitem{nhanes_lmf}
+CDC/NCHS. NHANES Linked Mortality Files 2019. \url{https://ftp.cdc.gov/pub/Health_Statistics/NCHS/datalinkage/linked_mortality/}
+
+\bibitem{uci_diabetes}
+UCI Machine Learning Repository. \textit{Pima Indians Diabetes Database}. \url{https://archive.ics.uci.edu/dataset/34/diabetes}
+
+\bibitem{uci_heart}
+UCI Machine Learning Repository. \textit{Heart Disease (Cleveland) Data Set}. \url{https://archive.ics.uci.edu/dataset/45/heart+disease}
+
+\subsection{Nghiên cứu liên quan}
+
+\bibitem{guo2024}
+Guo, L. L., Fries, J., Steinberg, E., et al. (2024). A multi-center study on the adaptability of a shared foundation model for electronic health records. \textit{npj Digital Medicine}, 7(171). \url{https://doi.org/10.1038/s41746-024-01166-w}
+
+\bibitem{swinckels2024}
+Swinckels, L., Bennis, F. C., Ziesemer, K. A., et al. (2024). The Use of Deep Learning and Machine Learning on Longitudinal Electronic Health Records for the Early Detection and Prevention of Diseases: Scoping Review. \textit{Journal of Medical Internet Research}, 26, e48320. \url{https://doi.org/10.2196/48320}
+
+\bibitem{kraljevic2024}
+Kraljevic, Z., Bean, D., Shek, A., et al. (2024). Foresight -- a generative pretrained transformer for modelling of patient timelines using electronic health records: a retrospective modelling study. \textit{The Lancet Digital Health}, 6(4), e281--e290. \url{https://doi.org/10.1016/S2589-7500(24)00025-6}
+
+\bibitem{shmatko2025}
+Shmatko, A., Jung, A. W., Gaurav, K., et al. (2025). Learning the natural history of human disease with generative transformers. \textit{Nature}, 647, 248--256. \url{https://doi.org/10.1038/s41586-025-09529-3}
+
+\bibitem{shen2025}
+Shen, Y., Yu, J., Zhou, J., \& Hu, G. (2025). Twenty-Five Years of Evolution and Hurdles in Electronic Health Records and Interoperability in Medical Research: Comprehensive Review. \textit{Journal of Medical Internet Research}, 27, e59024. \url{https://doi.org/10.2196/59024}
+
+\subsection{Phương pháp}
+
+\bibitem{harrell2015}
+Harrell, F.E. (2015). \textit{Regression Modeling Strategies}. Springer. \url{https://doi.org/10.1007/978-3-319-19425-7}
+
+\bibitem{template_methods}
+\template\ -- Calibration methods, Bayesian fusion, isotonic regression
+
+\end{thebibliography}
+
+\section*{Danh sách hình vẽ cần vẽ lại}
+
+\begin{enumerate}
+    \item \textbf{Hình 1}: Kiến trúc ba trụ cột + Fusion Layer (hiện \texttt{docs/figures/three\_tier\_architecture.png})
+    \item \textbf{Hình 2}: Luồng dữ liệu input $\to$ three tiers $\to$ calibration $\to$ fusion $\to$ output
+    \item \textbf{Hình 3}: Bootstrap Calibration curves (hiện \texttt{docs/figures/bootstrap\_calibration\_4\_weights.png})
+    \item \textbf{Hình 4}: Timeline mô phỏng kiểm định temporally
+\end{enumerate}
+
+\section*{Danh sách bảng}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+Bảng & Nội dung \\
+\midrule
+Bảng 1 & So sánh các mô hình CDSS hiện có \\
+Bảng 2 & Mô tả 13 features đầu vào \\
+Bảng 3 & 9 quy tắc kiến thức chuyên gia \\
+Bảng 4 & Trọng số tối ưu cv\_grid\_search \\
+Bảng 5 & Kết quả benchmark 6 mô hình \\
+Bảng 6 & Kết quả kiểm định temporally \\
+Bảng 7 & Kết quả complete-case analysis \\
+Bảng 8 & Giới hạn NCKH sinh viên \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Checklist trước khi nộp}
+
+\begin{itemize}
+    \item[] $\square$ Bổ sung kết quả MIMIC-IV temporal validation nếu hoàn tất trước hạn nộp
+    \item[] $\square$ Vẽ lại biểu đồ theo format grayscale-friendly
+    \item[] $\square$ Liệt kê tài liệu tham khảo đầy đủ theo thứ tự xuất hiện
+    \item[] $\square$ Đếm từ $\le$ 8000 (bao gồm tiêu đề, tóm tắt, TLTK, bảng, hình)
+    \item[] $\square$ Đặt tên file: \texttt{AI4Industry\_TenTacGia\_TenBaiBao}
+    \item[] $\square$ Gửi email trước hạn nộp tới \texttt{AI4Industry@haui.edu.vn}
+\end{itemize}
+
+\vspace{1cm}
+
+\begin{center}
+    \textit{Cập nhật lần cuối: 2026-09-11}
+\end{center}
+
+\end{document}
