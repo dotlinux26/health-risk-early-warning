@@ -38,7 +38,7 @@
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │ TẦNG 3 — TỔNG HỢP RỦI RO & HỖ TRỢ QUYẾT ĐỊNH                        │
-│  • Điểm rủi ro tổng hợp (điểm Tầng 1 × trọng số tri thức Tầng 2     │
+│  • Điểm rủi ro tổng hợp (điểm Tầng 1 [x] trọng số tri thức Tầng 2     │
 │    + điểm mô hình ML (LightGBM + SHAP))                             │
 │  • Phân loại: THẤP / TRUNG BÌNH / CAO                               │
 │  ► ĐẦU RA CHUẨN (3 thành phần bắt buộc):                            │

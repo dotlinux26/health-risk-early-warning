@@ -13,7 +13,7 @@
 | Hạng mục | Nội dung |
 |---|---|
 | Trợ lý chat | UI `/chat` mới: header gradient, sidebar "Cấu hình suy luận" chọn model, bong bóng hội thoại, khối luận giải ML gắn trong chat |
-| Nhập liệu | Kéo-thả file (drag & drop) + dán (Ctrl+V), nút 📎, chọn ngày đo (date picker) cho lần ghi nhận — xem mục 6 |
+| Nhập liệu | Kéo-thả file (drag & drop) + dán (Ctrl+V), nút , chọn ngày đo (date picker) cho lần ghi nhận — xem mục 6 |
 | Đánh giá trong chat | Lệnh `trạng thái` / `báo cáo` / `xóa dữ liệu`, ghi nhận nhật ký theo ngày, đủ 7 ngày → BÁO CÁO ĐẦY ĐỦ (phân tích chuỗi thời gian cá nhân hóa) |
 | Luận giải đa mô hình | Mỗi mô hình ML cho **điểm tổng hợp 3 tầng riêng** (thống kê + tri thức y khoa + model đó + xu hướng) để so sánh mức khác biệt; hiển thị tiếng Việt, gom chi tiết vào thẻ ấn/xem `<details>` |
 | Data completeness | Đánh dấu mức độ đầy đủ dữ liệu của từng ca, theo chế độ chẩn đoán; nhấn mạnh đây là độ bao phủ, không phải mức rủi ro |
@@ -72,7 +72,7 @@ nghiệm, nhưng nhóm đề xuất ngược lại: **mỗi mô hình giữ mộ
 thấy model nào đẩy mức rủi ro lên/cao hơn. Triển khai theo hướng đó — với mỗi mô hình:
 
 ```
-điểm cuối(model) = stat×0.30 + knowledge×0.35 + ml(model)×0.25 + trend×0.10
+điểm cuối(model) = stat[x]0.30 + knowledge[x]0.35 + ml(model)[x]0.25 + trend[x]0.10
 ```
 
 trong đó `ml(model)` là xác suất nguy cơ riêng của mô hình đó, rồi áp ngưỡng
@@ -142,7 +142,7 @@ tin nhắn, ví dụ "Huyết áp 135/85 ngày 12/8"). Backend nhận tham số 
 có `date`, nó ghi đè ngày của tin nhắn/file. Điều này không làm thay đổi ngày của
 các bản ghi đã lưu (dedup theo cặp `metric + date`).
 
-**Kéo-thả file (drag & drop).** Ngoài nút 📎, người dùng có thể kéo file PDF/DOCX
+**Kéo-thả file (drag & drop).** Ngoài nút , người dùng có thể kéo file PDF/DOCX
 vào bất kỳ đâu trên trang (overlay nét đứt hiện khi đang kéo) hoặc dán (Ctrl+V)
 để tải lên — cùng luồng `ingest_file` như nút chọn file.
 

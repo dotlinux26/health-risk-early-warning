@@ -246,7 +246,7 @@ Ba phát hiện định lượng:
 
 ### K3 — Baseline stability (chi tiết: `experiments/BASELINE-STABILITY/`)
 
-150 bệnh nhân mô phỏng × 150 ngày × 4 chỉ số, tham chiếu N=90, seed=42:
+150 bệnh nhân mô phỏng [x] 150 ngày [x] 4 chỉ số, tham chiếu N=90, seed=42:
 
 | N (ngày) | \|Δμ\| (σ₉₀) | \|Δσ\| tương đối | Đổi vùng z | Đổi cờ z≥2σ |
 |---|---|---|---|---|
@@ -283,9 +283,9 @@ UI trở thành **evidence surface** của nghiên cứu. Các hạng mục (U):
 | U2 | Tầng 1 evidence | Số ngày dữ liệu, trạng thái baseline (CHƯA ỔN ĐỊNH / ĐỦ ĐIỀU KIỆN / ỔN ĐỊNH HƠN theo N), z-score từng chỉ số, xu hướng |
 | U3 | Tầng 2 evidence | Luật kích hoạt + nguồn (ESH 2018…), severity, chuyên khoa; chuẩn hóa layout provenance trên `/rules` |
 | U4 | Tầng 3 evidence | Ghi "LightGBM output 0.71 — xác suất model (chưa hiệu chỉnh)", tách bạch tuyệt đối khỏi "risk score" tổng hợp; **không** dùng chữ "Confidence 71%" |
-| U5 | Score breakdown | Khối tổng hợp stat/knowledge/ml/trend × trọng số = điểm cuối, ấn-mở dạng "WHY?" cho từng kết luận — explainability cấp hệ thống |
-| U6 | Dataset/benchmark panel | `/benchmark` chia tab: Performance (AUC/F1…) · Calibration (Brier trước/sau + curve) · Robustness (5 seed, label sensitivity) · Data provenance (dataset, N, positive rate, missing %, split, preprocessing, định nghĩa nhãn); riêng panel dataset: loại cắt ngang, không có kết cục tương lai, external/clinical validation ✗ |
-| U7 | Wording early warning | Toàn UI đổi "cảnh báo sớm" → "PHÁT HIỆN BẤT THƯỜNG / PHÂN TẦNG NGUY CƠ" + khối "Phạm vi bằng chứng hiện tại": ✓ phân tầng trên dữ liệu hiện có, ✓ phát hiện thay đổi so baseline cá nhân, ⚠ chưa chứng minh dự báo biến cố, ⚠ chưa có lead time |
+| U5 | Score breakdown | Khối tổng hợp stat/knowledge/ml/trend [x] trọng số = điểm cuối, ấn-mở dạng "WHY?" cho từng kết luận — explainability cấp hệ thống |
+| U6 | Dataset/benchmark panel | `/benchmark` chia tab: Performance (AUC/F1…) · Calibration (Brier trước/sau + curve) · Robustness (5 seed, label sensitivity) · Data provenance (dataset, N, positive rate, missing %, split, preprocessing, định nghĩa nhãn); riêng panel dataset: loại cắt ngang, không có kết cục tương lai, external/clinical validation  |
+| U7 | Wording early warning | Toàn UI đổi "cảnh báo sớm" → "PHÁT HIỆN BẤT THƯỜNG / PHÂN TẦNG NGUY CƠ" + khối "Phạm vi bằng chứng hiện tại":  phân tầng trên dữ liệu hiện có,  phát hiện thay đổi so baseline cá nhân,  chưa chứng minh dự báo biến cố,  chưa có lead time |
 | U8 | **Bỏ chatbot — chuyển UI sang dạng biểu mẫu** | Loại bỏ giao diện hội thoại; thay bằng form input/output chuẩn: ô điền tham số (patient_id, ngày đo…), chọn ngày, upload file (PDF/DOCX/TXT), nút chức năng tách bạch ("Đánh giá bệnh nhân", "Nhập file kết quả", "Xem timeline"…). Mục tiêu: UX đơn giản — dễ dùng — dễ hiểu — quy tắc rõ ràng, phù hợp bản chất hệ thống đánh giá đầu vào/đầu ra cố định thay vì hội thoại tự do |
 | U9 | Render markdown chuẩn hóa | Toàn bộ nội dung giải thích/báo cáo động trong UI được render từ Markdown bằng thư viện Python (`python-markdown`, extension `tables` + `fenced_code`) qua endpoint `/api/render_markdown` — không nhồi text thô lộn xộn vào HTML; đảm bảo định dạng bảng/danh sách thống nhất, dễ đọc, đúng và đủ |
 | U10 | **Quản lý bản ghi cá nhân theo ngày** | Vì hệ thống cá nhân hóa, cần trang quản trị dữ liệu cá nhân dạng bảng: mỗi hàng = một ngày đo (sắp xếp theo ngày), cho phép **edit trực tiếp các giá trị số** trên từng hàng (inline edit), **thêm/bớt bản ghi**; ô nào không có dữ liệu thì để trống hoàn toàn bình thường — hệ thống phải chấp nhận missing từng trường và hiển thị rõ trạng thái thiếu. Đây là nền để timeline/baseline (U1/U2) có dữ liệu thật để xem |
@@ -302,13 +302,13 @@ Phạm vi: dữ liệu hiện có · Chưa chứng minh dự báo biến cố t�
 TẦNG 1 · CÁ NHÂN      N ngày · baseline μ/σ · z-score từng chỉ số + xu hướng
 TẦNG 2 · TRI THỨC     luật kích hoạt + id/version/source + severity
 TẦNG 3 · ML           model · raw output · calibrated output · phương pháp hiệu chỉnh
-TỔNG HỢP              stat/knowledge/ml/trend × trọng số = điểm cuối → mức nguy cơ
+TỔNG HỢP              stat/knowledge/ml/trend [x] trọng số = điểm cuối → mức nguy cơ
 ```
 
 `/benchmark` trở thành trang nghiên cứu: Performance · Calibration (raw vs
 calibrated Brier/ECE + curve) · Robustness (5 seed, label sensitivity,
 missingness, weight sensitivity) · Data provenance · Evidence status
-(✓/◐/○ theo TRIPOD+AI & DECIDE-AI — xem mục 13 R1/R2).
+(//[TODO] theo TRIPOD+AI & DECIDE-AI — xem mục 13 R1/R2).
 
 ## 7. Quản trị tri thức (WS4)
 
@@ -331,22 +331,22 @@ năng nhìn thấy được.
 
 | Hạng mục | Triển khai | Kiểm chứng |
 |---|---|---|
-| Governance module | `src/tier2_knowledge/governance.py`: STATUSES, TRANSITIONS, `apply_transition`, audit JSONL (`data/kb/audit_log.jsonl`) | ✓ |
-| KB tích hợp | Luật cũ tự migrate → active v1.0; luật mới luôn **draft v1.0**; sửa nội dung → bump version +0.1, reset draft, lưu `previous_version`; `evaluate()` mặc định chỉ chạy luật **active** | ✓ |
-| Workflow | draft→review→approved→active (+rejected); chặn nhảy cóc (draft→active bị từ chối); sửa luật đang review → v1.1/draft | ✓ |
-| Audit trail | create/edit/delete/transition đều ghi actor + timestamp + chi tiết; `GET /api/kb/audit` | ✓ |
-| `/rules` UI | Card hiển thị version, badge trạng thái màu, nút chuyển trạng thái theo luồng, dòng "✓ production / ◐ preview" | ✓ |
-| U10 Bản ghi | `ChatStore.upsert/delete_value/table_by_date` + `GET/PUT/DELETE /api/records/{pid}`: bảng theo ngày, sửa từng ô, ô trống hợp lệ | ✓ |
-| U9 Markdown | `POST /api/render_markdown` (python-markdown, extensions tables+fenced_code); tầng ML và khuyến nghị render qua endpoint này | ✓ |
-| U8 Bỏ chatbot | `/` giờ là SPA biểu mẫu `app.html`: Đánh giá · Bản ghi · Luật · Benchmark; không còn giao diện hội thoại | ✓ |
-| Evidence surface | Panel phân tầng: badge mức + score + phạm vi dữ liệu; Tầng 1 (z-score/baseline), Tầng 2 (luật+nguồn), Tầng 3 (`/api/evidence/ml` — raw vs calibrated isotonic, cảnh báo không diễn giải), Tổng hợp components × trọng số | ✓ |
+| Governance module | `src/tier2_knowledge/governance.py`: STATUSES, TRANSITIONS, `apply_transition`, audit JSONL (`data/kb/audit_log.jsonl`) |  |
+| KB tích hợp | Luật cũ tự migrate → active v1.0; luật mới luôn **draft v1.0**; sửa nội dung → bump version +0.1, reset draft, lưu `previous_version`; `evaluate()` mặc định chỉ chạy luật **active** |  |
+| Workflow | draft→review→approved→active (+rejected); chặn nhảy cóc (draft→active bị từ chối); sửa luật đang review → v1.1/draft |  |
+| Audit trail | create/edit/delete/transition đều ghi actor + timestamp + chi tiết; `GET /api/kb/audit` |  |
+| `/rules` UI | Card hiển thị version, badge trạng thái màu, nút chuyển trạng thái theo luồng, dòng " production /  preview" |  |
+| U10 Bản ghi | `ChatStore.upsert/delete_value/table_by_date` + `GET/PUT/DELETE /api/records/{pid}`: bảng theo ngày, sửa từng ô, ô trống hợp lệ |  |
+| U9 Markdown | `POST /api/render_markdown` (python-markdown, extensions tables+fenced_code); tầng ML và khuyến nghị render qua endpoint này |  |
+| U8 Bỏ chatbot | `/` giờ là SPA biểu mẫu `app.html`: Đánh giá · Bản ghi · Luật · Benchmark; không còn giao diện hội thoại |  |
+| Evidence surface | Panel phân tầng: badge mức + score + phạm vi dữ liệu; Tầng 1 (z-score/baseline), Tầng 2 (luật+nguồn), Tầng 3 (`/api/evidence/ml` — raw vs calibrated isotonic, cảnh báo không diễn giải), Tổng hợp components [x] trọng số |  |
 
 ### 7.3 Hoàn tất P1 (23/08/2026)
 
 - **Benchmark → trang nghiên cứu**: `/benchmark` có 6 tab — Kết quả tổng hợp,
   Hiệu chỉnh xác suất (Brier/ECE raw vs Platt vs isotonic), Độ bền vững K2–K4
   (đọc trực tiếp từ `/api/benchmark/research`), Dữ liệu & Evidence status
-  (checklist ✓ done / ◐ partial / ○ todo), So sánh luận giải, Chi tiết thí nghiệm.
+  (checklist  done /  partial / [TODO] todo), So sánh luận giải, Chi tiết thí nghiệm.
 - **Calibration vào production**: `_ml_score_for` áp calibrator isotonic lên điểm
   ML trước khi fusion — đối sách S4 hoàn trọn, không chỉ dừng ở hiển thị.
 - **Dữ liệu demo**: `scripts/seed_demo_data.py` seed P001–P005 (từ sample_long)
@@ -433,16 +433,16 @@ Chi tiết đầy đủ: **docs/18**.
 Thêm panel **SYSTEM EVIDENCE STATUS** (trên `/benchmark` hoặc trang tổng quan):
 
 ```
-✓ Internal validation (CV 5 seed, test khóa)
-✓ Kiểm soát leakage tiền xử lý
-✓ Personal baseline + guard min_periods
-✓ Rule provenance (source_url, severity)
-✓ Multi-model benchmark + Brier
-◐ Probability calibration      (đang làm)
-◐ Label sensitivity            (đang làm)
-○ Temporal validation          (cần dữ liệu dọc có kết cục)
-○ External validation          (cần cohort ngoài)
-○ Clinical validation          (cần đối tác y tế)
+ Internal validation (CV 5 seed, test khóa)
+ Kiểm soát leakage tiền xử lý
+ Personal baseline + guard min_periods
+ Rule provenance (source_url, severity)
+ Multi-model benchmark + Brier
+ Probability calibration      (đang làm)
+ Label sensitivity            (đang làm)
+[TODO] Temporal validation          (cần dữ liệu dọc có kết cục)
+[TODO] External validation          (cần cohort ngoài)
+[TODO] Clinical validation          (cần đối tác y tế)
 ```
 
 Người xem biết ngay hệ thống đang chứng minh được gì và chưa chứng minh được gì —

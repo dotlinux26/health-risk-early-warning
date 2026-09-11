@@ -6,7 +6,7 @@
 
 **Track:** AI tin cậy, an toàn và có trách nhiệm trong công nghiệp — Đánh giá rủi ro và kiểm định hệ thống AI  
 **Hội nghị:** AI4Industry 2026 — Học viện Công nghệ Bưu chính Viễn thông (HAUI)  
-**Định dạng:** Times New Roman 13, A4 (210×297mm), lề trên/dưới 20mm, trái 35mm, phải 25mm, giãn dòng 1.3, ≤8000 từ  
+**Định dạng:** Times New Roman 13, A4 (210[x]297mm), lề trên/dưới 20mm, trái 35mm, phải 25mm, giãn dòng 1.3, ≤8000 từ  
 **Trạng thái:** BẢN NHÁP — Kết quả MIMIC-IV temporal validation đã bổ sung (2026-09-11)  
 
 ---
@@ -147,7 +147,7 @@ Tầng 2 — Ánh xạ tri thức y khoa
         │
         ▼
 Tầng 3 — Tổng hợp rủi ro & hỗ trợ quyết định
-  • Total = stat×0.30 + knowledge×0.35 + ml×0.25 + trend×0.10
+  • Total = stat[x]0.30 + knowledge[x]0.35 + ml[x]0.25 + trend[x]0.10
   • Ngưỡng: THẤP < 0.33 | TRUNG BÌNH 0.33–0.66 | CAO ≥ 0.66
   • Sàn an toàn: có luật severity ≥ 0.7 → total = max(total, 0.50)
   ► Đầu ra: risk_level + affected_systems + evidence + recommendations
@@ -164,7 +164,7 @@ Tham chiếu triển khai: `docs/03_Thiet_ke_he_thong.md`, `docs/14_Kien_truc_he
 | α_ml | 0.25 | cv_grid_search (NHANES 2013–2014) |
 | α_trend | 0.10 | cv_grid_search (NHANES 2013–2014) |
 
-Chỉ số tin cậy: `conf = |α_ml − α_stat| + (auc − 0.5) × 2`.  
+Chỉ số tin cậy: `conf = |α_ml − α_stat| + (auc − 0.5) [x] 2`.  
 `INSUFFICIENT_DATA` khi `n_observations < 7`.
 
 Tham chiếu: `src/config.py:25-29`.

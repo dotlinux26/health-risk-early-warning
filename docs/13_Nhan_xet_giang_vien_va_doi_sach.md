@@ -89,7 +89,7 @@ Tầng 1 được thiết kế đúng nguyên tắc **so sánh người dùng v�
 Công thức tổng hợp điểm được công khai ngay trong báo cáo (mục "Cách tính điểm"):
 
 ```
-total = stat×0.30 + knowledge×0.35 + ml×0.25 + trend×0.10   (src/config.py:25-29)
+total = stat[x]0.30 + knowledge[x]0.35 + ml[x]0.25 + trend[x]0.10   (src/config.py:25-29)
 ```
 
 - Ngưỡng xếp loại: THẤP < 0.33 · TRUNG BÌNH 0.33–0.66 · CAO ≥ 0.66.

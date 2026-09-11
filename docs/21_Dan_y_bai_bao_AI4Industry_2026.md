@@ -135,7 +135,7 @@ Tầng 2 — Ánh xạ tri thức y khoa
         │
         ▼
 Tầng 3 — Tổng hợp rủi ro & hỗ trợ quyết định
-  • Total = stat×0.30 + knowledge×0.35 + ml×0.25 + trend×0.10
+  • Total = stat[x]0.30 + knowledge[x]0.35 + ml[x]0.25 + trend[x]0.10
   • Ngưỡng: THẤP < 0.33 | TRUNG BÌNH 0.33–0.66 | CAO ≥ 0.66
   • Sàn an toàn: có luật severity ≥ 0.7 → total = max(total, 0.50)
   ► Đầu ra: risk_level + affected_systems + evidence + recommendations
@@ -152,7 +152,7 @@ Tầng 3 — Tổng hợp rủi ro & hỗ trợ quyết định
 | α_ml | 0.25 | cv_grid_search (NHANES 2013–2014) |
 | α_trend | 0.10 | cv_grid_search (NHANES 2013–2014) |
 
-- Chỉ số tin cậy `conf = |α_ml − α_stat| + (auc − 0.5) × 2`
+- Chỉ số tin cậy `conf = |α_ml − α_stat| + (auc − 0.5) [x] 2`
 - `INSUFFICIENT_DATA` khi `n_observations < 7`
 
 > **Tham chiếu**: `src/config.py:25-29`

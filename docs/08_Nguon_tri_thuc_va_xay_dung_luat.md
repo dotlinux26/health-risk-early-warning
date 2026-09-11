@@ -210,7 +210,7 @@ trước mỗi lần ghi) và reload ngay để hệ thống dùng luật mới 
 
 | Giai đoạn | Việc cần làm |
 |---|---|
-| G1 ✅ | Tập luật khởi đầu (9 luật / 5 hệ cơ quan) từ guidelines, kèm trích dẫn — đã xong |
+| G1  | Tập luật khởi đầu (9 luật / 5 hệ cơ quan) từ guidelines, kèm trích dẫn — đã xong |
 | G2 | Phê duyệt luật bởi bác sĩ chuyên khoa (đối chiếu lâm sàng Việt Nam) |
 | G3 | Theo dõi phiên bản hướng dẫn; cập nhật ngưỡng khi có guideline mới (ACC/AHA 2017...) |
 | G4 | Bổ sung luật theo cơ chế "bệnh nhân cá thể hóa" (điều chỉnh ngưỡng theo tuổi/bệnh nền/thuốc) |

@@ -1,6 +1,6 @@
 BỘ CÔNG THƯƠNG  
 **ĐẠI HỌC CÔNG NGHIỆP HÀ NỘI**  
-\--- 🙥🙥🕮🙧🙧 \---
+\--- 🙥🙥🙧🙧 \---
 
 **BÁO CÁO TỔNG KẾT**
 
@@ -24,7 +24,7 @@ BỘ CÔNG THƯƠNG
 
 BỘ CÔNG THƯƠNG  
 **ĐẠI HỌC CÔNG NGHIỆP HÀ NỘI**  
-\--- 🙥🙥🕮🙧🙧 \---
+\--- 🙥🙥🙧🙧 \---
 
 **BÁO CÁO TỔNG KẾT**
 

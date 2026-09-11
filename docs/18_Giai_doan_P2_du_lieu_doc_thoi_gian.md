@@ -17,14 +17,14 @@ và biến cố tương lai**:
 |---|---|
 | T7 — validation theo thời gian + lead time | biến cố ghi nhận theo thời gian sau kỳ đo |
 | T8 — vòng lặp nhãn–đầu vào | nhãn sinh từ biến cố tương lai độc lập phép đo |
-| T9 — mô hình chuỗi thời gian | ≥500 người × ≥60 quan sát liên tục |
+| T9 — mô hình chuỗi thời gian | ≥500 người [x] ≥60 quan sát liên tục |
 | T10 — xác nhận ngoài | quần thể khác cùng schema |
 
 ## 2. Kho dữ liệu dọc khả dụng (khảo sát 24/08/2026)
 
 | Dataset | Trục thời gian | Biến cố | Truy cập | Quyết định |
 |---|---|---|---|---|
-| **NHANES Public-Use Linked Mortality File 2019** (1999–2018) | tháng kể từ kỳ khám MEC đến tử vong / 31-12-2019 | tử vong toàn bộ + nguyên nhân chính | **công khai**, FTP CDC, không cần credential | ✅ **Đã tích hợp** |
+| **NHANES Public-Use Linked Mortality File 2019** (1999–2018) | tháng kể từ kỳ khám MEC đến tử vong / 31-12-2019 | tử vong toàn bộ + nguyên nhân chính | **công khai**, FTP CDC, không cần credential |  **Đã tích hợp** |
 | NHANES III LMF | như trên, cohort 1988–1994 | như trên | công khai | dự phòng (quá cũ) |
 | MIMIC-IV (v3.x, PhysioNet) | EHR ICU nhiều lần nhập viện | nhập viện/tử vong trong bệnh viện | PhysioNet account + chứng nhận CITI + DUA | kế hoạch P2.7 (xin quyền) |
 | eICU-CRD, HiRID, AmsterdamUMCdb | ICU đa trung tâm | như MIMIC | tương tự MIMIC | không ưu tiên (chỉ ICU) |
@@ -139,10 +139,10 @@ Thiết kế (chốt trước khi nhìn kết quả — theo tinh thần §3.1 d
 
 | Bước | Công việc | Ghi chú |
 |---|---|---|
-| ~~P2.1 (mới)~~ | ✅ Temporal validation trên NHANES-LMF | mục này |
-| P2.2 | ✅ Complete-case check glucose 52% | `experiments/COMPLETE-CASE-CHECK/` — cây ổn định (<0.01), LR lệch +0.016; giữ impute production (docs/16 §3.5) |
+| ~~P2.1 (mới)~~ |  Temporal validation trên NHANES-LMF | mục này |
+| P2.2 |  Complete-case check glucose 52% | `experiments/COMPLETE-CASE-CHECK/` — cây ổn định (<0.01), LR lệch +0.016; giữ impute production (docs/16 §3.5) |
 | P2.3 | Xác nhận ngoài theo địa lý | KNHANES linkage **đã xác nhận tồn tại** nhưng chỉ chạy tại RDC của KDCA (nộp đề cương); thực tế hơn: MIMIC-IV sau khi có quyền (P2.7) |
-| P2.4 | Dữ liệu dọc qua kênh nhập hệ thống | ≥50 người × ≥30 ngày là mốc giữa |
+| P2.4 | Dữ liệu dọc qua kênh nhập hệ thống | ≥50 người [x] ≥30 ngày là mốc giữa |
 | P2.5 | Lead time theo ngày khi có P2.4 | áp đúng tiêu chí §3.1 docs/16 |
 | P2.6 | Chuỗi thời gian khi đủ dữ liệu | LightGBM+lag là baseline bắt buộc |
 | **P2.7 (mới)** | Xin quyền MIMIC-IV (CITI + DUA) làm nguồn biến cố nhập viện; đồng thời đánh giá EHRSHOT/CardioEHR | chuyển huấn luyện sang outcome tương lai |

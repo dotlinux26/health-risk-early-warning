@@ -1,6 +1,6 @@
 # 19. Báo cáo tiến độ giai đoạn P2 — Đã giải quyết và giới hạn còn lại
 
-> Ngày cập nhật: 24/08/2026 · Trạng thái: P2.1 ✅, P2.2 ✅, P2 kickoff (LMF + temporal validation) ✅
+> Ngày cập nhật: 24/08/2026 · Trạng thái: P2.1 , P2.2 , P2 kickoff (LMF + temporal validation) 
 > Tài liệu này là bản tổng kết một trang: những gì **đã giải quyết xong**, kết quả
 > định lượng, và **giới hạn còn đứng lại** kèm điều kiện khắc phục.
 > Chi tiết kỹ thuật từng việc nằm ở docs/15–docs/18.
@@ -13,9 +13,9 @@ Hệ thống đi qua ba giai đoạn chuẩn hóa:
 
 | Giai đoạn | Nội dung chính | Kết quả |
 |---|---|---|
-| P0 | Sửa lỗi nền tảng (KB contract, pipeline, UI chat) | ✅ Hoàn tất (docs/15) |
-| P1 | Calibration isotonic vào production, benchmark research, governance, seed demo, e2e | ✅ Hoàn tất (docs/16, docs/17) |
-| P2 | Dữ liệu dọc thời gian: NHANES-LMF, validation theo thời gian, kiểm định khuyết dữ liệu, đồng bộ hồ sơ, UI v2 | ✅ Phần làm được bằng máy đã xong; phần còn lại chờ quyền truy cập dữ liệu / tích lũy dữ liệu thực |
+| P0 | Sửa lỗi nền tảng (KB contract, pipeline, UI chat) |  Hoàn tất (docs/15) |
+| P1 | Calibration isotonic vào production, benchmark research, governance, seed demo, e2e |  Hoàn tất (docs/16, docs/17) |
+| P2 | Dữ liệu dọc thời gian: NHANES-LMF, validation theo thời gian, kiểm định khuyết dữ liệu, đồng bộ hồ sơ, UI v2 |  Phần làm được bằng máy đã xong; phần còn lại chờ quyền truy cập dữ liệu / tích lũy dữ liệu thực |
 
 ## 2. Những vấn đề ĐÃ GIẢI QUYẾT XONG
 
@@ -56,19 +56,19 @@ Hệ thống đi qua ba giai đoạn chuẩn hóa:
 
 | # | Giới hạn | Trạng thái | Điều kiện khắc phục |
 |---|---|---|---|
-| G1 | External-by-geography chưa có (T10 chỉ xong cohort-level) | ◐ Chờ thủ tục | KNHANES: nộp đề cương KDCA RDC; MIMIC-IV: tài khoản PhysioNet + chứng chỉ CITI + ký DUA (P2.3/P2.7) |
-| G2 | Public mortality file bị nhiễu loạn: UCOD chỉ còn 1/2/10 → tử vong CV = tim mạch thuần, không tách đột quỵ/ĐTDĐ | ● Đặc tính nguồn, không sửa được | Chỉ giải quyết bằng bản restricted access của NCHS |
-| G3 | Outcome = tử vong, không phải thời điểm khởi phát bệnh | ● Đặc tính nguồn | Cần EHR dọc (MIMIC-IV/EHRSHOT) mới đo được onset |
-| G4 | Mẫu test temporal chỉ 67 biến cố → khoảng tin cậy AUC rộng (~±0.02) | ◐ | Gom thêm chu kỳ 1999–2014 (script đã hỗ trợ) hoặc dataset lớn hơn |
-| G5 | Dân mẫu NHANES là người Mỹ ≠ Việt Nam | ◐ | Trùng G1: cần KNHANES hoặc dữ liệu bệnh viện VN |
-| G6 | Lead time theo ngày chưa chứng minh được (P2.4/P2.5) | ⏳ Chờ dữ liệu thật | ≥50 người dùng nhập chỉ số × ≥30 ngày qua kênh nhập hệ thống |
-| G7 | Mô hình chuỗi thời gian (LSTM/Transformer) bị hoãn (P2.6) | ⏳ Chờ dữ liệu thật | Ngưỡng ≥500 người × ≥60 ngày (docs/16 §3.3) |
-| G8 | Production model huấn luyện trên nhãn cắt ngang NHANES (AUC 0.9356) — hợp lệ cho phân tầng hiện tại, KHÔNG tuyên bố dự báo | ● Thiết kế hiện tại | Khi có dữ liệu dọc sẽ tinh chỉnh lại với nhãn tương lai |
-| G9 | TRIPOD-AI checklist chưa lập hồ sơ đầy đủ | ◐ Việc viết | Không phụ thuộc dữ liệu — có thể làm bất cứ lúc nào |
+| G1 | External-by-geography chưa có (T10 chỉ xong cohort-level) |  Chờ thủ tục | KNHANES: nộp đề cương KDCA RDC; MIMIC-IV: tài khoản PhysioNet + chứng chỉ CITI + ký DUA (P2.3/P2.7) |
+| G2 | Public mortality file bị nhiễu loạn: UCOD chỉ còn 1/2/10 → tử vong CV = tim mạch thuần, không tách đột quỵ/ĐTDĐ |  Đặc tính nguồn, không sửa được | Chỉ giải quyết bằng bản restricted access của NCHS |
+| G3 | Outcome = tử vong, không phải thời điểm khởi phát bệnh |  Đặc tính nguồn | Cần EHR dọc (MIMIC-IV/EHRSHOT) mới đo được onset |
+| G4 | Mẫu test temporal chỉ 67 biến cố → khoảng tin cậy AUC rộng (~±0.02) |  | Gom thêm chu kỳ 1999–2014 (script đã hỗ trợ) hoặc dataset lớn hơn |
+| G5 | Dân mẫu NHANES là người Mỹ ≠ Việt Nam |  | Trùng G1: cần KNHANES hoặc dữ liệu bệnh viện VN |
+| G6 | Lead time theo ngày chưa chứng minh được (P2.4/P2.5) |  Chờ dữ liệu thật | ≥50 người dùng nhập chỉ số [x] ≥30 ngày qua kênh nhập hệ thống |
+| G7 | Mô hình chuỗi thời gian (LSTM/Transformer) bị hoãn (P2.6) |  Chờ dữ liệu thật | Ngưỡng ≥500 người [x] ≥60 ngày (docs/16 §3.3) |
+| G8 | Production model huấn luyện trên nhãn cắt ngang NHANES (AUC 0.9356) — hợp lệ cho phân tầng hiện tại, KHÔNG tuyên bố dự báo |  Thiết kế hiện tại | Khi có dữ liệu dọc sẽ tinh chỉnh lại với nhãn tương lai |
+| G9 | TRIPOD-AI checklist chưa lập hồ sơ đầy đủ |  Việc viết | Không phụ thuộc dữ liệu — có thể làm bất cứ lúc nào |
 
 ## 4. UI v2 (24/08/2026)
 
-- **Dark mode**: nút 🌙/☀️ ở header, toàn bộ màu chuyển sang CSS variables, lưu localStorage.
+- **Dark mode**: nút / ở header, toàn bộ màu chuyển sang CSS variables, lưu localStorage.
 - **Biểu đồ xu hướng SVG** trong tab Bản ghi: mỗi chỉ số một đường (chuẩn hóa min–max riêng), tooltip legend hiển thị giá trị cuối + khoảng dao động, tự co giãn mobile.
 - **Xuất CSV**: bảng bản ghi (định dạng dài patient_id,date,metric,value,unit) và audit trail (≤1000 dòng gần nhất).
 - **Chế độ chuyên khoa đầy đủ** ở tab Đánh giá: htn/dm/cv/ckd/met/resp.
@@ -104,7 +104,7 @@ vi sinh viên:
 
 | Còn thiếu | Vì sao khó với NCKH sinh viên | Hướng xử lý khả thi |
 |---|---|---|
-| Người dùng thật (P2.4–2.6 cần ≥50 người × ≥30 ngày) | Không ai cung cấp dữ liệu sức khỏe hằng ngày cho một đồ án | Pilot nội bộ: bạn bè/người thân tự nhập chỉ số của chính mình 2–4 tuần qua kênh nhập sẵn có; công bố rõ là pilot phi lâm sàng, đủ để minh họa lead time nhỏ |
+| Người dùng thật (P2.4–2.6 cần ≥50 người [x] ≥30 ngày) | Không ai cung cấp dữ liệu sức khỏe hằng ngày cho một đồ án | Pilot nội bộ: bạn bè/người thân tự nhập chỉ số của chính mình 2–4 tuần qua kênh nhập sẵn có; công bố rõ là pilot phi lâm sàng, đủ để minh họa lead time nhỏ |
 | Bác sĩ thật (duyệt luật, ký governance) | Luồng draft→review→approved hiện do tên tự đặt duyệt | Mời một bác sĩ (giảng viên hướng dẫn, hoặc quen biết cá nhân) làm reviewer cho 9 luật hiện có; một lần phê duyệt thật đưa governance từ "mô phỏng" thành "có chuyên môn tham gia" |
 | Dữ liệu bệnh viện/EHR (MIMIC-IV, KNHANES RDC) | Thủ tục hành chính; RDC cần đơn vị bảo lãnh | MIMIC-IV **không yêu cầu bác sĩ**: tự đăng ký PhysioNet + hoàn thành khóa CITI online miễn phí (~3–5 giờ) + ký DUA là nhận dữ liệu ~40 nghìn bệnh nhân ICU |
 

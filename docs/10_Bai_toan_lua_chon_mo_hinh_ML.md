@@ -53,14 +53,14 @@ mẫu, yêu cầu giải thích được).
 
 | Mô hình | Nhóm | Quy mô tham số | Mạnh khi | Yếu khi | Giải thích được | Độ phù hợp |
 |---|---|---|---|---|---|---|
-| **LightGBM** | Cây | thấp | dữ liệu bảng vừa/nhỏ, huấn luyện nhanh | khó nắm quan hệ phi tuyến rất phức tạp | Cao (feature importance, SHAP) | ★★★★★ — mặc định hiện tại |
-| **XGBoost** | Cây | thấp | giống LightGBM, tiêu chuẩn vàng | chậm hơn LightGBM ở quy mô lớn | Cao | ★★★★☆ — thay thế dự phòng |
-| **Random Forest** | Cây | thấp | chống overfit tốt, chạy ổn định | kém hơn boosting trên dữ liệu nhỏ | Cao | ★★★☆☆ — đối chứng baseline |
-| **Logistic Regression** | Cổ điển | rất thấp | đơn giản, minh bạch tuyệt đối | giả định tuyến tính, sức học hạn chế | Rất cao | ★★★☆☆ — baseline + đối chiếu |
-| **MLP (2–3 lớp)** | Nơ-ron | ~10K–100K | học phi tuyến cơ bản | kém khi dữ liệu nhỏ, dễ overfit | Trung bình (SHAP) | ★★☆☆☆ — thử nghiệm |
-| **TabNet** | Nơ-ron | ~1M–5M | attention trên bảng, hiện đại | cần dữ liệu lớn hơn, tinh chỉnh khó | Trung bình–Cao (attention mask) | ★★★☆☆ — thử nghiệm so sánh |
-| **FT-Transformer** | Nơ-ron | ~1M–5M | transformer cho bảng, mạnh trên dữ liệu đủ lớn | nhạy cảm dữ liệu nhỏ, có thể kém LightGBM | Trung bình (SHAP) | ★★★☆☆ — thử nghiệm so sánh |
-| **TabPFN** | Foundation | ~1M | học in-context, zero/few-shot tốt cho dữ liệu nhỏ | mới, ít tài liệu tiếng Việt | Trung bình | ★★★☆☆ — thử nghiệm |
+| **LightGBM** | Cây | thấp | dữ liệu bảng vừa/nhỏ, huấn luyện nhanh | khó nắm quan hệ phi tuyến rất phức tạp | Cao (feature importance, SHAP) |  — mặc định hiện tại |
+| **XGBoost** | Cây | thấp | giống LightGBM, tiêu chuẩn vàng | chậm hơn LightGBM ở quy mô lớn | Cao |  — thay thế dự phòng |
+| **Random Forest** | Cây | thấp | chống overfit tốt, chạy ổn định | kém hơn boosting trên dữ liệu nhỏ | Cao |  — đối chứng baseline |
+| **Logistic Regression** | Cổ điển | rất thấp | đơn giản, minh bạch tuyệt đối | giả định tuyến tính, sức học hạn chế | Rất cao |  — baseline + đối chiếu |
+| **MLP (2–3 lớp)** | Nơ-ron | ~10K–100K | học phi tuyến cơ bản | kém khi dữ liệu nhỏ, dễ overfit | Trung bình (SHAP) |  — thử nghiệm |
+| **TabNet** | Nơ-ron | ~1M–5M | attention trên bảng, hiện đại | cần dữ liệu lớn hơn, tinh chỉnh khó | Trung bình–Cao (attention mask) |  — thử nghiệm so sánh |
+| **FT-Transformer** | Nơ-ron | ~1M–5M | transformer cho bảng, mạnh trên dữ liệu đủ lớn | nhạy cảm dữ liệu nhỏ, có thể kém LightGBM | Trung bình (SHAP) |  — thử nghiệm so sánh |
+| **TabPFN** | Foundation | ~1M | học in-context, zero/few-shot tốt cho dữ liệu nhỏ | mới, ít tài liệu tiếng Việt | Trung bình |  — thử nghiệm |
 
 ### 3.2. Nhóm A — Mô hình dựa trên cây / học có giám sát cổ điển
 

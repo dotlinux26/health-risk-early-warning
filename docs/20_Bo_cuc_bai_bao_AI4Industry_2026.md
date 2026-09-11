@@ -14,7 +14,7 @@
 |---|---|
 | Ngôn ngữ | Tiếng Việt |
 | Font | Times New Roman, cỡ 13 |
-| Khổ giấy | A4 (210×297 mm), bao gồm hình vẽ/bảng/tài liệu tham khảo |
+| Khổ giấy | A4 (210[x]297 mm), bao gồm hình vẽ/bảng/tài liệu tham khảo |
 | Lề | Trên 20 mm · Dưới 20 mm · Trái 35 mm · Phải 25 mm |
 | Giãn dòng | 1.3 |
 | Độ dài tối đa | 8 000 chữ (~15 trang A4) |
@@ -96,7 +96,7 @@ Mô tả ba trụ cột:
 | α_ml | 0.25 | cv_grid_search (NHANES 2013–2014) |
 | α_trend | 0.10 | cv_grid_search (NHANES 2013–2014) |
 
-- Chỉ số tin cậy `conf = |α_ml − α_stat| + (auc − 0.5) × 2`
+- Chỉ số tin cậy `conf = |α_ml − α_stat| + (auc − 0.5) [x] 2`
 - `INSUFFICIENT_DATA` trả về khi `n_observations < 3`
 
 #### 3.3 Quy tắc kiến thức chuyên gia

@@ -167,7 +167,7 @@ của từng mô hình (seed 42, đại diện):
 
 ![XGBoost](../experiments/EXP-ML-XGB-42/curves.png)
 
-> Bảng chi tiết 30 thí nghiệm (6 mô hình × 5 seed) đọc tại
+> Bảng chi tiết 30 thí nghiệm (6 mô hình [x] 5 seed) đọc tại
 > `experiments/summary.csv`, tổng hợp tại `experiments/summary.md`, xem trực
 > quan tại **http://127.0.0.1:8000/benchmark**.
 
@@ -180,7 +180,7 @@ của từng mô hình (seed 42, đại diện):
 
 | # | Vị trí | Nội dung cần chụp | Gợi ý đặt tên |
 |---|---|---|---|
-| 1 | Tab **Bảng tổng hợp** | Toàn bộ bảng 6 mô hình × 8 metric (kèm dòng meta dataset/seeds) | `benchmark_tong_hop.png` |
+| 1 | Tab **Bảng tổng hợp** | Toàn bộ bảng 6 mô hình [x] 8 metric (kèm dòng meta dataset/seeds) | `benchmark_tong_hop.png` |
 | 2 | Tab **So sánh luận giải** | Trạng thái sau khi bấm "So sánh luận giải" với ca SBP 165 / DBP 95 — gồm khối "Bệnh/nguy cơ lâm sàng được kích hoạt" + từng card model | `benchmark_so_sanh_luan_giai.png` |
 | 3 | Tab **So sánh luận giải** | Khối "Bệnh/nguy cơ lâm sàng" (hệ tim mạch + chuyển hóa, các luật R_CV_01/R_CV_03/R_MET_01) | `benchmark_luan_giai_theo_luat.png` |
 | 4 | Tab **So sánh luận giải** | Riêng thẻ Random Forest — gồm "Đóng góp theo từng luật kích hoạt" + đặc trưng chính | `benchmark_rf_luan_giai.png` |

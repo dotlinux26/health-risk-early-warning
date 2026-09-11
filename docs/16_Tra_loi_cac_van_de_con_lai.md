@@ -32,7 +32,7 @@
 
 ### 2.1 Hiệu chỉnh xác suất (T1)
 
-- Thí nghiệm: 6 model × 5 seed, calibrator (Platt/isotonic) fit trên validation,
+- Thí nghiệm: 6 model [x] 5 seed, calibrator (Platt/isotonic) fit trên validation,
   chọn theo Brier val; mọi model chọn **isotonic**. LGBM/XGB vốn đã cân bằng
   (ECE test ~1.5%); LR/MLP giảm rõ (ECE 5.1% → 1.8%). Evidence package:
   `experiments/EXP-ML-*-42/calibration.json` + `calibrator_isotonic.joblib`.
@@ -124,7 +124,7 @@ P2.7 (MIMIC-IV / EHRSHOT).
 
 *Câu hỏi gốc (13§4.6): khi nào thay/đổi model sản xuất?*
 
-**Điều kiện kích hoạt** (không làm sớm vô nghĩa): ≥ 500 bệnh nhân × ≥ 60 ngày
+**Điều kiện kích hoạt** (không làm sớm vô nghĩa): ≥ 500 bệnh nhân [x] ≥ 60 ngày
 quan sát liên tục, hoặc dataset dọc công khai tương đương. Dưới ngưỡng đó mọi
 model sâu sẽ overfit và so sánh bất công với LightGBM.
 
@@ -183,12 +183,12 @@ khi chạy sẽ lưu vào `experiments/COMPLETE-CASE-CHECK/`.
 
 | Bước | Công việc | Điều kiện/tiêu chí xong | Trạng thái 24/08 |
 |---|---|---|---|
-| P2.1 | Hoàn thiện hồ sơ nghiên cứu: cập nhật docs 01–07 theo trạng thái mới (calibration, governance, đổi tên đề tài) | Mọi con số trong docs truy xuất được tới evidence package hiện tại | ✅ (commit `86aef9b`) |
-| P2.2 | Complete-case check (§3.5) | Có `experiments/COMPLETE-CASE-CHECK/summary.json` + kết luận | ✅ |
-| P2.3 | Hold-out ngoài bằng chu kỳ NHANES chưa dùng (§3.4) / xác nhận ngoài theo địa lý | AUC drop ≤ 0.05, ECE ≤ 0.05; KNHANES cần đề cương KDCA RDC | ⏳ chờ thủ tục |
-| P2.4 | Thu thập dữ liệu dọc qua kênh nhập hệ thống (§3.1) | ≥ 50 người dùng thật × ≥ 30 ngày là mốc đánh giá giữa | ⏳ chờ dữ liệu |
-| P2.5 | Temporal validation + lead time khi P2.4 đạt ngưỡng | Theo tiêu chí §3.1 | ⏳ chờ P2.4 |
-| P2.6 | Chuỗi thời gian khi đủ dữ liệu (§3.3) | LightGBM+lag là baseline bắt buộc phải thắng | ⏳ chờ P2.4 |
+| P2.1 | Hoàn thiện hồ sơ nghiên cứu: cập nhật docs 01–07 theo trạng thái mới (calibration, governance, đổi tên đề tài) | Mọi con số trong docs truy xuất được tới evidence package hiện tại |  (commit `86aef9b`) |
+| P2.2 | Complete-case check (§3.5) | Có `experiments/COMPLETE-CASE-CHECK/summary.json` + kết luận |  |
+| P2.3 | Hold-out ngoài bằng chu kỳ NHANES chưa dùng (§3.4) / xác nhận ngoài theo địa lý | AUC drop ≤ 0.05, ECE ≤ 0.05; KNHANES cần đề cương KDCA RDC |  chờ thủ tục |
+| P2.4 | Thu thập dữ liệu dọc qua kênh nhập hệ thống (§3.1) | ≥ 50 người dùng thật [x] ≥ 30 ngày là mốc đánh giá giữa |  chờ dữ liệu |
+| P2.5 | Temporal validation + lead time khi P2.4 đạt ngưỡng | Theo tiêu chí §3.1 |  chờ P2.4 |
+| P2.6 | Chuỗi thời gian khi đủ dữ liệu (§3.3) | LightGBM+lag là baseline bắt buộc phải thắng |  chờ P2.4 |
 
 *Cập nhật 24/08/2026:* ngoài các bước trên, đã hoàn thành **temporal validation
 cấp cohort trên NHANES-LMF** (AUC tử vong 12 tháng 0.821, lead time trung vị

@@ -208,11 +208,11 @@ ghép 2–4 kỳ khám theo người tham gia, nhãn = xuất hiện bệnh ở 
 
 | Giai đoạn | Việc cần làm | Đầu ra mong đợi |
 |---|---|---|
-| G1 ✅ | Xây dataset longitudinal từ NHANES (huyết áp, đường huyết, creatinine, eGFR theo kỳ khám) | `data/datasets/nhanes_2017_2018.csv` — đã xong |
-| G2 ✅ | Huấn luyện LightGBM trên NHANES với 5-fold CV, median-fill khi thiếu chỉ số | `data/models/risk_lgbm_real.joblib` — đã xong, đang là model sản xuất (nay train trên 3 chu kỳ gộp) |
-| G3 ◐ | Ghép nhiều kỳ NHANES thành chuỗi thời gian theo từng người; **đã làm được ở cấp cohort qua Linked Mortality File** (`data/datasets/nhanes_mortality.csv`, 10 065 người có outcome tử vong — docs/18); chuỗi theo ngày từng người chưa có | Dataset longitudinal + outcome biến cố tương lai |
+| G1  | Xây dataset longitudinal từ NHANES (huyết áp, đường huyết, creatinine, eGFR theo kỳ khám) | `data/datasets/nhanes_2017_2018.csv` — đã xong |
+| G2  | Huấn luyện LightGBM trên NHANES với 5-fold CV, median-fill khi thiếu chỉ số | `data/models/risk_lgbm_real.joblib` — đã xong, đang là model sản xuất (nay train trên 3 chu kỳ gộp) |
+| G3  | Ghép nhiều kỳ NHANES thành chuỗi thời gian theo từng người; **đã làm được ở cấp cohort qua Linked Mortality File** (`data/datasets/nhanes_mortality.csv`, 10 065 người có outcome tử vong — docs/18); chuỗi theo ngày từng người chưa có | Dataset longitudinal + outcome biến cố tương lai |
 | G4 | Tích hợp Chronos/TimesFM vào Tầng 1, benchmark lỗi dự báo vs Z-Score | Báo cáo so sánh 2 phương pháp |
-| G5 ◐ | ~~calibration~~ ✅ đã làm (`EXP-ML-*/calibration.json` + production isotonic); trọng số học từ dữ liệu và TRIPOD-AI còn mở | Mô hình chuẩn hoá, tái lập được |
+| G5  | ~~calibration~~  đã làm (`EXP-ML-*/calibration.json` + production isotonic); trọng số học từ dữ liệu và TRIPOD-AI còn mở | Mô hình chuẩn hoá, tái lập được |
 
 Ghi chú NHANES: bản chất NHANES là khảo sát cắt ngang — mỗi người thường chỉ
 được khám một kỳ. Để có chuỗi thời gian thật cần (a) ghép các kỳ 1999–2020,

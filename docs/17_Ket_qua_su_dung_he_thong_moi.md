@@ -21,7 +21,7 @@ thu/trương, nhịp tim, BMI); chế độ luật: tất cả chuyên khoa.
 | Tầng 1 | 4/4 chỉ số trong ngưỡng; z-score lớn nhất +1.18σ (nhịp tim), còn lại ≤ +0.75σ; xu hướng "ổn định" toàn bộ |
 | Tầng 2 | Không có luật nào kích hoạt |
 | Tầng 3 | ML = 0.27 (đã hiệu chỉnh isotonic) |
-| Tổng hợp | stat 0×0.30 + knowledge 0×0.35 + ml 0.27×0.25 + trend 0×0.10 = **0.067 → THẤP** |
+| Tổng hợp | stat 0[x]0.30 + knowledge 0[x]0.35 + ml 0.27[x]0.25 + trend 0[x]0.10 = **0.067 → THẤP** |
 
 **Luận điểm cần thấy:** ca này minh họa đúng thiết kế hybrid — ML đưa tín hiệu
 dương tính nhẹ (0.27) nhưng không có luật lâm sàng nào và không có bất thường cá
@@ -37,7 +37,7 @@ Bảng theo ngày hoạt động như thiết kế:
 - Cột hiển thị điều khiển được: người dùng bật/tắt từng chỉ số trong 10 chỉ số
   hệ thống; các cột không có dữ liệu hiển thị placeholder đơn vị đo (mmHg,
   mmol/L…) — ô trống là trạng thái hợp lệ.
-- Sửa một ô tự lưu khi rời ô; nút × xóa một ô; 🗓 xóa cả ngày
+- Sửa một ô tự lưu khi rời ô; nút [x] xóa một ô;  xóa cả ngày
   (`DELETE /api/records/{pid}?timestamp=...`).
 - Dữ liệu demo đã seed qua `scripts/seed_demo_data.py`: P001–P005 (từ
   `data/sample_long.csv`, 120→5 ngày) và hai ca tổng hợp DEMO_HYPERTENSIVE /
@@ -104,9 +104,9 @@ calibrator cho mọi dự đoán (§2.1 docs/16).
 
 ### 4.3 Evidence status checklist
 
-Trạng thái công khai ngay trên trang: ✓ nội bộ / ✓ baseline cá nhân / ✓ K2 /
-◐ calibration (đã fit val, chưa re-fit external) / ✓ K3 / ✓ K4 /
-○ temporal / ○ external / ○ thử nghiệm lâm sàng — khớp 1:1 với bảng T1–T11
+Trạng thái công khai ngay trên trang:  nội bộ /  baseline cá nhân /  K2 /
+ calibration (đã fit val, chưa re-fit external) /  K3 /  K4 /
+[TODO] temporal / [TODO] external / [TODO] thử nghiệm lâm sàng — khớp 1:1 với bảng T1–T11
 trong docs/16.
 
 ### 4.4 So sánh luận giải cùng một ca (165/95, HR 88, glucose 100…)
@@ -131,7 +131,7 @@ tính giải thích được** (docs/11).
 
 ### 4.5 Chi tiết thí nghiệm
 
-30 evidence package (6 model × 5 seed) hiển thị kèm metrics riêng và đường
+30 evidence package (6 model [x] 5 seed) hiển thị kèm metrics riêng và đường
 ROC/PR/calibration — truy vết từng con số trong bảng tổng hợp về đúng lần chạy.
 
 ## 5. Đối chiếu với danh mục docs/16
@@ -140,12 +140,12 @@ Lần sử dụng thực tế này củng cố trạng thái đã chốt:
 
 | Vấn đề | Trạng thái qua phiên dùng thực tế |
 |---|---|
-| T1 Calibration | ✓ hiển thị + áp vào fusion (ML 0.27 của P001 là điểm đã hiệu chỉnh) |
-| T2 Label sensitivity | ✓ bảng K2 render trực tiếp từ evidence package |
-| T3 Governance | ✓ audit trail nhìn thấy được, luồng chuẩn hoạt động |
-| T5 Baseline cửa sổ | ✓ ca P005 bị chặn z-score theo đúng quy tắc |
-| T6 Weight sensitivity | ✓ bảng K4 + kết luận |
-| T7/T10 Temporal & external | ○ checklist minh bạch — chưa làm, đúng cam kết docs/16 §5 |
+| T1 Calibration |  hiển thị + áp vào fusion (ML 0.27 của P001 là điểm đã hiệu chỉnh) |
+| T2 Label sensitivity |  bảng K2 render trực tiếp từ evidence package |
+| T3 Governance |  audit trail nhìn thấy được, luồng chuẩn hoạt động |
+| T5 Baseline cửa sổ |  ca P005 bị chặn z-score theo đúng quy tắc |
+| T6 Weight sensitivity |  bảng K4 + kết luận |
+| T7/T10 Temporal & external | [TODO] checklist minh bạch — chưa làm, đúng cam kết docs/16 §5 |
 
 ## 6. Hạn chế quan sát được trong phiên chạy
 
@@ -160,12 +160,12 @@ Lần sử dụng thực tế này củng cố trạng thái đã chốt:
 4. Bảng bản ghi hiển thị tối ưu cho desktop; mobile cần cuộn ngang (đã chấp nhận
    trong phạm vi đồ án).
 
-**Cập nhật 24/08/2026 (UI v2):** mục 3 đã khắc phục — thêm nút "⬇ Xuất CSV"
+**Cập nhật 24/08/2026 (UI v2):** mục 3 đã khắc phục — thêm nút " Xuất CSV"
 cho cả audit trail (tab Luật & Quản trị) và bảng bản ghi cá nhân (tab Bản ghi,
 định dạng dài patient_id/date/metric/value/unit, có BOM để mở đúng tiếng Việt
 bằng Excel). Mục 4 giảm bớt: biểu đồ xu hướng SVG tự co giãn theo bề ngang;
 bảng vẫn cần cuộn ngang khi chọn nhiều cột. Đồng thời bổ sung dark mode
-(nút 🌙/☀️ ở header, lưu lựa chọn trong localStorage) và tab Đánh giá hỗ trợ
+(nút / ở header, lưu lựa chọn trong localStorage) và tab Đánh giá hỗ trợ
 đầy đủ 6 chế độ chuyên khoa (htn/dm/cv/ckd/met/resp).
 
 ---

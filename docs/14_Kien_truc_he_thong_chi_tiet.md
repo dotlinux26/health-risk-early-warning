@@ -22,9 +22,9 @@ PDF/DOCX/TXT báo cáo ──►│         + sai số dự báo  (≥7 điểm 
                         │ TẦNG 2  rule engine trên JSON               │──► REST API trả JSON
 Câu chữ tự nhiên ──────►│         9 luật / 10 chỉ số                  │      cho UI chat
 (ChatParser regex)      │                    ↓ Hit[] severity         │
-                        │ TẦNG 3  total = stat×.30 + knowledge×.35    │──► Trang web:
-File upload qua chat ──►│         + ml×.25 + trend×.10                │      /chat  /rules
-(kéo-thả/dán/📎)        │         ngưỡng .33/.66, sàn an toàn .50     │      /benchmark
+                        │ TẦNG 3  total = stat[x].30 + knowledge[x].35    │──► Trang web:
+File upload qua chat ──►│         + ml[x].25 + trend[x].10                │      /chat  /rules
+(kéo-thả/dán/)        │         ngưỡng .33/.66, sàn an toàn .50     │      /benchmark
                         └─────────────────────────────────────────────┘
 ```
 
@@ -34,7 +34,7 @@ File upload qua chat ──►│         + ml×.25 + trend×.10                
 |---|---|---|
 | CLI | `python -m src.main --input <csv>` (`src/main.py`) | CSV schema chuẩn `patient_id,timestamp,metric,value` |
 | REST API | `src/api.py` — 21 endpoint | JSON / form / multipart |
-| Chat UI | `/chat` (`src/chat/static/index.html`) | Câu tiếng Việt có chỉ số, file PDF/DOCX/TXT (📎, kéo-thả, Ctrl+V), chọn ngày đo |
+| Chat UI | `/chat` (`src/chat/static/index.html`) | Câu tiếng Việt có chỉ số, file PDF/DOCX/TXT (, kéo-thả, Ctrl+V), chọn ngày đo |
 | Quản trị tri thức | `/rules` | Form thêm/sửa/xóa luật + hệ cơ quan + chỉ số (validate trước khi ghi) |
 | Benchmark | `/benchmark`, `scripts/run_benchmark.py` | Form nhập ca mẫu; dataset CSV |
 
@@ -97,7 +97,7 @@ không so quần thể; dưới 5 mẫu baseline = NaN → không tính z-score,
 ### 2.3 Tầng 3 — tổng hợp rủi ro (`src/tier3_risk/scoring.py`)
 
 ```
-total = stat×0.30 + knowledge×0.35 + ml(model)×0.25 + trend×0.10
+total = stat[x]0.30 + knowledge[x]0.35 + ml(model)[x]0.25 + trend[x]0.10
 ngưỡng: THẤP < 0.33 · TRUNG BÌNH 0.33–0.66 · CAO ≥ 0.66
 an toàn lâm sàng: có luật severity ≥ 0.7 → total = max(total, 0.50)
 ```
@@ -161,7 +161,7 @@ nhãn riêng từng bệnh.
   CV 5-fold: **AUC 0.9356 ± 0.0016** → `data/models/risk_lgbm_real.joblib` (nạp lazy
   bởi pipeline, `src/config.py:41`).
 - **Benchmark đa mô hình** (`scripts/run_benchmark.py`, protocol v1.0
-  `src/experiments/protocol.py`): 6 model × 5 seed (42/52/62/72/82), split
+  `src/experiments/protocol.py`): 6 model [x] 5 seed (42/52/62/72/82), split
   70/15/15 stratified, test khóa lại, **imputer median fit trên train only**
   (chống data leakage tiền xử lý), mỗi dòng là một người nên tách theo bệnh nhân
   mặc nhiên. Model chưa cài thư viện tự bỏ qua, không làm hỏng chạy.
