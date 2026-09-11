@@ -10,18 +10,18 @@
 
 | Giai đoạn | Trạng thái | Ngày hoàn tất |
 |---|---|---|
-| PhysioNet account tạo | ✅ | 2026-08-15 |
-| CITI Training (Data or Specimens Only Research) | ✅ | 2026-08-20 |
-| CITI Certificate upload | ✅ | 2026-08-22 |
-| Reference (GVHD) confirm | ✅ | 2026-08-25 |
-| DUA Online ký (MIMIC-IV v3.1) | ✅ | 2026-09-03 |
-| Credentialed Access granted | ✅ | 2026-09-03 |
-| Tải core files (10 files, ~108 MB) | ✅ | 2026-09-04 |
-| Tổ chức thư mục & .gitignore | ✅ | 2026-09-04 |
-| Viết adapter `build_mimic_dataset.py` | ✅ | 2026-09-05 |
-| Chạy build dataset | ✅ | 2026-09-05 |
-| Chạy temporal validation | ✅ | 2026-09-05 |
-| Cập nhật bài báo AI4Industry | ✅ | 2026-09-11 |
+| PhysioNet account tạo |  | 2026-08-15 |
+| CITI Training (Data or Specimens Only Research) |  | 2026-08-20 |
+| CITI Certificate upload |  | 2026-08-22 |
+| Reference (GVHD) confirm |  | 2026-08-25 |
+| DUA Online ký (MIMIC-IV v3.1) |  | 2026-09-03 |
+| Credentialed Access granted |  | 2026-09-03 |
+| Tải core files (10 files, ~108 MB) |  | 2026-09-04 |
+| Tổ chức thư mục & .gitignore |  | 2026-09-04 |
+| Viết adapter `build_mimic_dataset.py` |  | 2026-09-05 |
+| Chạy build dataset |  | 2026-09-05 |
+| Chạy temporal validation |  | 2026-09-05 |
+| Cập nhật bài báo AI4Industry |  | 2026-09-11 |
 
 ---
 
@@ -37,9 +37,9 @@ MIMIC-IV Clinical Database v3.1 là **Credentialed Access** — yêu cầu:
 ### 2.2 Hồ sơ đã nộp
 | Hồ sơ | File | Trạng thái |
 |---|---|---|
-| CITI Certificate | `docs/CITI_Certificate.pdf` | ✅ Committed (private repo) |
-| CITI Completion Report | `docs/CITI_Completion_Report.pdf` | ✅ Committed (private repo) |
-| DUA signed | Online trên PhysioNet | ✅ `canhnguyen26` account |
+| CITI Certificate | `docs/CITI_Certificate.pdf` |  Committed (private repo) |
+| CITI Completion Report | `docs/CITI_Completion_Report.pdf` |  Committed (private repo) |
+| DUA signed | Online trên PhysioNet |  `canhnguyen26` account |
 
 > **TUÂN THỦ DUA**: Certificate/Report PDF **KHÔNG** push public. Chỉ lưu local/private repo. DUA yêu cầu: "Will not share access to PhysioNet restricted data with anyone else" (§4.2).
 
@@ -119,8 +119,8 @@ bypass_*.txt
 | `systolic_bp` | `Blood Pressure` (format "120/80") | Parse → systolic |
 | `diastolic_bp` | `Blood Pressure` | Parse → diastolic |
 | `bmi` | `BMI (kg/m2)`, `BMI` | Numeric |
-| `weight` | `Weight (Lbs)` | Lbs → kg (×0.453592) |
-| `height` | `Height (Inches)` | Inches → cm (×2.54) |
+| `weight` | `Weight (Lbs)` | Lbs → kg ([x]0.453592) |
+| `height` | `Height (Inches)` | Inches → cm ([x]2.54) |
 | `egfr` | `eGFR` | Numeric (chỉ 239 rows) |
 
 **Comorbidity flags (17) từ ICD-10 (Charlson/Deyo):**
@@ -213,7 +213,7 @@ experiments/EXP-TEMPORAL-MIMICIV/
 - **§5.5**: Bảng kết quả MIMIC-IV + nhận định
 - **§6.3**: Hạn chế cập nhật (missingness 60%, outcome difference)
 - **§8**: Kết luận so sánh 2 dataset temporal độc lập
-- **Checklist**: ✅ MIMIC-IV temporal validation done
+- **Checklist**:  MIMIC-IV temporal validation done
 
 ---
 
@@ -235,14 +235,14 @@ experiments/EXP-TEMPORAL-MIMICIV/
 
 | DUA Clause | Yêu cầu | Trạng thái |
 |---|---|---|
-| §3.1 | Chỉ dùng cho nghiên cứu khoa học hợp pháp | ✅ NCKH sinh viên, temporal validation |
-| §3.2 | Không cố định danh tính cá nhân/cơ quan | ✅ Chỉ dùng aggregated features, không PHI |
-| §3.3 | Không chia sẻ truy cập dữ liệu hạn chế | ✅ Chỉ tài khoản `canhnguyen26` |
-| §3.4 | Bảo vệ an ninh vật lý/điện tử | ✅ Local encrypted disk, .gitignore block |
-| §3.5 | Báo cáo PHI nếu phát hiện | ✅ Không có PHI trong core files |
-| §3.6 | Đóng góp code về cộng đồng | ✅ Repo public: `github.com/dotlinux26/health-risk-early-warning` |
-| §4.2 | Không tái phân phối dữ liệu | ✅ .gitignore chặn toàn bộ `data/mimiciv/` |
-| §7.1 | DUA có thể chấm dứt bất cứ lúc nào | ✅ Hiểu rõ,義务 tiếp tục sau chấm dứt |
+| §3.1 | Chỉ dùng cho nghiên cứu khoa học hợp pháp |  NCKH sinh viên, temporal validation |
+| §3.2 | Không cố định danh tính cá nhân/cơ quan |  Chỉ dùng aggregated features, không PHI |
+| §3.3 | Không chia sẻ truy cập dữ liệu hạn chế |  Chỉ tài khoản `canhnguyen26` |
+| §3.4 | Bảo vệ an ninh vật lý/điện tử |  Local encrypted disk, .gitignore block |
+| §3.5 | Báo cáo PHI nếu phát hiện |  Không có PHI trong core files |
+| §3.6 | Đóng góp code về cộng đồng |  Repo public: `github.com/dotlinux26/health-risk-early-warning` |
+| §4.2 | Không tái phân phối dữ liệu |  .gitignore chặn toàn bộ `data/mimiciv/` |
+| §7.1 | DUA có thể chấm dứt bất cứ lúc nào |  Hiểu rõ, nghĩa vụ tiếp tục sau chấm dứt |
 
 ---
 
@@ -267,13 +267,13 @@ experiments/EXP-TEMPORAL-MIMICIV/
 ## 12. Kết luận
 
 **Đã hoàn tất end-to-end với MIMIC-IV core files:**
-- ✅ Credentialing full (CITI + Reference + DUA)
-- ✅ Tải 10 core files (~108 MB) — tuân thủ DUA
-- ✅ Adapter trích xuất features từ OMR + ICD-10
-- ✅ Temporal validation trên 546k admissions (shifted years)
-- ✅ Kết quả: LR AUC 0.752 (ổn định), LGBM AUC 0.751 (overfitting)
-- ✅ Cập nhật bài báo AI4Industry với 2 dataset temporal độc lập
-- ✅ **ZERO MIMIC data trong repo/git history** — tuân thủ DUA §4.2
+-  Credentialing full (CITI + Reference + DUA)
+-  Tải 10 core files (~108 MB) — tuân thủ DUA
+-  Adapter trích xuất features từ OMR + ICD-10
+-  Temporal validation trên 546k admissions (shifted years)
+-  Kết quả: LR AUC 0.752 (ổn định), LGBM AUC 0.751 (overfitting)
+-  Cập nhật bài báo AI4Industry với 2 dataset temporal độc lập
+-  **ZERO MIMIC data trong repo/git history** — tuân thủ DUA §4.2
 
 **Sẵn sàng cho:** Full data access khi có DUA mở rộng, KNHANES, pilot study VN.
 
