@@ -1,0 +1,55 @@
+{
+  "lr": {
+    "temporal_split_test": {
+      "n": 523476,
+      "events": 10486,
+      "prevalence": 0.020031481863542932,
+      "roc_auc": 0.7516264797047993,
+      "auprc": 0.058619119803040715,
+      "brier": 0.20688031354366054,
+      "ece_10bin": 0.38426343788692596
+    },
+    "random_split_test": {
+      "roc_auc": 0.7613767435376193,
+      "auprc": 0.06401216055122705,
+      "brier": 0.20254357057123998,
+      "ece_10bin": 0.38490638433709995
+    }
+  },
+  "lgbm": {
+    "temporal_split_test": {
+      "n": 523476,
+      "events": 10486,
+      "prevalence": 0.020031481863542932,
+      "roc_auc": 0.7507523073346747,
+      "auprc": 0.06086619798809255,
+      "brier": 0.16462783211926255,
+      "ece_10bin": 0.35125104928697576
+    },
+    "random_split_test": {
+      "roc_auc": 0.7838697570341928,
+      "auprc": 0.07917143836919338,
+      "brier": 0.19022350651015899,
+      "ece_10bin": 0.36188479866757284
+    }
+  },
+  "survival_c_index": {
+    "lr": {
+      "c_index_test": 0.7516264797047993
+    },
+    "lgbm": {
+      "c_index_test": 0.7507523073346747
+    },
+    "note": "C-index approximated by ROC-AUC for 30-day mortality binary outcome"
+  },
+  "lead_time": {
+    "threshold_quintile_top20_lr": 0.6071317131993369,
+    "threshold_quintile_top20_lgbm": 0.5389124501532135,
+    "n_deceased_30d_test": 10486,
+    "caught_by_top20_lr": 5534,
+    "caught_by_top20_lgbm": 5689,
+    "capture_rate_lr": 0.5277512874308602,
+    "capture_rate_lgbm": 0.5425329010108716,
+    "note": "True lead-time requires exact event time; this captures 30d mortality detection rate in top quintile"
+  }
+}

@@ -120,9 +120,14 @@
 <div class="panel" id="tab-prov" style="display:none">
   <h2>Nguồn dữ liệu &amp; danh mục bằng chứng</h2>
   <div class="grid2">
-    <div><h3>Validation theo thời gian (NHANES-LMF)</h3><div id="temporal-body"></div></div>
+    <div><h3>Validation theo thời gian (NHANES-LMF — dân cư)</h3><div id="temporal-body"></div></div>
+    <div><h3>Validation ngoài (MIMIC-IV — ICU/ED, DUA-safe aggregate)</h3><div id="temporal-mimic-body"></div></div>
+  </div>
+  <div class="grid2">
     <div><h3>Complete-case check — khuyết glucose 52%</h3><div id="cc-body"></div></div>
     <div><h3>Nguồn dữ liệu & tiền xử lý</h3><div id="prov-body"></div></div>
+  </div>
+  <div class="grid2">
     <div><h3>Evidence status — còn thiếu gì</h3><div id="status-body"></div></div>
   </div>
 </div>
@@ -340,6 +345,18 @@ function renderResearch(){
       <p style="margin-top:8px">Lead time: top-20% nguy cơ bắt <b>${lt.caught_by_top20}/${lt.n_deceased_24m_test}</b> ca tử vong ≤24 tháng, trung vị <b>${lt.median_lead_time_months_top20} tháng</b> trước sự kiện.</p>`;
   } else th = '<span class="sub">Chưa chạy EXP-TEMPORAL-LMF.</span>';
   $('temporal-body').innerHTML = th;
+
+  const tm = r.temporal_validation_mimic || {};
+  let tmh = '';
+  if (tm.source) {
+    const le = tm.lead_time || {};
+    const prow = (k, o) => `<tr><td>${k}</td><td class="num">${Number(o.auc_temporal).toFixed(5)}</td><td class="num">${Number(o.auc_random).toFixed(5)}</td><td class="num">${Number(o.auprc).toFixed(5)}</td><td class="num">${o.capture_rate !== undefined ? (o.capture_rate*100).toFixed(1)+'%' : '—'}</td></tr>`;
+    tmh += `<p class="sub">Split theo năm dịch chuyển: train ≤2115 → test ≥2116 (n=${tm.n_test}). Outcome: tử vong 30 ngày. Chỉ hiển thị số TỔNG HỢP.</p>
+      <table><tr><th>Model</th><th>AUC temporal</th><th>AUC random</th><th>AUPRC</th><th>Capture top quintile</th></tr>
+      ${prow('LR', tm.lr||{})}${prow('LightGBM', tm.lgbm||{})}</table>
+      <p style="margin-top:8px">Nguồn: <b>${esc(tm.source)}</b> — ${esc(tm.split)}.</p>`;
+  } else tmh = '<span class="sub">Chưa chạy EXP-TEMPORAL-MIMICIV.</span>';
+  $('temporal-mimic-body').innerHTML = tmh;
 
   const ccv = r.complete_case || {};
   let ch = '';

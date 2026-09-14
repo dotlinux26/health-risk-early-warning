@@ -32,6 +32,7 @@ Kết quả: experiments/EXP-TEMPORAL-LMF/{summary.json, summary.md}
 """
 from __future__ import annotations
 
+import gzip
 import json
 import sys
 from pathlib import Path
@@ -174,6 +175,7 @@ def main() -> None:
                 "ece_10bin": round(expected_calibration_error(yte_a, p_te_cal), 5),
                 "roc_auc": round(roc_auc_score(yte_a, p_te_cal), 4),
             },
+            "_scores": [round(float(s), 6) for s in p_te],
         }
         # random split đối chứng (cùng tỉ lệ test ~48% như temporal)
         rng = np.random.RandomState(SEED)
@@ -263,6 +265,23 @@ def main() -> None:
         except Exception:
             pass
     results["tasks"]["cross_sectional_label_baseline_on_test"] = cross_auc
+
+    # Lưu predictions nén (chỉ score, KHÔNG nhận dạng bệnh nhân) để vẽ ROC thật
+    # Tuân thủ DUA: giữ dữ liệu tổng hợp/điểm nguy cơ, không kèm ID/subject.
+    roc_store = {
+        "dataset": "NHANES-LMF",
+        "task": "death_within_12m",
+        "split": "temporal (train 2015-16 / test 2017-18)",
+        "lr": {"y_true": yte_a.tolist(),
+               "y_score": taskA["lr"]["temporal_split_test"].get("_scores")},
+        "lgbm": {"y_true": yte_a.tolist(),
+                 "y_score": taskA["lgbm"]["temporal_split_test"].get("_scores")},
+    }
+    for n in ["lr", "lgbm"]:
+        roc_store[n]["y_score"] = taskA[n].get("_scores")
+        taskA[n].pop("_scores", None)
+    (OUT_DIR / "roc_predictions.json.gz").write_bytes(
+        gzip.compress(json.dumps(roc_store).encode("utf-8")))
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     (OUT_DIR / "summary.json").write_text(json.dumps(results, indent=2, ensure_ascii=False))

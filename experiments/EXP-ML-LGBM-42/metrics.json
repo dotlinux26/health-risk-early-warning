@@ -7,7 +7,7 @@
   "specificity": 0.9551641313050441,
   "f1": 0.8554491564067488,
   "brier": 0.09010825659012667,
-  "train_seconds": 0.67,
+  "train_seconds": 0.6,
   "n_train": 11419,
   "n_val": 2447,
   "n_test": 2448,

@@ -28,6 +28,10 @@ api.log
 # Backup tự động của cơ sở tri thức
 *.json.bak
 
+# Prediction arrays (aggregate scores cho ROC) — tái sinh được bằng script
+roc_predictions*.json.gz
+**/roc_predictions.json.gz
+
 # Hệ điều hành / IDE
 .DS_Store
 .idea/

@@ -1,0 +1,55 @@
+digraph "dataflow" {
+  rankdir=TB; bgcolor="white"; splines=polyline; nodesep=0.55; ranksep=0.6;
+  node [fontname="Times New Roman", fontsize=12, shape=box, style="rounded,filled",
+        fillcolor=white, color="#333333", penwidth=1.4, margin="0.20,0.13"];
+  edge [color="#333333", penwidth=1.4, arrowsize=0.9];
+
+  subgraph cluster_hang1 {
+    label=""; style=invis;
+    in  [label="Nhập liệu
+(câu hỏi, file)"];
+    st  [label="Lưu trữ
+theo ngày"];
+  }
+
+  subgraph cluster_hang2 {
+    label=""; style=invis;
+    t1  [label="Tầng 1
+Thống kê cá nhân"];
+    t2  [label="Tầng 2
+Tri thức y khoa"];
+    t3  [label="Tầng 3
+Mô hình ML"];
+  }
+
+  subgraph cluster_hang3 {
+    label=""; style=invis;
+    fu  [label="Fusion
+Bayesian"];
+    ca  [label="Hiệu chỉnh
+isotonic"];
+    ex  [label="Giải thích
+& báo cáo"];
+    o   [label="Kết quả
+JSON"];
+  }
+
+  edge [style=invis];
+  t1 -> t2 -> t3;
+  fu -> ca -> ex -> o;
+  edge [style=solid];
+  {rank=same; in; st;}
+  {rank=same; t1; t2; t3;}
+  {rank=same; fu; ca; ex; o;}
+
+  in -> st;
+  st -> t1;
+  st -> t2 [style=dashed];
+  st -> t3 [style=dashed];
+  t1 -> fu;
+  t2 -> fu;
+  t3 -> fu;
+  fu -> ca;
+  ca -> ex;
+  ex -> o;
+}

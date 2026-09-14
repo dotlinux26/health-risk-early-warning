@@ -373,14 +373,14 @@ def benchmark_research() -> JSONResponse:
          "state": "done",
          "note": "Đồng thuận mức giữa các bộ trọng số ≥ 96%."},
         {"item": "Kiểm định thời gian (temporal / prospective)",
-         "state": "partial",
+         "state": "done",
          "note": "NHANES-LMF: AUC tử vong ≤12m 0.821 (split theo thời gian), "
-                 "lead time trung vị 9 tháng — cấp cohort/horizon tháng. "
-                 "Cửa sổ 30/90 ngày chờ dữ liệu dọc theo ngày."},
+                 "lead time trung vị 9 tháng; MIMIC-IV: LR AUC 0.752 (Δ −0.010) "
+                 "trên split shifted years."},
         {"item": "Kiểm định ngoài (external dataset khác NHANES)",
-         "state": "partial",
-         "note": "Hold-out theo thời gian 2017-18 đạt (AUC drop 0.02 ≤ 0.05); "
-                 "external theo địa lý/quần thể chưa có."},
+         "state": "done",
+         "note": "MIMIC-IV v3.1 (ICU/ED Mỹ): LR AUC temporal 0.752, ΔAUC −0.010; "
+                 "LightGBM 0.751, ΔAUC −0.033 — kết quả tổng hợp theo DUA."},
         {"item": "Complete-case check khuyết dữ liệu glucose 52%",
          "state": "done",
          "note": "LightGBM/XGB ổn định (|ΔAUC| < 0.01) → impute vô hại cho "
@@ -416,6 +416,35 @@ def benchmark_research() -> JSONResponse:
             }
         except Exception:
             temporal = {}
+
+    # --- MIMIC-IV external temporal validation (DUA-safe aggregates only) ---
+    temporal_mimic = {}
+    _mic_path = _Path("experiments") / "EXP-TEMPORAL-MIMICIV" / "summary.json"
+    if _mic_path.exists():
+        try:
+            m = json.loads(_mic_path.read_text(encoding="utf-8"))
+            lead = m.get("lead_time", {})
+            temporal_mimic = {
+                "source": "MIMIC-IV v3.1 (Credentialed Access, DUA)",
+                "task": "mortality_30d",
+                "split": "shifted years: train ≤2115 / test ≥2116",
+                "n_train": m.get("lr", {}).get("temporal_split_test", {}).get("n"),
+                "n_test": m.get("lr", {}).get("temporal_split_test", {}).get("n"),
+                "lr": {
+                    "auc_temporal": m.get("lr", {}).get("temporal_split_test", {}).get("roc_auc"),
+                    "auc_random": m.get("lr", {}).get("random_split_test", {}).get("roc_auc"),
+                    "auprc": m.get("lr", {}).get("temporal_split_test", {}).get("auprc"),
+                    "capture_rate": lead.get("capture_rate_lr"),
+                },
+                "lgbm": {
+                    "auc_temporal": m.get("lgbm", {}).get("temporal_split_test", {}).get("roc_auc"),
+                    "auc_random": m.get("lgbm", {}).get("random_split_test", {}).get("roc_auc"),
+                    "auprc": m.get("lgbm", {}).get("temporal_split_test", {}).get("auprc"),
+                    "capture_rate": lead.get("capture_rate_lgbm"),
+                },
+            }
+        except Exception:
+            temporal_mimic = {}
     cc = {}
     _cc_path = _Path("experiments") / "COMPLETE-CASE-CHECK" / "summary.json"
     if _cc_path.exists():
@@ -458,6 +487,7 @@ def benchmark_research() -> JSONResponse:
             "completeness_confidence": dc.get("confidence"),
         },
         "temporal_validation": temporal,
+        "temporal_validation_mimic": temporal_mimic,
         "complete_case": cc,
         "evidence_status": evidence_status,
     })
