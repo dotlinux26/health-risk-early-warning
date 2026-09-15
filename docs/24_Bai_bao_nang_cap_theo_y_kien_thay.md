@@ -41,7 +41,7 @@ Các mô hình đánh giá nguy cơ truyền thống — Framingham (1998), QRIS
 >
 > Guo và cộng sự (2024) [11] cho thấy foundation model CLMBR-T đạt hiệu suất tương đương Gradient Boosting Machine nhưng yêu cầu dữ liệu khổng lồ, không phù hợp nghiên cứu quy mô nhỏ. Swinckels và cộng sự (2024) [12] tổng hợp 20 nghiên cứu ML/DL trên EHR dọc, chỉ ra 90% thiếu external validation. Kraljevic và cộng sự (2024) [13] phát triển Foresight — transformer tạo sinh đạt precision@10 0,68–0,91 nhưng ưu tiên xác suất xuất hiện thay vì tính cấp bách và thiếu tri thức y khoa nhúng. Shmatko và cộng sự (2025) [14] đề xuất Delphi-2M đạt AUROC 0,76 đa bệnh lý nhưng thiếu giải thích. Shen và cộng sự (2025) [15] tổng kết 25 năm EHR, nêu interoperability, privacy là rào cản chính.
 >
-> Gần đây, các nghiên cứu trong nước sử dụng học máy để dự đoán bệnh mạn tính cũng cho thấy hiệu quả của boosting/ensemble: Nguyễn và cộng sự (2024) [18] dùng SMOTE kết hợp Forest Diffusion và stacking các mô hình boosting để dự báo đái tháo đường trên Pima Indians Dataset, đạt accuracy 98,75%, đồng thời đề xuất hệ thống theo dõi đường huyết và hỗ trợ khuyến nghị cho người bệnh. Ở góc độ ứng dụng lâm sàng end-to-end, Phan và cộng sự (2025) [19] phát triển USLF-Net — CNN phân loại xơ hóa gan từ siêu âm với độ chính xác 97,64%, kèm ứng dụng hỗ trợ bác sĩ trên thiết bị di động. Cả hai hướng này đều cho thấy mô hình cần gắn với hệ thống hỗ trợ sức khỏe, song chưa cá nhân hóa theo đoạn dọc (longitudinal baseline), chưa có rule engine lâm sàng và chưa kiểm định temporally tương đương NHANES-LMF/MIMIC-IV như đề tài này.
+> Gần đây, các nghiên cứu trong nước sử dụng học máy để dự đoán bệnh mạn tính cũng cho thấy hiệu quả của boosting/ensemble: Nguyễn và cộng sự (2024) [18] dùng SMOTE kết hợp Forest Diffusion và stacking các mô hình boosting để dự báo đái tháo đường trên Pima Indians Dataset, đạt accuracy 98,75%, đồng thời đề xuất hệ thống theo dõi đường huyết và hỗ trợ khuyến nghị cho người bệnh. Ở góc độ ứng dụng lâm sàng end-to-end, Phan và cộng sự (2025) [19] phát triển USLF-Net — CNN phân loại xơ hóa gan từ siêu âm với độ chính xác 97,64%, kèm ứng dụng hỗ trợ bác sĩ trên thiết bị di động. Cả hai hướng này đều cho thấy mô hình cần gắn với hệ thống hỗ trợ sức khỏe, song chưa cá nhân hóa theo đoạn dọc (longitudinal baseline), chưa có rule engine lâm sàng và chưa kiểm định temporally trên NHANES-LMF/MIMIC-IV như mô hình đề xuất.
 
 ### 1.2 Vấn đề
 
@@ -594,23 +594,24 @@ Glucose fasting thiếu 52% → impute median chấp nhận được cho tree-ba
 
 ### 6.1 Nhận định chính
 
-- **[11]** xác nhận GBM đạt ngang foundation model → LR + LightGBM trong đề tài phù hợp làm baseline chi phí thấp.
-- LR ổn định nhất: ΔAUC gần 0, calibration tốt hơn → phù hợp baseline bệnh viện.
-- **[14]** Delphi-2M AUROC 0.76 (thấp hơn LR 0.821 trên tử vong) nhưng đa bệnh lý → đề tài tập trung hẹp hơn (NCDs) nên AUC cao hơn.
-- **[13]** Foresight precision@10 cao (0.68–0.91) nhưng thiếu giải thích → đề tài bổ sung XAI theo thiết kế (SHAP + reason_chain).
-- **[18]** khẳng định hướng boosting + hệ thống hỗ trợ sức khỏe khả thi chi phí thấp; đề tài bổ sung rule engine lâm sàng và kiểm định temporal mà [18] chưa có.
-- Thiết kế ba trụ cột giúp tăng độ tin cậy khi một trụ cột gặp vấn đề — trả lời [12] về thiếu minh bạch lâm sàng.
+- **[11]** báo cáo GBM đạt hiệu năng ngang foundation model khi few-shot → các thành phần học máy trong mô hình đề xuất sử dụng LR + LightGBM làm baseline chi phí thấp.
+- LR trong mô hình đề xuất có ΔAUC gần 0 giữa train/test temporal và calibration tốt trên NHANES-LMF.
+- **[14]** Delphi-2M AUROC 0,76 trên đa bệnh lý (cross-country 0,67); mô hình đề xuất LR AUC 0,821 trên tập con NCD tử vong (temporal NHANES-LMF).
+- **[13]** Foresight precision@10 = 0,68–0,91 trên dự đoán đa bệnh; mô hình đề xuất bổ sung cơ chế giải thích theo thiết kế (rule engine + AnomalyRecord chi tiết từng chỉ số).
+- **[18]** dùng boosting + SMOTE trên Pima Indians (768 mẫu) đạt accuracy 98,75%; mô hình đề xuất bổ sung rule engine lâm sàng 9 luật và kiểm định temporal trên 2 dataset.
+- Thiết kế ba trụ cột trong mô hình đề xuất cho phép duy trì hoạt động khi một trụ cột (ví dụ số liệu đo thiếu) gặp sự cố — liên quan tới [12] về thiếu minh bạch lâm sàng.
 
 ### 6.2 So sánh với nghiên cứu trước
 
-| Tiêu chí | [11] Foundation | [12] ML/DL review | [13] Foresight | [14] Delphi | [18] SDAGS | [19] USLF-Net | **Đề tài này** |
+| Tiêu chí | [11] CLMBR-T | [12] Review ML/DL EHR | [13] Foresight | [14] Delphi-2M | [18] SDAGS | [19] USLF-Net | **Mô hình đề xuất** |
 |---|---|---|---|---|---|---|---|
-| Cá nhân hóa | Vừa | Vừa | Vừa | Vừa | Thấp (dataset tĩnh) | Thấp (ảnh) | **Cao (đường cơ sở cá nhân)** |
-| Giải thích | Thấp | Trung bình | Thấp | Vừa | Thấp | Thấp | **Cao (multi-tier XAI)** |
-| Chi phí dữ liệu | Rất cao | Vừa | Cao | Cao | Thấp | Vừa (ảnh) | **Thấp (chỉ số cơ thể)** |
-| External validation | Có (3 trung tâm) | Chỉ 10% | Có (3 BV) | Có (UK→Đan Mạch) | Không (1 dataset) | Không (1 dataset) | **2 dataset độc lập (NHANES-LMF + MIMIC-IV)** |
-| Temporal validation | Không | Không rõ | Không | Không | Không | Không | **Có (train quá khứ / test tương lai)** |
-| An toàn lâm sàng | N/A | N/A | Không | Không | Một phần (hệ khuyến nghị) | Một phần (app) | **Cao (chỉ hỗ trợ quyết định)** |
+| **Dữ liệu** | 2,57M BN, Stanford → SickKids + MIMIC-IV | Tổng hợp 20 nghiên cứu ML/DL trên EHR dọc | 811k BN, 3 BV UK | UK Biobank + 1,93M Đan Mạch | Pima Indians (768 mẫu) | 6,323 ảnh siêu âm F0–F4 | NHANES-LMF n=16,314; MIMIC-IV n=546,028 |
+| **Phương pháp** | Foundation model 141M tham số | Scoping review | GPT-2generative pretrained | GPT-2 generative, 2 dataset quốc gia | SMOTE + Forest Diffusion + stacking GBT | CNN phân loại ảnh siêu âm | LightGBM + isotonic + rule engine 9 luật |
+| **Hiệu năng** | Foundation ≈ GBM khi few-shot; cải thiện 13% trên MIMIC-IV | LSTM/RNN phổ biến nhất trên EHR dọc (tổng hợp 20 nghiên cứu) | Precision@10: 0,68–0,91 | AUROC 0,76 (cross-country 0,67) | Không báo AUC cụ thể trên dataset nhỏ | Accuracy 97,64% (phân loại F0–F4) | LR AUC 0,821; LGBM AUC 0,771 (NHANES-LMF temporal); LR AUC 0,752; LGBM AUC 0,751 (MIMIC-IV temporal) |
+| **Validation ngoại** | 3 trung tâm (Stanford, SickKids, MIMIC-IV) | Báo cáo: 90% nghiên cứu thiếu external validation | 3 bệnh viện UK | UK → Đan Mạch (2 quốc gia) | 1 dataset | 1 dataset | 2 dataset độc lập: NHANES-LMF (dân cư Mỹ) + MIMIC-IV (ICU/ED Mỹ) |
+| **Temporal validation** | Không được báo cáo trong paper | Không rõ trong các nghiên cứu tổng hợp | Không | Không | Không | Không | Train 2015–16 / Test 2017–18 (NHANES); shifted ≤2115 / ≥2116 (MIMIC-IV) |
+| **Cơ chế giải thích** | Ít (embedding space không trực tiếp với bác sĩ) | Đánh giá mức độ XAI trong 20 nghiên cứu | Thiếu cơ chế giải thích | Thiếu giải thích; AUROC không kèm reason chain | Không rõ | Không rõ | Rule engine JSON có audit trail + Fusion Bayesian trọng số tối ưu + AnomalyRecord chi tiết từng chỉ số |
+| **Triển khai** | Yêu cầu hạ tầng lớn (triệu bệnh nhân + GPU cluster) | — | Yêu cầu 811k BN + GPT-2 base | Yêu cầu 2+ triệu mẫu quốc gia | 768 mẫu nhỏ | 6,323 ảnh | ~16k mẫu công khai (NHANES) + ~546k mẫu DUA (MIMIC-IV); CPU tiêu chuẩn |
 
 ### 6.3 Hạn chế
 
