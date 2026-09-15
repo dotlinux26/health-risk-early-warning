@@ -1,49 +1,21 @@
-flowchart LR
-    subgraph RAW["DỮ LIỆU ĐẦU VÀO"]
-        D1["df_wide<br/>n_ngày × 10 chỉ số"]
-    end
-
-    subgraph PRE["TIỀN XỬ LÝ"]
-        P1["resample_to_daily()"]
-        P2["impute_missing (giới hạn 30%)"]
-        P3["build_baseline (cửa sổ 90 ngày)"]
-    end
-
-    subgraph ZS["Z-SCORE CÁ NHÂN"]
-        Z1["Z = (x − μ_base) / σ_base"]
-        Z2["flagged nếu |Z| ≥ 2,0"]
-        Z3["trend: rising, falling, stable"]
-    end
-
-    subgraph IF["ISOLATION FOREST"]
-        I1["Features: 30 ngày rolling mean/std"]
-        I2["contamination = 0,05"]
-        I3["anomaly_score → flagged"]
-    end
-
-    subgraph EW["EWMA & DỰ BÁO"]
-        E1["EWMA (λ = 0,2)"]
-        E2["forecast_error = x_t − EWMA_t"]
-        E3["flagged nếu |z_forecast| ≥ 2,5"]
-    end
-
-    subgraph OUT["ĐẦU RA"]
-        O1["AnomalyRecord[]<br/>metric, z_score, flagged,<br/>trend, forecast_z"]
-    end
-
-    D1 --> P1
-    P1 --> P2
-    P2 --> P3
-    P3 --> ZS
-    P3 --> IF
-    P3 --> EW
-    ZS --> O1
-    IF --> O1
-    EW --> O1
-
-    style RAW fill:#ffffff,stroke:#888888,color:#222222
-    style PRE fill:#ffffff,stroke:#999999,color:#1a1a1a
-    style ZS fill:#ffffff,stroke:#3498db,color:#1a1a1a
-    style IF fill:#ffffff,stroke:#8e44ad,color:#1a1a1a
-    style EW fill:#ffffff,stroke:#27ae60,color:#1a1a1a
-    style OUT fill:#ffffff,stroke:#e67e22,color:#1a1a1a
+block-beta
+  columns 3
+  RAW["DỮ LIỆU\nn ngày × 10 chỉ số"]:1
+  PRE["TIỀN XỬ LÝ\nresample · impute · baseline 90 ngày"]:2
+  ZS["Z-Score cá nhân\n|Z| ≥ 2.0"]:1
+  IF1["Isolation Forest\ncontamination 0.05"]:1
+  EW["EWMA + Dự báo\nλ = 0.2 · |Z| ≥ 2.5"]:1
+  OUT["AnomalyRecord[]\nmetric · flagged · trend"]:3
+  RAW --> PRE
+  PRE --> ZS
+  PRE --> IF1
+  PRE --> EW
+  ZS --> OUT
+  IF1 --> OUT
+  EW --> OUT
+  style RAW fill:#e8e8e8,stroke:#888,color:#222
+  style PRE fill:#fff,stroke:#999,color:#222
+  style ZS fill:#fff,stroke:#3498db,color:#222
+  style IF1 fill:#fff,stroke:#8e44ad,color:#222
+  style EW fill:#fff,stroke:#27ae60,color:#222
+  style OUT fill:#f9f9f9,stroke:#e67e22,color:#222

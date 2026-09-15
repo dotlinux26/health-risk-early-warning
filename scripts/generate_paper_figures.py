@@ -375,185 +375,108 @@ def fig6_delta():
 
 
 # ---------------------------------------------------------------------------
-# Hình 7: Kiến trúc tổng thể ba tầng — Mermaid block (không emoji, không nền)
+# Hình 7: Kiến trúc tổng thể ba tầng — block-beta gọn
 # ---------------------------------------------------------------------------
-FIG7_MMD = """flowchart TB
-    subgraph IN["ĐẦU VÀO: Chuỗi thời gian chỉ số cơ thể"]
-        A["10 chỉ số: HA, nhịp_tim, SpO2, glucose,<br/>HbA1c, creatinine, eGFR, BMI, cholesterol,<br/>triglyceride"]
-    end
-
-    subgraph T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG CÁ NHÂN HÓA"]
-        T1A["Z-Score cá nhân<br/>|Z| ≥ 2,0, cửa sổ 90 ngày"]
-        T1B["Isolation Forest<br/>contamination = 0,05"]
-        T1C["EWMA crossing<br/>λ = 0,2"]
-        T1D["Sai số dự báo<br/>α = 0,3, |Z| ≥ 2,5"]
-    end
-
-    subgraph T2["TẦNG 2 — ÁNH XẠ TRI THỨC Y KHOA"]
-        T2A["Rule Engine<br/>9 luật, JSON + governance"]
-        T2B["Kích hoạt luật theo severity<br/>severity ∈ [0,5 − 0,9]"]
-    end
-
-    subgraph T3["TẦNG 3 — TỔNG HỢP RỦI RO & QUYẾT ĐỊNH"]
-        T3A["Fusion Bayesian<br/>trọng số [0,30 − 0,35 − 0,25 − 0,10]"]
-        T3B["Hiệu chỉnh isotonic<br/>ECE 1,7% → 0,0%"]
-        T3C["Sàn an toàn<br/>severity ≥ 0,7 → score ≥ 0,50"]
-        T3D["Mức rủi ro<br/>THẤP, TRUNG BÌNH, CAO"]
-    end
-
-    ML["LightGBM<br/>hiệu chỉnh isotonic"]
-
-    A --> T1A
-    A --> T1B
-    A --> T1C
-    A --> T1D
-    T1A --> T2A
-    T1B --> T2A
-    T1C --> T2A
-    T1D --> T2A
-    T2A --> T2B
-    T2B --> T3A
-    ML -.-> T3A
-    T3A --> T3B
-    T3B --> T3C
-    T3C --> T3D
-
-    style IN fill:#e8e8e8,stroke:#888888,color:#222222
-    style T1 fill:#d6eaf8,stroke:#3498db,color:#1a1a1a
-    style T2 fill:#fdebd0,stroke:#e67e22,color:#1a1a1a
-    style T3 fill:#d5f5e3,stroke:#27ae60,color:#1a1a1a
-    style ML fill:#e8daef,stroke:#8e44ad,color:#1a1a1a
+FIG7_MMD = """block-beta
+  columns 3
+  IN["ĐẦU VÀO: 10 chỉ số chuỗi thời gian"]:3
+  T1["TẦNG 1\\nZ-Score · IF · EWMA · Dự báo"]:1
+  T2["TẦNG 2\\nRule Engine 9 luật"]:1
+  T3["TẦNG 3\\nFusion · Isotonic · Sàn an toàn"]:1
+  ML["LightGBM"]:1
+  OUT["KẾT QUẢ: THẤP · TRUNG BÌNH · CAO"]:2
+  IN --> T1
+  T1 --> T2
+  T2 --> T3
+  ML -.-> T3
+  T3 --> OUT
+  style IN fill:#e8e8e8,stroke:#888,color:#222
+  style T1 fill:#fff,stroke:#3498db,color:#222
+  style T2 fill:#fff,stroke:#e67e22,color:#222
+  style T3 fill:#fff,stroke:#27ae60,color:#222
+  style ML fill:#fff,stroke:#8e44ad,color:#222
+  style OUT fill:#f9f9f9,stroke:#555,color:#222
 """
 
 
 # ---------------------------------------------------------------------------
-# Hình 8: Chi tiết Tầng 1 — 4 mô-đun phát hiện bất thường (mermaid, không nền)
+# Hình 8: Chi tiết Tầng 1 — block-beta gọn
 # ---------------------------------------------------------------------------
-FIG8_MMD = """flowchart LR
-    subgraph RAW["DỮ LIỆU ĐẦU VÀO"]
-        D1["df_wide<br/>n_ngày × 10 chỉ số"]
-    end
-
-    subgraph PRE["TIỀN XỬ LÝ"]
-        P1["resample_to_daily()"]
-        P2["impute_missing (giới hạn 30%)"]
-        P3["build_baseline (cửa sổ 90 ngày)"]
-    end
-
-    subgraph ZS["Z-SCORE CÁ NHÂN"]
-        Z1["Z = (x − μ_base) / σ_base"]
-        Z2["flagged nếu |Z| ≥ 2,0"]
-        Z3["trend: rising, falling, stable"]
-    end
-
-    subgraph IF["ISOLATION FOREST"]
-        I1["Features: 30 ngày rolling mean/std"]
-        I2["contamination = 0,05"]
-        I3["anomaly_score → flagged"]
-    end
-
-    subgraph EW["EWMA & DỰ BÁO"]
-        E1["EWMA (λ = 0,2)"]
-        E2["forecast_error = x_t − EWMA_t"]
-        E3["flagged nếu |z_forecast| ≥ 2,5"]
-    end
-
-    subgraph OUT["ĐẦU RA"]
-        O1["AnomalyRecord[]<br/>metric, z_score, flagged,<br/>trend, forecast_z"]
-    end
-
-    D1 --> P1
-    P1 --> P2
-    P2 --> P3
-    P3 --> ZS
-    P3 --> IF
-    P3 --> EW
-    ZS --> O1
-    IF --> O1
-    EW --> O1
-
-    style RAW fill:#ffffff,stroke:#888888,color:#222222
-    style PRE fill:#ffffff,stroke:#999999,color:#1a1a1a
-    style ZS fill:#ffffff,stroke:#3498db,color:#1a1a1a
-    style IF fill:#ffffff,stroke:#8e44ad,color:#1a1a1a
-    style EW fill:#ffffff,stroke:#27ae60,color:#1a1a1a
-    style OUT fill:#ffffff,stroke:#e67e22,color:#1a1a1a
+FIG8_MMD = """block-beta
+  columns 3
+  RAW["DỮ LIỆU\\nn ngày × 10 chỉ số"]:1
+  PRE["TIỀN XỬ LÝ\\nresample · impute · baseline 90 ngày"]:2
+  ZS["Z-Score cá nhân\\n|Z| ≥ 2.0"]:1
+  IF1["Isolation Forest\\ncontamination 0.05"]:1
+  EW["EWMA + Dự báo\\nλ = 0.2 · |Z| ≥ 2.5"]:1
+  OUT["AnomalyRecord[]\\nmetric · flagged · trend"]:3
+  RAW --> PRE
+  PRE --> ZS
+  PRE --> IF1
+  PRE --> EW
+  ZS --> OUT
+  IF1 --> OUT
+  EW --> OUT
+  style RAW fill:#e8e8e8,stroke:#888,color:#222
+  style PRE fill:#fff,stroke:#999,color:#222
+  style ZS fill:#fff,stroke:#3498db,color:#222
+  style IF1 fill:#fff,stroke:#8e44ad,color:#222
+  style EW fill:#fff,stroke:#27ae60,color:#222
+  style OUT fill:#f9f9f9,stroke:#e67e22,color:#222
 """
 
 
 # ---------------------------------------------------------------------------
-# Hình 9: Chi tiết Tầng 2 — Rule Engine và Knowledge Base (mermaid, không nền)
+# Hình 9: Chi tiết Tầng 2 — block-beta gọn
 # ---------------------------------------------------------------------------
-FIG9_MMD = """flowchart TB
-    subgraph SNAP["SNAPSHOT HIỆN TẠI"]
-        S1["snapshot = metric: value"]
-    end
-
-    subgraph KB["KNOWLEDGE BASE — knowledge_base.json"]
-        K1["metrics: metadata + ranges"]
-        K2["system_labels: 5 hệ thống cơ quan"]
-        K3["rules: 9 luật hoạt động<br/>AND/OR logic + modes"]
-    end
-
-    subgraph EVAL["ĐÁNH GIÁ LUẬT"]
-        E1["normalize_modes(modes)"]
-        E2["for rule in rules:<br/>nếu status == active<br/>và _rule_in_modes(rule, modes)"]
-        E3["_eval_condition(cond, snapshot)<br/>hỗ trợ nested AND/OR"]
-        E4["collect matched_metrics"]
-    end
-
-    subgraph OUT["ĐẦU RA: RuleHit objects"]
-        O1["RuleHit: rule_id, severity,<br/>system, specialty, evidence,<br/>matched_metrics, source_url"]
-    end
-
-    SNAP --> EVAL
-    KB --> EVAL
-    E1 --> E2
-    E2 --> E3
-    E3 --> E4
-    E4 --> OUT
-
-    style SNAP fill:#ffffff,stroke:#888888,color:#222222
-    style KB fill:#ffffff,stroke:#e67e22,color:#1a1a1a
-    style EVAL fill:#ffffff,stroke:#3498db,color:#1a1a1a
-    style OUT fill:#ffffff,stroke:#27ae60,color:#1a1a1a
+FIG9_MMD = """block-beta
+  columns 2
+  SNAP["Snapshot hiện tại\\n{metric: value}"]:1
+  KB["Knowledge Base\\n9 luật · JSON"]:1
+  EVAL["ĐÁNH GIÁ LUẬT\\nnormalize · filter active\\n_eval_condition AND/OR\\ncollect matched_metrics"]:2
+  OUT["RuleHit[]\\nrule_id · severity · evidence"]:2
+  SNAP --> EVAL
+  KB --> EVAL
+  EVAL --> OUT
+  style SNAP fill:#e8e8e8,stroke:#888,color:#222
+  style KB fill:#fff,stroke:#e67e22,color:#222
+  style EVAL fill:#fff,stroke:#3498db,color:#222
+  style OUT fill:#f9f9f9,stroke:#27ae60,color:#222
 """
 
 
 # ---------------------------------------------------------------------------
-# Hình 10: Chi tiết Tầng 3 — Fusion Bayesian + Isotonic + Phân loại (mermaid)
+# Hình 10: Chi tiết Tầng 3 — block-beta gọn
 # ---------------------------------------------------------------------------
-FIG10_MMD = """flowchart LR
-    subgraph COMP["ĐIỂM THÀNH PHẦN"]
-        C1["stat_score = min(1, max|Z|/4)"]
-        C2["knowledge_score = min(1, max_severity)"]
-        C3["ml_score = LightGBM + isotonic"]
-        C4["trend_score = min(1, 2·rising/N)"]
-    end
-
-    subgraph FUS["FUSION BAYESIAN"]
-        F1["total = Σ(wᵢ × scoreᵢ)<br/>trọng số [0,30 − 0,35 − 0,25 − 0,10]"]
-        F2["Sàn an toàn:<br/>nếu severity ≥ 0,7 → total ≥ 0,50"]
-    end
-
-    subgraph THRESH["PHÂN LOẠI RỦI RO"]
-        T1["THẤP: total < 0,33"]
-        T2["TRUNG BÌNH: 0,33 ≤ total < 0,66"]
-        T3["CAO: total ≥ 0,66"]
-    end
-
-    C1 --> F1
-    C2 --> F1
-    C3 --> F1
-    C4 --> F1
-    F1 --> F2
-    F2 --> T1
-    F2 --> T2
-    F2 --> T3
-
-    style COMP fill:#ffffff,stroke:#3498db,color:#1a1a1a
-    style FUS fill:#ffffff,stroke:#e67e22,color:#1a1a1a
-    style THRESH fill:#ffffff,stroke:#27ae60,color:#1a1a1a
+FIG10_MMD = """block-beta
+  columns 4
+  C1["stat\\nmin(1,|Z|/4)"]:1
+  C2["knowledge\\nmin(1,sev)"]:1
+  C3["ml\\nLightGBM+iso"]:1
+  C4["trend\\nmin(1,2·rise/N)"]:1
+  FUS["FUSION BAYESIAN\\nΣwᵢ×scoreᵢ\\n[0.30;0.35;0.25;0.10]"]:4
+  SF["SÀN AN TOÀN\\nsev≥0.7 → score≥0.50"]:4
+  T1["THẤP <0.33"]:1
+  T2["TRUNG BÌNH\\n0.33–0.66"]:1
+  T3["CAO ≥0.66"]:1
+  space:1
+  C1 --> FUS
+  C2 --> FUS
+  C3 --> FUS
+  C4 --> FUS
+  FUS --> SF
+  SF --> T1
+  SF --> T2
+  SF --> T3
+  style C1 fill:#fff,stroke:#3498db,color:#222
+  style C2 fill:#fff,stroke:#3498db,color:#222
+  style C3 fill:#fff,stroke:#8e44ad,color:#222
+  style C4 fill:#fff,stroke:#3498db,color:#222
+  style FUS fill:#fff,stroke:#e67e22,color:#222
+  style SF fill:#fff,stroke:#e74c3c,color:#222
+  style T1 fill:#fff,stroke:#27ae60,color:#222
+  style T2 fill:#fff,stroke:#e67e22,color:#222
+  style T3 fill:#fff,stroke:#e74c3c,color:#222
 """
 
 

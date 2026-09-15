@@ -1,33 +1,13 @@
-flowchart TB
-    subgraph SNAP["SNAPSHOT HIỆN TẠI"]
-        S1["snapshot = metric: value"]
-    end
-
-    subgraph KB["KNOWLEDGE BASE — knowledge_base.json"]
-        K1["metrics: metadata + ranges"]
-        K2["system_labels: 5 hệ thống cơ quan"]
-        K3["rules: 9 luật hoạt động<br/>AND/OR logic + modes"]
-    end
-
-    subgraph EVAL["ĐÁNH GIÁ LUẬT"]
-        E1["normalize_modes(modes)"]
-        E2["for rule in rules:<br/>nếu status == active<br/>và _rule_in_modes(rule, modes)"]
-        E3["_eval_condition(cond, snapshot)<br/>hỗ trợ nested AND/OR"]
-        E4["collect matched_metrics"]
-    end
-
-    subgraph OUT["ĐẦU RA: RuleHit objects"]
-        O1["RuleHit: rule_id, severity,<br/>system, specialty, evidence,<br/>matched_metrics, source_url"]
-    end
-
-    SNAP --> EVAL
-    KB --> EVAL
-    E1 --> E2
-    E2 --> E3
-    E3 --> E4
-    E4 --> OUT
-
-    style SNAP fill:#ffffff,stroke:#888888,color:#222222
-    style KB fill:#ffffff,stroke:#e67e22,color:#1a1a1a
-    style EVAL fill:#ffffff,stroke:#3498db,color:#1a1a1a
-    style OUT fill:#ffffff,stroke:#27ae60,color:#1a1a1a
+block-beta
+  columns 2
+  SNAP["Snapshot hiện tại\n{metric: value}"]:1
+  KB["Knowledge Base\n9 luật · JSON"]:1
+  EVAL["ĐÁNH GIÁ LUẬT\nnormalize · filter active\n_eval_condition AND/OR\ncollect matched_metrics"]:2
+  OUT["RuleHit[]\nrule_id · severity · evidence"]:2
+  SNAP --> EVAL
+  KB --> EVAL
+  EVAL --> OUT
+  style SNAP fill:#e8e8e8,stroke:#888,color:#222
+  style KB fill:#fff,stroke:#e67e22,color:#222
+  style EVAL fill:#fff,stroke:#3498db,color:#222
+  style OUT fill:#f9f9f9,stroke:#27ae60,color:#222

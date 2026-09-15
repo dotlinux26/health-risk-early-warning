@@ -1,46 +1,19 @@
-flowchart TB
-    subgraph IN["ĐẦU VÀO: Chuỗi thời gian chỉ số cơ thể"]
-        A["10 chỉ số: HA, nhịp_tim, SpO2, glucose,<br/>HbA1c, creatinine, eGFR, BMI, cholesterol,<br/>triglyceride"]
-    end
-
-    subgraph T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG CÁ NHÂN HÓA"]
-        T1A["Z-Score cá nhân<br/>|Z| ≥ 2,0, cửa sổ 90 ngày"]
-        T1B["Isolation Forest<br/>contamination = 0,05"]
-        T1C["EWMA crossing<br/>λ = 0,2"]
-        T1D["Sai số dự báo<br/>α = 0,3, |Z| ≥ 2,5"]
-    end
-
-    subgraph T2["TẦNG 2 — ÁNH XẠ TRI THỨC Y KHOA"]
-        T2A["Rule Engine<br/>9 luật, JSON + governance"]
-        T2B["Kích hoạt luật theo severity<br/>severity ∈ [0,5 − 0,9]"]
-    end
-
-    subgraph T3["TẦNG 3 — TỔNG HỢP RỦI RO & QUYẾT ĐỊNH"]
-        T3A["Fusion Bayesian<br/>trọng số [0,30 − 0,35 − 0,25 − 0,10]"]
-        T3B["Hiệu chỉnh isotonic<br/>ECE 1,7% → 0,0%"]
-        T3C["Sàn an toàn<br/>severity ≥ 0,7 → score ≥ 0,50"]
-        T3D["Mức rủi ro<br/>THẤP, TRUNG BÌNH, CAO"]
-    end
-
-    ML["LightGBM<br/>hiệu chỉnh isotonic"]
-
-    A --> T1A
-    A --> T1B
-    A --> T1C
-    A --> T1D
-    T1A --> T2A
-    T1B --> T2A
-    T1C --> T2A
-    T1D --> T2A
-    T2A --> T2B
-    T2B --> T3A
-    ML -.-> T3A
-    T3A --> T3B
-    T3B --> T3C
-    T3C --> T3D
-
-    style IN fill:#e8e8e8,stroke:#888888,color:#222222
-    style T1 fill:#d6eaf8,stroke:#3498db,color:#1a1a1a
-    style T2 fill:#fdebd0,stroke:#e67e22,color:#1a1a1a
-    style T3 fill:#d5f5e3,stroke:#27ae60,color:#1a1a1a
-    style ML fill:#e8daef,stroke:#8e44ad,color:#1a1a1a
+block-beta
+  columns 3
+  IN["ĐẦU VÀO: 10 chỉ số chuỗi thời gian"]:3
+  T1["TẦNG 1\nZ-Score · IF · EWMA · Dự báo"]:1
+  T2["TẦNG 2\nRule Engine 9 luật"]:1
+  T3["TẦNG 3\nFusion · Isotonic · Sàn an toàn"]:1
+  ML["LightGBM"]:1
+  OUT["KẾT QUẢ: THẤP · TRUNG BÌNH · CAO"]:2
+  IN --> T1
+  T1 --> T2
+  T2 --> T3
+  ML -.-> T3
+  T3 --> OUT
+  style IN fill:#e8e8e8,stroke:#888,color:#222
+  style T1 fill:#fff,stroke:#3498db,color:#222
+  style T2 fill:#fff,stroke:#e67e22,color:#222
+  style T3 fill:#fff,stroke:#27ae60,color:#222
+  style ML fill:#fff,stroke:#8e44ad,color:#222
+  style OUT fill:#f9f9f9,stroke:#555,color:#222
