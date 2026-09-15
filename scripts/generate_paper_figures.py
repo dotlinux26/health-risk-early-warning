@@ -377,27 +377,18 @@ def fig6_delta():
 # ---------------------------------------------------------------------------
 # Hình 7: Kiến trúc tổng thể ba tầng — block-beta gọn
 # ---------------------------------------------------------------------------
-FIG7_MMD = """block-beta
-  columns 4
-  IN[("ĐẦU VÀO: 10 chỉ số cơ thể\\nHA · HR · SpO2 · glucose · HbA1c·\\ncreatinine · eGFR · BMI · cholesterol · triglyceride")]:4
-  space:1
-  T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG\\nZ-Score (|Z| ≥ 2,0 · 90 ngày)\\nIF (contamination 0,05)\\nEWMA λ = 0,2 · Dự báo α = 0,3"]:1
-  T2["TẦNG 2 — TRI THỨC Y KHOA\\nRule Engine JSON · 9 luật\\nseverity ∈ [0,5 − 0,9]\\naudit trail + versioning"]:1
-  T3["TẦNG 3 — RỦI RO & QUYẾT ĐỊNH\\nFusion [0,30; 0,35; 0,25; 0,10]\\nIsotonic\\nSàn an toàn sev ≥ 0,7 → ≥ 0,50"]:1
-  ML["LightGBM\\nhiệu chỉnh isotonic"]:1
-  space:1
-  OUT[("KẾT QUẢ\\nTHẤP · TRUNG BÌNH · CAO\\nrisk_level + bằng chứng + khuyến nghị")]:2
-  IN --> T1
-  T1 --> T2
-  T2 --> T3
-  ML -.-> T3
-  T3 --> OUT
-  style IN fill:#eee,stroke:#777,color:#222
-  style T1 fill:#eaf2fb,stroke:#3498db,color:#222
-  style T2 fill:#fef5e7,stroke:#e67e22,color:#222
-  style T3 fill:#eafaf1,stroke:#27ae60,color:#222
-  style ML fill:#f4ecf7,stroke:#8e44ad,color:#222
-  style OUT fill:#fbfcfc,stroke:#566573,color:#222
+FIG7_MMD = """flowchart TD
+    IN[("ĐẦU VÀO: 10 chỉ số cơ thể")] -->|resample + impute + baseline 90 ngày| T1
+    T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG CÁ NHÂN HÓA\\nZ-Score (|Z| ≥ 2,0 · 90 ngày) · IF (contamination 0,05)\\nEWMA λ = 0,2 · Dự báo α = 0,3, |Z| ≥ 2,5"] -->|"AnomalyRecord: metric, z_score, flagged, trend, forecast_z"| T2["TẦNG 2 — ÁNH XẠ TRI THỨC Y KHOA\\nRule Engine JSON · 9 luật\\nseverity ∈ [0,5 − 0,9] · audit trail + versioning"]
+    T2 -->|"RuleHit: rule_id, severity, system, evidence, source_url"| T3["TẦNG 3 — TỔNG HỢP RỦI RO\\nFusion Bayesian [0,30; 0,35; 0,25; 0,10]\\nIsotonic · Sàn an toàn: sev ≥ 0,7 → score ≥ 0,50"]
+    ML["LightGBM\\nhiệu chỉnh isotonic"] -.->|ml_score ∈ 0–1| T3
+    T3 -->|risk_level + bằng chứng + khuyến nghị| OUT[("THẤP · TRUNG BÌNH · CAO")]
+    style IN fill:#eee,stroke:#777,color:#222
+    style T1 fill:#eaf2fb,stroke:#3498db,color:#222
+    style T2 fill:#fef5e7,stroke:#e67e22,color:#222
+    style T3 fill:#eafaf1,stroke:#27ae60,color:#222
+    style ML fill:#f4ecf7,stroke:#8e44ad,color:#222,stroke-dasharray: 5 2
+    style OUT fill:#fbfcfc,stroke:#566573,color:#222
 """
 
 
