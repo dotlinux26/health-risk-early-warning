@@ -1,13 +1,15 @@
 block-beta
   columns 2
-  SNAP["Snapshot hiện tại\n{metric: value}"]:1
-  KB["Knowledge Base\n9 luật · JSON"]:1
-  EVAL["ĐÁNH GIÁ LUẬT\nnormalize · filter active\n_eval_condition AND/OR\ncollect matched_metrics"]:2
-  OUT["RuleHit[]\nrule_id · severity · evidence"]:2
+  SNAP[("Snapshot hiện tại\n{metric: value}")]:1
+  KB[("Knowledge Base\nknowledge_base.json\nmetrics · system_labels\n9 luật AND/OR")]:1
+  space:2
+  EVAL["ĐÁNH GIÁ LUẬT\nnormalize_modes()\nfilter active + _rule_in_modes()\n_eval_condition AND/OR\ncollect matched_metrics"]:2
+  space:2
+  OUT[("RuleHit[]\nrule_id · severity · system\nspecialty · evidence · source_url")]:2
   SNAP --> EVAL
   KB --> EVAL
   EVAL --> OUT
-  style SNAP fill:#e8e8e8,stroke:#888,color:#222
-  style KB fill:#fff,stroke:#e67e22,color:#222
-  style EVAL fill:#fff,stroke:#3498db,color:#222
-  style OUT fill:#f9f9f9,stroke:#27ae60,color:#222
+  style SNAP fill:#eee,stroke:#777,color:#222
+  style KB fill:#fef5e7,stroke:#e67e22,color:#222
+  style EVAL fill:#eaf2fb,stroke:#3498db,color:#222
+  style OUT fill:#eafaf1,stroke:#27ae60,color:#222

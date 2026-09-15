@@ -379,23 +379,27 @@ def fig6_delta():
 # ---------------------------------------------------------------------------
 FIG7_MMD = """block-beta
   columns 3
-  IN["ĐẦU VÀO: 10 chỉ số chuỗi thời gian"]:3
-  T1["TẦNG 1\\nZ-Score · IF · EWMA · Dự báo"]:1
-  T2["TẦNG 2\\nRule Engine 9 luật"]:1
-  T3["TẦNG 3\\nFusion · Isotonic · Sàn an toàn"]:1
-  ML["LightGBM"]:1
-  OUT["KẾT QUẢ: THẤP · TRUNG BÌNH · CAO"]:2
+  IN[("ĐẦU VÀO: 10 chỉ số cơ thể\\nHA · HR · SpO2 · glucose · HbA1c\\ncreatinine · eGFR · BMI · cholesterol · triglyceride")]:3
+  space:3
+  T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG CÁ NHÂN HÓA\\nZ-Score (|Z| ≥ 2,0 · 90 ngày) · Isolation Forest (contamination 0,05)\\nEWMA λ = 0,2 · Dự báo α = 0,3"]:3
+  space:3
+  T2["TẦNG 2 — ÁNH XẠ TRI THỨC Y KHOA\\nRule Engine JSON · 9 luật · severity ∈ [0,5 − 0,9]\\naudit trail + versioning"]:3
+  space:3
+  T3["TẦNG 3 — TỔNG HỢP RỦI RO & QUYẾT ĐỊNH\\nFusion Bayesian [0,30; 0,35; 0,25; 0,10]\\nHiệu chỉnh isotonic · Sàn an toàn: sev ≥ 0,7 → score ≥ 0,50"]:3
+  space:3
+  ML["LightGBM\\nhiệu chỉnh isotonic"]:1
+  OUT[("KẾT QUẢ\\nTHẤP · TRUNG BÌNH · CAO\\nrisk_level + bằng chứng + khuyến nghị")]:2
   IN --> T1
   T1 --> T2
   T2 --> T3
   ML -.-> T3
   T3 --> OUT
-  style IN fill:#e8e8e8,stroke:#888,color:#222
-  style T1 fill:#fff,stroke:#3498db,color:#222
-  style T2 fill:#fff,stroke:#e67e22,color:#222
-  style T3 fill:#fff,stroke:#27ae60,color:#222
-  style ML fill:#fff,stroke:#8e44ad,color:#222
-  style OUT fill:#f9f9f9,stroke:#555,color:#222
+  style IN fill:#eee,stroke:#777,color:#222
+  style T1 fill:#eaf2fb,stroke:#3498db,color:#222
+  style T2 fill:#fef5e7,stroke:#e67e22,color:#222
+  style T3 fill:#eafaf1,stroke:#27ae60,color:#222
+  style ML fill:#f4ecf7,stroke:#8e44ad,color:#222
+  style OUT fill:#fbfcfc,stroke:#566573,color:#222
 """
 
 
@@ -404,25 +408,28 @@ FIG7_MMD = """block-beta
 # ---------------------------------------------------------------------------
 FIG8_MMD = """block-beta
   columns 3
-  RAW["DỮ LIỆU\\nn ngày × 10 chỉ số"]:1
-  PRE["TIỀN XỬ LÝ\\nresample · impute · baseline 90 ngày"]:2
-  ZS["Z-Score cá nhân\\n|Z| ≥ 2.0"]:1
-  IF1["Isolation Forest\\ncontamination 0.05"]:1
-  EW["EWMA + Dự báo\\nλ = 0.2 · |Z| ≥ 2.5"]:1
-  OUT["AnomalyRecord[]\\nmetric · flagged · trend"]:3
+  RAW[("DỮ LIỆU\\nn ngày × 10 chỉ số")]:1
+  space:1
+  PRE["TIỀN XỬ LÝ\\nresample_to_daily()\\nimpute_missing (≤30%)\\nbuild_baseline (90 ngày)"]:1
+  space:3
+  ZS["Z-SCORE CÁ NHÂN\\nZ = (x − μ)/σ\\n|Z| ≥ 2,0"]:1
+  IF["ISOLATION FOREST\\nrolling 30 ngày\\ncontamination 0,05"]:1
+  EW["EWMA & DỰ BÁO\\nλ = 0,2\\n|z_dự báo| ≥ 2,5"]:1
+  space:3
+  OUT[("ĐẦU RA: AnomalyRecord[]\\nmetric · z_score · flagged\\ntrend · forecast_z")]:3
   RAW --> PRE
   PRE --> ZS
-  PRE --> IF1
+  PRE --> IF
   PRE --> EW
   ZS --> OUT
-  IF1 --> OUT
+  IF --> OUT
   EW --> OUT
-  style RAW fill:#e8e8e8,stroke:#888,color:#222
+  style RAW fill:#eee,stroke:#777,color:#222
   style PRE fill:#fff,stroke:#999,color:#222
-  style ZS fill:#fff,stroke:#3498db,color:#222
-  style IF1 fill:#fff,stroke:#8e44ad,color:#222
-  style EW fill:#fff,stroke:#27ae60,color:#222
-  style OUT fill:#f9f9f9,stroke:#e67e22,color:#222
+  style ZS fill:#eaf2fb,stroke:#3498db,color:#222
+  style IF fill:#f4ecf7,stroke:#8e44ad,color:#222
+  style EW fill:#eafaf1,stroke:#27ae60,color:#222
+  style OUT fill:#fef5e7,stroke:#e67e22,color:#222
 """
 
 
@@ -431,17 +438,19 @@ FIG8_MMD = """block-beta
 # ---------------------------------------------------------------------------
 FIG9_MMD = """block-beta
   columns 2
-  SNAP["Snapshot hiện tại\\n{metric: value}"]:1
-  KB["Knowledge Base\\n9 luật · JSON"]:1
-  EVAL["ĐÁNH GIÁ LUẬT\\nnormalize · filter active\\n_eval_condition AND/OR\\ncollect matched_metrics"]:2
-  OUT["RuleHit[]\\nrule_id · severity · evidence"]:2
+  SNAP[("Snapshot hiện tại\\n{metric: value}")]:1
+  KB[("Knowledge Base\\nknowledge_base.json\\nmetrics · system_labels\\n9 luật AND/OR")]:1
+  space:2
+  EVAL["ĐÁNH GIÁ LUẬT\\nnormalize_modes()\\nfilter active + _rule_in_modes()\\n_eval_condition AND/OR\\ncollect matched_metrics"]:2
+  space:2
+  OUT[("RuleHit[]\\nrule_id · severity · system\\nspecialty · evidence · source_url")]:2
   SNAP --> EVAL
   KB --> EVAL
   EVAL --> OUT
-  style SNAP fill:#e8e8e8,stroke:#888,color:#222
-  style KB fill:#fff,stroke:#e67e22,color:#222
-  style EVAL fill:#fff,stroke:#3498db,color:#222
-  style OUT fill:#f9f9f9,stroke:#27ae60,color:#222
+  style SNAP fill:#eee,stroke:#777,color:#222
+  style KB fill:#fef5e7,stroke:#e67e22,color:#222
+  style EVAL fill:#eaf2fb,stroke:#3498db,color:#222
+  style OUT fill:#eafaf1,stroke:#27ae60,color:#222
 """
 
 
@@ -450,15 +459,18 @@ FIG9_MMD = """block-beta
 # ---------------------------------------------------------------------------
 FIG10_MMD = """block-beta
   columns 4
-  C1["stat\\nmin(1,|Z|/4)"]:1
-  C2["knowledge\\nmin(1,sev)"]:1
-  C3["ml\\nLightGBM+iso"]:1
-  C4["trend\\nmin(1,2·rise/N)"]:1
-  FUS["FUSION BAYESIAN\\nΣwᵢ×scoreᵢ\\n[0.30;0.35;0.25;0.10]"]:4
-  SF["SÀN AN TOÀN\\nsev≥0.7 → score≥0.50"]:4
-  T1["THẤP <0.33"]:1
-  T2["TRUNG BÌNH\\n0.33–0.66"]:1
-  T3["CAO ≥0.66"]:1
+  C1{{"STAT\\nmin(1, max|Z|/4)"}}:1
+  C2{{"KNOWLEDGE\\nmin(1, max_sev)"}}:1
+  C3{{"ML\\nLightGBM + iso"}}:1
+  C4{{"TREND\\nmin(1, 2·rise/N)"}}:1
+  space:4
+  FUS["FUSION BAYESIAN\\ntotal = Σ(wᵢ × scoreᵢ)\\ntrọng số [0,30; 0,35; 0,25; 0,10]"]:4
+  space:4
+  SF("SÀN AN TOÀN\\nsev ≥ 0,7 → total ≥ 0,50"):4
+  space:4
+  T1("THẤP\\ntotal < 0,33"):1
+  T2("TRUNG BÌNH\\n0,33 ≤ total < 0,66"):1
+  T3("CAO\\ntotal ≥ 0,66"):1
   space:1
   C1 --> FUS
   C2 --> FUS
@@ -468,15 +480,15 @@ FIG10_MMD = """block-beta
   SF --> T1
   SF --> T2
   SF --> T3
-  style C1 fill:#fff,stroke:#3498db,color:#222
-  style C2 fill:#fff,stroke:#3498db,color:#222
-  style C3 fill:#fff,stroke:#8e44ad,color:#222
-  style C4 fill:#fff,stroke:#3498db,color:#222
-  style FUS fill:#fff,stroke:#e67e22,color:#222
-  style SF fill:#fff,stroke:#e74c3c,color:#222
-  style T1 fill:#fff,stroke:#27ae60,color:#222
-  style T2 fill:#fff,stroke:#e67e22,color:#222
-  style T3 fill:#fff,stroke:#e74c3c,color:#222
+  style C1 fill:#eaf2fb,stroke:#3498db,color:#222
+  style C2 fill:#fef5e7,stroke:#e67e22,color:#222
+  style C3 fill:#f4ecf7,stroke:#8e44ad,color:#222
+  style C4 fill:#eafaf1,stroke:#27ae60,color:#222
+  style FUS fill:#fef5e7,stroke:#e67e22,color:#222
+  style SF fill:#fdecea,stroke:#e74c3c,color:#222
+  style T1 fill:#eafaf1,stroke:#27ae60,color:#222
+  style T2 fill:#fef5e7,stroke:#e67e22,color:#222
+  style T3 fill:#fdecea,stroke:#e74c3c,color:#222
 """
 
 

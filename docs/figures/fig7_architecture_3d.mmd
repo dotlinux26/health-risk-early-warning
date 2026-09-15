@@ -1,19 +1,23 @@
 block-beta
   columns 3
-  IN["ĐẦU VÀO: 10 chỉ số chuỗi thời gian"]:3
-  T1["TẦNG 1\nZ-Score · IF · EWMA · Dự báo"]:1
-  T2["TẦNG 2\nRule Engine 9 luật"]:1
-  T3["TẦNG 3\nFusion · Isotonic · Sàn an toàn"]:1
-  ML["LightGBM"]:1
-  OUT["KẾT QUẢ: THẤP · TRUNG BÌNH · CAO"]:2
+  IN[("ĐẦU VÀO: 10 chỉ số cơ thể\nHA · HR · SpO2 · glucose · HbA1c\ncreatinine · eGFR · BMI · cholesterol · triglyceride")]:3
+  space:3
+  T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG CÁ NHÂN HÓA\nZ-Score (|Z| ≥ 2,0 · 90 ngày) · Isolation Forest (contamination 0,05)\nEWMA λ = 0,2 · Dự báo α = 0,3"]:3
+  space:3
+  T2["TẦNG 2 — ÁNH XẠ TRI THỨC Y KHOA\nRule Engine JSON · 9 luật · severity ∈ [0,5 − 0,9]\naudit trail + versioning"]:3
+  space:3
+  T3["TẦNG 3 — TỔNG HỢP RỦI RO & QUYẾT ĐỊNH\nFusion Bayesian [0,30; 0,35; 0,25; 0,10]\nHiệu chỉnh isotonic · Sàn an toàn: sev ≥ 0,7 → score ≥ 0,50"]:3
+  space:3
+  ML["LightGBM\nhiệu chỉnh isotonic"]:1
+  OUT[("KẾT QUẢ\nTHẤP · TRUNG BÌNH · CAO\nrisk_level + bằng chứng + khuyến nghị")]:2
   IN --> T1
   T1 --> T2
   T2 --> T3
   ML -.-> T3
   T3 --> OUT
-  style IN fill:#e8e8e8,stroke:#888,color:#222
-  style T1 fill:#fff,stroke:#3498db,color:#222
-  style T2 fill:#fff,stroke:#e67e22,color:#222
-  style T3 fill:#fff,stroke:#27ae60,color:#222
-  style ML fill:#fff,stroke:#8e44ad,color:#222
-  style OUT fill:#f9f9f9,stroke:#555,color:#222
+  style IN fill:#eee,stroke:#777,color:#222
+  style T1 fill:#eaf2fb,stroke:#3498db,color:#222
+  style T2 fill:#fef5e7,stroke:#e67e22,color:#222
+  style T3 fill:#eafaf1,stroke:#27ae60,color:#222
+  style ML fill:#f4ecf7,stroke:#8e44ad,color:#222
+  style OUT fill:#fbfcfc,stroke:#566573,color:#222
