@@ -1,41 +1,28 @@
 flowchart TB
-    subgraph IN["DONG VAO: Chuoi thoi gian chi so co the"]
-        A["10 chi so: HA, nhip_tim, SpO2, glucose,
-HbA1c, creatinine, eGFR, BMI, cholesterol,
-triglyceride"]
+    subgraph IN["ĐẦU VÀO: Chuỗi thời gian chỉ số cơ thể"]
+        A["10 chỉ số: HA, nhịp_tim, SpO2, glucose,<br/>HbA1c, creatinine, eGFR, BMI, cholesterol,<br/>triglyceride"]
     end
 
-    subgraph T1["TANG 1 - PHAT HIEN BAT THUONG CA NHAN HOA"]
-        T1A["Z-Score ca nhan
-|Z| >= 2,0, cua so 90 ngay"]
-        T1B["Isolation Forest
-contamination = 0,05"]
-        T1C["EWMA crossing
-lambda = 0,2"]
-        T1D["Sai so du bao
-alpha = 0,3, |Z| >= 2,5"]
+    subgraph T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG CÁ NHÂN HÓA"]
+        T1A["Z-Score cá nhân<br/>|Z| ≥ 2,0, cửa sổ 90 ngày"]
+        T1B["Isolation Forest<br/>contamination = 0,05"]
+        T1C["EWMA crossing<br/>λ = 0,2"]
+        T1D["Sai số dự báo<br/>α = 0,3, |Z| ≥ 2,5"]
     end
 
-    subgraph T2["TANG 2 - ANH XA TRI THUC Y KHOA"]
-        T2A["Rule Engine
-9 luat, JSON + governance"]
-        T2B["Kich hoat luat theo severity
-severity thuoc [0,5 - 0,9]"]
+    subgraph T2["TẦNG 2 — ÁNH XẠ TRI THỨC Y KHOA"]
+        T2A["Rule Engine<br/>9 luật, JSON + governance"]
+        T2B["Kích hoạt luật theo severity<br/>severity ∈ [0,5 − 0,9]"]
     end
 
-    subgraph T3["TANG 3 - TONG HOP RUI RO & QUYET DINH"]
-        T3A["Fusion Bayesian
-trong so [0,30 - 0,35 - 0,25 - 0,10]"]
-        T3B["Hieu chinh isotonic
-ECE 1,7% -> 0,0%"]
-        T3C["San an toan
-severity >= 0,7 -> score >= 0,50"]
-        T3D["Muc rui ro
-THAP, TRUNG BINH, CAO"]
+    subgraph T3["TẦNG 3 — TỔNG HỢP RỦI RO & QUYẾT ĐỊNH"]
+        T3A["Fusion Bayesian<br/>trọng số [0,30 − 0,35 − 0,25 − 0,10]"]
+        T3B["Hiệu chỉnh isotonic<br/>ECE 1,7% → 0,0%"]
+        T3C["Sàn an toàn<br/>severity ≥ 0,7 → score ≥ 0,50"]
+        T3D["Mức rủi ro<br/>THẤP, TRUNG BÌNH, CAO"]
     end
 
-    ML["LightGBM
-hieu chinh isotonic"]
+    ML["LightGBM<br/>hiệu chỉnh isotonic"]
 
     A --> T1A
     A --> T1B
