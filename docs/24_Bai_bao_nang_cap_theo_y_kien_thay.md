@@ -125,23 +125,23 @@ Từ [11]–[15] và [18,19], nhóm xác định **4 khoảng trống** mà đ�
 ## 3. Phương pháp đề xuất (Proposed Method)
 
 > **[SỬA — Mục 3 viết lại theo phong cách bài báo SDAGS "Proposed Method 3.1 Approach direction"]**
-> Nhóm nghiên cứu viết lại toàn bộ Mục 3: kiến trúc dạng khối hộp 3D (Mermaid), mã giả chuẩn Input/Output, tên hàm tiếng Anh lấy thẳng từ code, chú thích tiếng Việt.
+> Nhóm nghiên cứu viết lại toàn bộ Mục 3: kiến trúc dạng khối hộp (Mermaid block), mã giả chuẩn Input/Output, tên hàm tiếng Anh lấy thẳng từ code, chú thích tiếng Việt.
 
 ### 3.1 Hướng tiếp cận (Approach direction)
 
-Hệ thống được thiết kế theo kiến trúc **ba tầng xử lý tuần tự**, tiếp nhận đầu vào là chuỗi thời gian các chỉ số cơ thể được ghi theo ngày (`timestamp` + 10 chỉ số), xuất ra mức rủi ro kèm bằng chứng (Hình 1–2). Ba tầng giải quyết đồng thời ba khoảng trống của các mô hình truyền thống ở Mục 1.2:
+Hệ thống được thiết kế theo kiến trúc **ba tầng xử lý tuần tự**, tiếp nhận đầu vào là chuỗi thời gian các chỉ số cơ thể được ghi theo ngày (`timestamp` + 10 chỉ số), xuất ra mức rủi ro kèm bằng chứng (Hình 1–4). Ba tầng giải quyết đồng thời ba khoảng trống của các mô hình truyền thống ở Mục 1.2:
 
 1. **Cá nhân hóa theo đường cơ sở dọc** — mỗi chỉ số được chuẩn hóa theo μ/σ của chính bệnh nhân trong cửa sổ 90 ngày thay vì ngưỡng dân số cố định → thích ứng với thân trạng từng người (Tầng 1).
 2. **Nhúng tri thức y khoa** — 9 luật từ ESC/ESH 2018, ADA 2023, KDIGO 2022, WHO được lưu dưới dạng JSON có versioning + audit trail, cho phép bác sĩ xem ngưỡng và nguồn trích dẫn → cảnh báo có ngữ cảnh lâm sàng (Tầng 2).
 3. **Tổng hợp tin cậy** — kết hợp điểm từ 4 thành phần (thống kê, tri thức, học máy, xu hướng) bằng hàm có trọng số tối ưu trên NHANES 2013–2014, thêm sàn an toàn lâm sàng và hiệu chỉnh xác suất bằng isotonic trước khi ra quyết định (Tầng 3).
 
-> **[THÊM HÌNH 1 — kiến trúc tổng thể dạng khối hộp 3D]**
+> **[THÊM HÌNH 1 — kiến trúc tổng thể dạng khối hộp (Mermaid block)]
 > **Vị trí:** đầu Mục 3.1.
 > **Ảnh thật (nhúng bên dưới):**
 >
 > ![Hình 1: Kiến trúc tổng thể ba tầng — khối hộp 3D (không dùng icon/emoji)](figures/fig7_architecture_3d.png)
 >
-> **Caption:** "Hình 1: Kiến trúc tổng thể hệ thống ba tầng (Tầng 1 – Phát hiện bất thường cá nhân hóa; Tầng 2 – Ánh xạ tri thức y khoa; Tầng 3 – Tổng hợp rủi ro và quyết định). Ảnh dạng khối hộp 3D, khung và chú thích chuẩn; không dùng icon để in/xuất bản."
+> **Caption:** "Hình 1: Kiến trúc tổng thể hệ thống ba tầng (Tầng 1 – Phát hiện bất thường cá nhân hóa; Tầng 2 – Ánh xạ tri thức y khoa; Tầng 3 – Tổng hợp rủi ro và quyết định). Ảnh dạng khối hộp (Mermaid block), khung và chú thích chuẩn; không dùng icon để in/xuất bản."
 >
 > **File nguồn để Khánh & An chỉnh:** `figures/fig7_architecture_3d.mmd` (Mermaid) · render bằng: `npx -y @mermaid-js/mermaid-cli -i fig7_architecture_3d.mmd -o fig7_architecture_3d.png`
 
