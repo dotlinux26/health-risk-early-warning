@@ -1,14 +1,12 @@
 block-beta
-  columns 3
-  IN[("ĐẦU VÀO: 10 chỉ số cơ thể\nHA · HR · SpO2 · glucose · HbA1c\ncreatinine · eGFR · BMI · cholesterol · triglyceride")]:3
-  space:3
-  T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG CÁ NHÂN HÓA\nZ-Score (|Z| ≥ 2,0 · 90 ngày) · Isolation Forest (contamination 0,05)\nEWMA λ = 0,2 · Dự báo α = 0,3"]:3
-  space:3
-  T2["TẦNG 2 — ÁNH XẠ TRI THỨC Y KHOA\nRule Engine JSON · 9 luật · severity ∈ [0,5 − 0,9]\naudit trail + versioning"]:3
-  space:3
-  T3["TẦNG 3 — TỔNG HỢP RỦI RO & QUYẾT ĐỊNH\nFusion Bayesian [0,30; 0,35; 0,25; 0,10]\nHiệu chỉnh isotonic · Sàn an toàn: sev ≥ 0,7 → score ≥ 0,50"]:3
-  space:3
+  columns 4
+  IN[("ĐẦU VÀO: 10 chỉ số cơ thể\nHA · HR · SpO2 · glucose · HbA1c·\ncreatinine · eGFR · BMI · cholesterol · triglyceride")]:4
+  space:1
+  T1["TẦNG 1 — PHÁT HIỆN BẤT THƯỜNG\nZ-Score (|Z| ≥ 2,0 · 90 ngày)\nIF (contamination 0,05)\nEWMA λ = 0,2 · Dự báo α = 0,3"]:1
+  T2["TẦNG 2 — TRI THỨC Y KHOA\nRule Engine JSON · 9 luật\nseverity ∈ [0,5 − 0,9]\naudit trail + versioning"]:1
+  T3["TẦNG 3 — RỦI RO & QUYẾT ĐỊNH\nFusion [0,30; 0,35; 0,25; 0,10]\nIsotonic\nSàn an toàn sev ≥ 0,7 → ≥ 0,50"]:1
   ML["LightGBM\nhiệu chỉnh isotonic"]:1
+  space:1
   OUT[("KẾT QUẢ\nTHẤP · TRUNG BÌNH · CAO\nrisk_level + bằng chứng + khuyến nghị")]:2
   IN --> T1
   T1 --> T2
