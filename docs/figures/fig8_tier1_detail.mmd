@@ -1,0 +1,52 @@
+flowchart LR
+    subgraph RAW["DULIEU DAU VAO"]
+        D1["df_wide
+n_ngay x 10 chi so"]
+    end
+
+    subgraph PRE["TIEN XU LY"]
+        P1["resample_to_daily()"]
+        P2["impute_missing(gioi han 30%)"]
+        P3["build_baseline(cua so 90 ngay)"]
+    end
+
+    subgraph ZS["Z-SCORE CA NHAN"]
+        Z1["Z = (x - mu_base) / sigma_base"]
+        Z2["flagged neu |Z| >= 2,0"]
+        Z3["trend: rising, falling, stable"]
+    end
+
+    subgraph IF["ISOLATION FOREST"]
+        I1["Features: 30 ngay rolling mean/std"]
+        I2["contamination = 0,05"]
+        I3["anomaly_score -> flagged"]
+    end
+
+    subgraph EW["EWMA & DU BAO"]
+        E1["EWMA(lambda = 0,2)"]
+        E2["forecast_error = x_t - EWMA_t"]
+        E3["flagged neu |z_forecast| >= 2,5"]
+    end
+
+    subgraph OUT["DAU RA"]
+        O1["AnomalyRecord[]
+metric, z_score, flagged,
+trend, forecast_z"]
+    end
+
+    D1 --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> ZS
+    P3 --> IF
+    P3 --> EW
+    ZS --> O1
+    IF --> O1
+    EW --> O1
+
+    style RAW fill:#e8e8e8,stroke:#888888,color:#222222
+    style PRE fill:#f5f5f5,stroke:#999999,color:#1a1a1a
+    style ZS fill:#d6eaf8,stroke:#3498db,color:#1a1a1a
+    style IF fill:#e8daef,stroke:#8e44ad,color:#1a1a1a
+    style EW fill:#d5f5e3,stroke:#27ae60,color:#1a1a1a
+    style OUT fill:#fdebd0,stroke:#e67e22,color:#1a1a1a

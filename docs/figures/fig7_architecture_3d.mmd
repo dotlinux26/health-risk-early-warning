@@ -1,0 +1,59 @@
+flowchart TB
+    subgraph IN["DONG VAO: Chuoi thoi gian chi so co the"]
+        A["10 chi so: HA, nhip_tim, SpO2, glucose,
+HbA1c, creatinine, eGFR, BMI, cholesterol,
+triglyceride"]
+    end
+
+    subgraph T1["TANG 1 - PHAT HIEN BAT THUONG CA NHAN HOA"]
+        T1A["Z-Score ca nhan
+|Z| >= 2,0, cua so 90 ngay"]
+        T1B["Isolation Forest
+contamination = 0,05"]
+        T1C["EWMA crossing
+lambda = 0,2"]
+        T1D["Sai so du bao
+alpha = 0,3, |Z| >= 2,5"]
+    end
+
+    subgraph T2["TANG 2 - ANH XA TRI THUC Y KHOA"]
+        T2A["Rule Engine
+9 luat, JSON + governance"]
+        T2B["Kich hoat luat theo severity
+severity thuoc [0,5 - 0,9]"]
+    end
+
+    subgraph T3["TANG 3 - TONG HOP RUI RO & QUYET DINH"]
+        T3A["Fusion Bayesian
+trong so [0,30 - 0,35 - 0,25 - 0,10]"]
+        T3B["Hieu chinh isotonic
+ECE 1,7% -> 0,0%"]
+        T3C["San an toan
+severity >= 0,7 -> score >= 0,50"]
+        T3D["Muc rui ro
+THAP, TRUNG BINH, CAO"]
+    end
+
+    ML["LightGBM
+hieu chinh isotonic"]
+
+    A --> T1A
+    A --> T1B
+    A --> T1C
+    A --> T1D
+    T1A --> T2A
+    T1B --> T2A
+    T1C --> T2A
+    T1D --> T2A
+    T2A --> T2B
+    T2B --> T3A
+    ML -.-> T3A
+    T3A --> T3B
+    T3B --> T3C
+    T3C --> T3D
+
+    style IN fill:#e8e8e8,stroke:#888888,color:#222222
+    style T1 fill:#d6eaf8,stroke:#3498db,color:#1a1a1a
+    style T2 fill:#fdebd0,stroke:#e67e22,color:#1a1a1a
+    style T3 fill:#d5f5e3,stroke:#27ae60,color:#1a1a1a
+    style ML fill:#e8daef,stroke:#8e44ad,color:#1a1a1a

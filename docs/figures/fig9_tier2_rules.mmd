@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph SNAP["SNAPSHOT HIEN TAI"]
+        S1["snapshot = metric: value"]
+    end
+
+    subgraph KB["KNOWLEDGE BASE - knowledge_base.json"]
+        K1["metrics: metadata + ranges"]
+        K2["system_labels: 5 he thong co quan"]
+        K3["rules: 9 luat hoat dong
+AND/OR logic + modes"]
+    end
+
+    subgraph EVAL["DANH GIA LUAT"]
+        E1["normalize_modes(modes)"]
+        E2["for rule in rules:
+  if status == active
+  va _rule_in_modes(rule, modes)"]
+        E3["_eval_condition(cond, snapshot)
+  ho tro nested AND/OR"]
+        E4["collect matched_metrics"]
+    end
+
+    subgraph OUT["DAU RA: RuleHit objects"]
+        O1["RuleHit: rule_id, severity,
+system, specialty, evidence,
+matched_metrics, source_url"]
+    end
+
+    SNAP --> EVAL
+    KB --> EVAL
+    E1 --> E2
+    E2 --> E3
+    E3 --> E4
+    E4 --> OUT
+
+    style SNAP fill:#e8e8e8,stroke:#888888,color:#222222
+    style KB fill:#fdebd0,stroke:#e67e22,color:#1a1a1a
+    style EVAL fill:#d6eaf8,stroke:#3498db,color:#1a1a1a
+    style OUT fill:#d5f5e3,stroke:#27ae60,color:#1a1a1a

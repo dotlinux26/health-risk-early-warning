@@ -1,0 +1,33 @@
+flowchart LR
+    subgraph COMP["DIEM THANH PHAN"]
+        C1["stat_score = min(1, max|Z|/4)"]
+        C2["knowledge_score = min(1, max_severity)"]
+        C3["ml_score = LightGBM.isotonic"]
+        C4["trend_score = min(1, 2*rising/N)"]
+    end
+
+    subgraph FUS["FUSION BAYESIAN"]
+        F1["total = sum(w_i * score_i)
+weights = [0,30 - 0,35 - 0,25 - 0,10]"]
+        F2["San an toan:
+neu severity >= 0,7 -> total >= 0,50"]
+    end
+
+    subgraph THRESH["PHAN LOAI RUI RO"]
+        T1["THAP: total < 0,33"]
+        T2["TRUNG BINH: 0,33 <= total < 0,66"]
+        T3["CAO: total >= 0,66"]
+    end
+
+    C1 --> F1
+    C2 --> F1
+    C3 --> F1
+    C4 --> F1
+    F1 --> F2
+    F2 --> T1
+    F2 --> T2
+    F2 --> T3
+
+    style COMP fill:#d6eaf8,stroke:#3498db,color:#1a1a1a
+    style FUS fill:#fdebd0,stroke:#e67e22,color:#1a1a1a
+    style THRESH fill:#d5f5e3,stroke:#27ae60,color:#1a1a1a

@@ -122,120 +122,298 @@ Từ [11]–[15] và [18,19], nhóm xác định **4 khoảng trống** mà đ�
 
 ---
 
-## 3. Kiến trúc hệ thống
+## 3. Phương pháp đề xuất (Proposed Method)
 
-> **[THÊM HÌNH 1 — thay ASCII art hiện tại bằng lưu đồ]**
+> **[SỬA — Mục 3 viết lại theo phong cách bài báo SDAGS "Proposed Method 3.1 Approach direction"]**
+> Nhóm nghiên cứu viết lại toàn bộ Mục 3: kiến trúc dạng khối hộp 3D (Mermaid), mã giả chuẩn Input/Output, tên hàm tiếng Anh lấy thẳng từ code, chú thích tiếng Việt.
+
+### 3.1 Hướng tiếp cận (Approach direction)
+
+Hệ thống được thiết kế theo kiến trúc **ba tầng xử lý tuần tự**, tiếp nhận đầu vào là chuỗi thời gian các chỉ số cơ thể được ghi theo ngày (`timestamp` + 10 chỉ số), xuất ra mức rủi ro kèm bằng chứng (Hình 1–2). Ba tầng giải quyết đồng thời ba khoảng trống của các mô hình truyền thống ở Mục 1.2:
+
+1. **Cá nhân hóa theo đường cơ sở dọc** — mỗi chỉ số được chuẩn hóa theo μ/σ của chính bệnh nhân trong cửa sổ 90 ngày thay vì ngưỡng dân số cố định → thích ứng với thân trạng từng người (Tầng 1).
+2. **Nhúng tri thức y khoa** — 9 luật từ ESC/ESH 2018, ADA 2023, KDIGO 2022, WHO được lưu dưới dạng JSON có versioning + audit trail, cho phép bác sĩ xem ngưỡng và nguồn trích dẫn → cảnh báo có ngữ cảnh lâm sàng (Tầng 2).
+3. **Tổng hợp tin cậy** — kết hợp điểm từ 4 thành phần (thống kê, tri thức, học máy, xu hướng) bằng hàm có trọng số tối ưu trên NHANES 2013–2014, thêm sàn an toàn lâm sàng và hiệu chỉnh xác suất bằng isotonic trước khi ra quyết định (Tầng 3).
+
+> **[THÊM HÌNH 1 — kiến trúc tổng thể dạng khối hộp 3D]**
 > **Vị trí:** đầu Mục 3.1.
 > **Ảnh thật (nhúng bên dưới):**
 >
-> ![Hình 1: Kiến trúc ba tầng và lớp tổng hợp (Fusion Layer) của hệ thống](figures/fig1_architecture.png)
+> ![Hình 1: Kiến trúc tổng thể ba tầng — khối hộp 3D (không dùng icon/emoji)](figures/fig7_architecture_3d.png)
 >
-> **Caption:** "Hình 1: Kiến trúc ba tầng và lớp tổng hợp (Fusion Layer) của hệ thống"
+> **Caption:** "Hình 1: Kiến trúc tổng thể hệ thống ba tầng (Tầng 1 – Phát hiện bất thường cá nhân hóa; Tầng 2 – Ánh xạ tri thức y khoa; Tầng 3 – Tổng hợp rủi ro và quyết định). Ảnh dạng khối hộp 3D, khung và chú thích chuẩn; không dùng icon để in/xuất bản."
 >
-> **File nguồn để Khánh & An chỉnh (nếu cần):** `figures/fig1_architecture.dot` (Graphviz) · `figures/fig1_architecture.mmd` (Mermaid)
-> Render lại bằng: `dot -Tpng figures/fig1_architecture.dot -o fig1.png`
+> **File nguồn để Khánh & An chỉnh:** `figures/fig7_architecture_3d.mmd` (Mermaid) · render bằng: `npx -y @mermaid-js/mermaid-cli -i fig7_architecture_3d.mmd -o fig7_architecture_3d.png`
 
-### 3.1 Tổng quan
+### 3.2 Tầng 1 — Phát hiện bất thường cá nhân hóa (Personalized Anomaly Detection)
 
-Hệ thống được thiết kế theo kiến trúc **ba tầng xử lý tuần tự**, tiếp nhận đầu vào là chuỗi thời gian của các chỉ số cơ thể (Hình 1).
+Tầng 1 chạy bốn mô-đun độc lập trên cùng chuỗi thời gian đã làm sạch (Hình 2), kết hợp bằng toán tử `OR` để không bỏ sót bất thường:
 
-- **Tầng 1 — Phân tích bất thường cá nhân hóa**: Z-Score cá nhân `Z = (X − μ_cá nhân)/σ_cá nhân`, Isolation Forest đa chiều, EWMA crossing + sai số dự báo. Đầu ra: `AnomalyRecord[]`.
-- **Tầng 2 — Ánh xạ tri thức y khoa**: 9 luật từ ESC/ESH 2018, ADA 2023, KDIGO 2022, WHO; rule engine JSON có versioning + audit trail. Đầu ra: `Hit[] severity`.
-- **Tầng 3 — Tổng hợp rủi ro & hỗ trợ quyết định**: Fusion Bayesian + hiệu chỉnh isotonic, sàn an toàn 0.50 khi có luật severity ≥0.7. Đầu ra: `risk_level + affected_systems + evidence + recommendations`.
-
-Tham chiếu triển khai: `src/core/pipeline.py`, `docs/14_Kien_truc_he_thong_chi_tiet.md`.
-
-> **[THÊM thuật toán mã giả — theo yêu cầu của thầy "bổ sung thuật toán viết dưới dạng mã giả"]**
-> **Vị trí:** sau Mục 3.1, trước Mục 3.2.
->
-> **Algorithm 1. Đánh giá nguy cơ đa tầng (risk assessment)**
-> ```
-> Input:  chuỗi thời gian D = {(t_i, metric_i, value_i)}
-> Output: risk_level ∈ {THẤP, TRUNG_BÌNH, CAO, INSUFFICIENT_DATA}, evidence[]
->
-> 1:  if |D| < 7 then return INSUFFICIENT_DATA
-> 2:  S ← Layer1_Anomaly(D)               // Z-score cá nhân, IF, EWMA
-> 3:  K ← Layer2_Knowledge(D)             // kích hoạt 9 luật, severity
-> 4:  M ← Layer3_ML(D)                    // LightGBM, score THÔ
-> 5:  M ← IsotonicCalibrate(M)            // fit trên validation
-> 6:  total ← α_stat·S + α_knowledge·K + α_ml·M + α_trend·T(D)
-> 7:  if ∃ rule.severity ≥ 0.7 then total ← max(total, 0.50)   // sàn an toàn
-> 8:  level ← threshold(total, 0.33, 0.66)
-> 9:  return level, build_evidence(S, K, M, rules)
-> ```
->
-> **Algorithm 2. Kiểm định temporally (temporal validation)**
-> ```
-> Input:  D (chu kỳ cũ), D' (chu kỳ mới / shifted year mới)
-> Output: AUC_temporal, ΔAUC, capture_rate
-> 1:  imp ← MedianImputer.fit(D)          // chỉ fit trên train — không rò rỉ
-> 2:  tr  ← D[time ≤ T_cut] ; te ← D'[time > T_cut]
-> 3:  m   ← Model.fit(tr)
-> 4:  p_te← m.predict_proba(te)
-> 5:  auc_temporal ← roc_auc(te.y, p_te)
-> 6:  auc_random   ← roc_auc(te_rand.y, p_rand)   // random split cùng tỉ lệ
-> 7:  ΔAUC ← auc_temporal − auc_random
-> 8:  capture_rate ← top-quintile(p_te) ∩ các biến cố / tổng biến cố trong test
-> 9:  return auc_temporal, ΔAUC, capture_rate
-> ```
-
-### 3.2 Trọng số tối ưu
-
-| Trọng số | Giá trị | Nguồn |
-|---|---|---|
-| α_stat | 0.30 | cv_grid_search (NHANES 2013–2014) |
-| α_knowledge | 0.35 | cv_grid_search (NHANES 2013–2014) |
-| α_ml | 0.25 | cv_grid_search (NHANES 2013–2014) |
-| α_trend | 0.10 | cv_grid_search (NHANES 2013–2014) |
-
-Chỉ số tin cậy: `conf = |α_ml − α_stat| + (auc − 0.5) × 2`.  
-`INSUFFICIENT_DATA` khi `n_observations < 7`. Tham chiếu: `src/config.py`.
-
-### 3.3 Quy tắc kiến thức chuyên gia
-
-| Luật | Ý nghĩa | Ngưỡng | Nguồn |
+| Mô-đun | Hàm trong code | Công thức / tham số | Ý nghĩa |
 |---|---|---|---|
-| R_CV_01 | Tăng huyết áp | HA ≥ 140/90 mmHg | ESC/ESH 2018 |
-| R_CV_02 | Nhịp tim nhanh | > 100 / 7 ngày | ACC/AHA 2023 |
-| R_CV_03 | HATT đơn độc | HATT > 140 mmHg | ESC/ESH 2018 |
-| R_END_01 | Đường huyết đói | > 7.0 mmol/L | ADA 2023 |
-| R_END_02 | HbA1c cao | > 6.5% | ADA 2023 |
-| R_KID_01 | Creatinine tăng | > 1.3 mg/dL | KDIGO 2022 |
-| R_KID_02 | eGFR giảm | < 60 | KDIGO 2022 |
-| R_RES_01 | SpO2 thấp | < 94% | WHO 2019 |
-| R_MET_01 | BMI thừa cân | > 25 | WHO TRS 894 |
+| Z-Score cá nhân | `detect_zscore` | `Z = (x − μ_base)/σ_base`, `\|Z\| ≥ 2.0`, cửa sổ 90 ngày | Lệch so với baseline của chính bệnh nhân |
+| Isolation Forest | `detect_isolation_forest` | `contamination = 0.05`, đặc trưng rolling 30 ngày | Bất thường đa biến, phi tuyến |
+| EWMA crossing | `detect_ewma_crossing` | `λ = 0.2` | Đảo chiều xu hướng EWMA |
+| Sai số dự báo | `detect_forecast_anomaly` | `forecast_alpha = 0.3`, `\|z_forecast\| ≥ 2.5` | Lệch so với dự báo EWMA |
 
-9 luật, 10 chỉ số, lưu `knowledge_base.json` (LIST format). Tham chiếu: `src/tier2_knowledge/knowledge_base.json`.
+Đầu ra: danh sách `AnomalyRecord` gồm `(metric, current, baseline_mean, z_score, flagged, trend, forecast_z)`.
+
+**Algorithm 1. Phát hiện bất thường cá nhân hóa (PersonalizedAnomalyDetection)**
+```
+Input:  D = {(t_i, metric_i, value_i)} chuỗi thời gian hằng ngày (n_ngay >= 7)
+        config: z_threshold=2.0, window_days=90, if_contamination=0.05,
+                ewma_lambda=0.2, forecast_alpha=0.3, forecast_z_thresh=2.5
+Output: records = [AnomalyRecord] — chi tiết bất thường từng chỉ số
+
+1:  D ← resample_to_daily(D)                        // canh tần suất ngày liên tục
+2:  D ← impute_missing(D, limit=0.3)                // nội suy tuyến tính nếu thiếu <= 30%
+3:  for metric in VALUE_COLUMNS do                  // 10 chỉ số cơ thể
+4:      mu_base, sigma_base ← rolling_mean_std(D[metric], window=window_days)
+5:      D[metric].zscore ← (D[metric] − mu_base) / max(sigma_base, eps)
+6:  end for
+7:  records ← []
+8:  for metric in VALUE_COLUMNS do
+9:      records[metric] ← AnomalyRecord(
+10:         metric, current=D[metric][-1],
+11:         baseline_mean=mu_base[-1],
+12:         z_score=D[metric].zscore[-1],
+13:         flagged=(|z_score| >= z_threshold))
+14: end for
+15: X_if ← rolling_features(D, window=30)            // rolling mean/std 30 ngày
+16: if_scores ← IsolationForest(contamination=config.if_contamination).fit_predict(X_if)
+17: for metric in VALUE_COLUMNS do
+18:     records[metric].flagged ← records[metric].flagged OR (if_scores[metric] == −1)
+19: end for
+20: for metric in VALUE_COLUMNS do                   // EWMA crossing + xu hướng
+21:     ewma ← EWMA(D[metric], alpha=ewma_lambda)
+22:     records[metric].trend ← rising / falling / stable theo chiều ewma gần nhất
+23: end for
+24: for metric in VALUE_COLUMNS do                   // sai số dự báo EWMA
+25:     forecast ← EWMA(D[metric], alpha=forecast_alpha)
+26:     z_forecast ← |D[metric] − forecast| / rolling_std(forecast, window=30)
+27:     records[metric].forecast_z ← z_forecast[-1]
+28:     records[metric].flagged ← records[metric].flagged OR (z_forecast >= forecast_z_thresh)
+29: end for
+30: return sort(records, key=|z_score|, descending=True)
+```
+
+> **[THÊM HÌNH 2 — chi tiết Tầng 1: khối hộp 3D]**
+> **Vị trí:** sau Algorithm 1.
+> **Ảnh thật (nhúng bên dưới):**
+>
+> ![Hình 2: Chi tiết Tầng 1 — 4 mô-đun phát hiện bất thường cá nhân hóa](figures/fig8_tier1_detail.png)
+>
+> **Caption:** "Hình 2: Chi tiết Tầng 1 — tiền xử lý (resample, impute, baseline 90 ngày) và bốn mô-đun Z-Score, Isolation Forest, EWMA, sai số dự báo; đầu ra AnomalyRecord[]."
+>
+> **File nguồn để Khánh & An chỉnh:** `figures/fig8_tier1_detail.mmd` (Mermaid)
+
+### 3.3 Tầng 2 — Ánh xạ tri thức y khoa (Clinical Knowledge Mapping)
+
+Tầng 2 chuyển snapshot hiện tại thành các luật được kích hoạt bởi rule engine JSON. Mỗi luật mang `severity ∈ [0.5, 0.9]`, `system` (hệ cơ quan), `specialty` (khuyến nghị chuyên khoa) và nguồn trích dẫn đầy đủ. Chín luật triển khai (Hình 3):
+
+| Luật | Ý nghĩa | Ngưỡng | Severity | Nguồn |
+|---|---|---|---|---|
+| R_CV_01 | Tăng huyết áp | HA ≥ 140/90 mmHg | 0.80 | ESC/ESH 2018 |
+| R_CV_02 | Nhịp tim nhanh | Nhịp tim > 100 trên 7 ngày | 0.60 | ACC/AHA 2023 |
+| R_CV_03 | HATT đơn độc | HATT > 140 mmHg | 0.70 | ESC/ESH 2018 |
+| R_END_01 | Đường huyết đói | Glucose > 7.0 mmol/L | 0.70 | ADA 2023 |
+| R_END_02 | HbA1c cao | HbA1c > 6.5% | 0.80 | ADA 2023 |
+| R_KID_01 | Creatinine tăng | Creatinine > 1.3 mg/dL | 0.70 | KDIGO 2022 |
+| R_KID_02 | eGFR giảm | eGFR < 60 mL/min | 0.80 | KDIGO 2022 |
+| R_RES_01 | SpO2 thấp | SpO2 < 94% | 0.90 | WHO 2019 |
+| R_MET_01 | BMI thừa cân | BMI > 25 | 0.50 | WHO TRS 894 |
+
+**Algorithm 2. Ánh xạ tri thức y khoa (ClinicalKnowledgeMapping)**
+```
+Input:  snapshot = {metric: value} — giá trị hiện tại của các chỉ số có mặt
+        KB = knowledge_base.json (metrics, system_labels, rules)
+        modes = ["htn","dm","ckd","resp","met","cv","endo"] hoặc None (tất cả)
+Output: hits = [RuleHit] — các luật được kích hoạt theo severity giảm dần
+
+1:  modes ← normalize_modes(modes)                  // None nếu ["all"] hoặc rỗng
+2:  hits ← []
+3:  for rule in KB.rules do
+4:      if rule.status ≠ "active" then continue      // bỏ luật đang draft/review
+5:      if modes ≠ None and not _rule_in_modes(rule, modes) then continue
+6:      if EvaluateCondition(rule.condition, snapshot) then
+7:          matched ← CollectMetrics(rule.condition)
+8:          hits.append(RuleHit(rule_id, name, system, system_label,
+9:             severity, specialty, evidence, matched_metrics,
+10:            modes, source_url, source_page, source_excerpt))
+11:     end if
+12: end for
+13: return sort(hits, key=severity, descending=True)
+
+Subroutine EvaluateCondition(cond, snapshot):
+14:     if "logic" in cond then
+15:         results ← EvaluateCondition(c, snapshot) với mọi c in cond.conditions
+16:         return all(results) nếu logic == "and" else any(results)
+17:     else
+18:         return Compare(snapshot[cond.metric], cond.op, cond.threshold)
+
+Subroutine Compare(value, op, threshold):
+19:     if value is None then return False
+20:     return {" > ": value>threshold, " >= ": value>=threshold,
+             " < ": value<threshold, " <= ": value<=threshold,
+             " == ": value==threshold}[op]
+```
+
+> **[THÊM HÌNH 3 — Rule Engine Tầng 2: khối hộp 3D]**
+> **Vị trí:** sau Algorithm 2.
+> **Ảnh thật (nhúng bên dưới):**
+>
+> ![Hình 3: Chi tiết Tầng 2 — Rule Engine và Knowledge Base JSON](figures/fig9_tier2_rules.png)
+>
+> **Caption:** "Hình 3: Chi tiết Tầng 2 — knowledge_base.json (metrics, system_labels, 9 rules) và quy trình đánh giá luật (normalize_modes → _rule_in_modes → _eval_condition với AND/OR lồng nhau); đầu ra RuleHit[]."
+>
+> **File nguồn để Khánh & An chỉnh:** `figures/fig9_tier2_rules.mmd` (Mermaid) · triển khai: `src/tier2_knowledge/`
 
 > **[THÊM HÌNH — giao diện quản trị luật (screenshot thật)]**
-> **Vị trí:** sau bảng luật, Mục 3.3.
+> **Vị trí:** sau Hình 3, Mục 3.3.
 > **Ảnh thật (nhúng bên dưới):**
 >
 > ![Hình: Giao diện quản trị luật tri thức y khoa](screenshots/giaodien_quantri_luat.png)
 >
 > **Caption:** "Hình: Giao diện quản lý rule engine — liệt kê 9 luật, ngưỡng, mức độ nghiêm trọng, nguồn hướng dẫn"
 
-### 3.4 Hiệu chỉnh isotonic
+### 3.4 Tầng 3 — Tổng hợp rủi ro & hỗ trợ quyết định (Risk Fusion & Decision Support)
 
-- Production calibrator: `load_ml_calibrator()` trong `src/core/pipeline.py`.
-- ECE giảm từ 0.004 → 0.000 (isotonic nội bộ).
+Tầng 3 tính bốn điểm thành phần rồi tổng hợp bằng hàm có trọng số (Hình 4). Trọng số được tối ưu bằng tìm lưới chéo 5-fold trên NHANES 2013–2014:
 
-> **[THÊM HÌNH 3 — chèn calibration curve]**
-> **Vị trí:** sau Mục 3.4.
+| Trọng số | Giá trị | Thành phần | Điểm thành phần |
+|---|---|---|---|
+| α_stat | 0.30 | Thống kê (Z-Score) | `min(1, max\|Z\| flagged / 4)` |
+| α_knowledge | 0.35 | Tri thức y khoa (luật) | `min(1, max severity)` |
+| α_ml | 0.25 | Học máy (LightGBM) | xác suất đã hiệu chỉnh isotonic |
+| α_trend | 0.10 | Xu hướng | `min(1, 2 × rising_flagged / N)` |
+
+**Algorithm 3. Tổng hợp rủi ro với sàn an toàn (BayesianRiskFusion)**
+```
+Input:  records = [AnomalyRecord] từ Tầng 1
+        hits = [RuleHit] từ Tầng 2
+        ml_score ∈ [0,1] hoặc None — xác suất LightGBM đã hiệu chỉnh
+        config: risk_weights={stat:0.30, knowledge:0.35, ml:0.25, trend:0.10},
+                risk_thresholds=(0.33, 0.66),
+                critical_severity=0.7, critical_floor=0.50
+Output: RiskResult {risk_level, risk_score, affected_systems,
+                    evidence, recommendations, components}
+
+1:  stat_score ← 0
+2:  if records ≠ ∅ then                              // nếu có bất thường Z-Score
+3:      z_max ← max(|r.z_score| with r.flagged)
+4:      stat_score ← min(1.0, z_max / 4.0)
+5:  end if
+6:  knowledge_score ← 0
+7:  if hits ≠ ∅ then
+8:      knowledge_score ← min(1.0, max(h.severity for h in hits))
+9:  end if
+10: ml_score ← min(1.0, ml_score or 0.0)
+11: trend_score ← 0
+12: if records ≠ ∅ then
+13:     rising_flagged ← count(rising and flagged)
+14:     trend_score ← min(1.0, 2.0 × rising_flagged / len(records))
+15: end if
+16: components ← {stat: stat_score, knowledge: knowledge_score,
+17:                ml: ml_score, trend: trend_score}
+18: total ← Σ components[k] × risk_weights[k]          // fusion Bayesian
+19: total ← round(clamp(total, 0, 1), 3)
+20: if ∃ h ∈ hits: h.severity ≥ critical_severity then // sàn an toàn lâm sàng
+21:     total ← max(total, critical_floor)              // nâng lên tối thiểu 0.50
+22: end if
+23: low, high ← risk_thresholds
+24: level ← "CAO" nếu total ≥ high                    // 0.66
+            else "TRUNG_BINH" nếu total ≥ low          // 0.33
+            else "THAP"
+25: affected ← sort unique {h.system_label for h in hits}
+26: recommendations ← sort unique {h.specialty for h in hits}
+27: evidence ← BuildEvidence(records, hits)
+28: return RiskResult(level, total, affected, evidence, recommendations, components)
+```
+
+> **[THÊM HÌNH 4 — Tầng 3: khối hộp 3D]**
+> **Vị trí:** sau Algorithm 3.
 > **Ảnh thật (nhúng bên dưới):**
 >
-> ![Hình 3: Hiệu chỉnh xác suất bằng isotonic — ECE giảm từ ~1,7% (test) so với chưa hiệu chỉnh](figures/fig3_calibration.png)
+> ![Hình 4: Chi tiết Tầng 3 — Fusion Bayesian, hiệu chỉnh isotonic, sàn an toàn và phân loại rủi ro](figures/fig10_tier3_fusion.png)
+>
+> **Caption:** "Hình 4: Chi tiết Tầng 3 — bốn điểm thành phần (stat, knowledge, ml, trend) → Fusion Bayesian với trọng số [0,30; 0,35; 0,25; 0,10] → sàn an toàn severity ≥ 0,7 → phân loại THẤP/TRUNG BÌNH/CAO."
+>
+> **File nguồn để Khánh & An chỉnh:** `figures/fig10_tier3_fusion.mmd` (Mermaid)
+
+### 3.5 Mô hình học máy LightGBM và hiệu chỉnh isotonic
+
+LightGBM được huấn luyện trên ma trận đặc trưng chuỗi thời gian (rolling 7/30/90 ngày + slope + EWMA + Z-Score) với siêu tham số cố định để tái lập được; sau đó xác suất thô được hiệu chỉnh bằng isotonic trên tập validation để đảm bảo xác suất ra có diễn giải xác suất thực (Hình 5).
+
+**Algorithm 4. Huấn luyện LightGBM và hiệu chỉnh isotonic (LightGBMTrainAndCalibrate)**
+```
+Input:  X_train, y_train — ma trận đặc trưng + nhãn nhị phân (NHANES 2013–2014)
+        X_val, y_val     — tập validation để hiệu chỉnh
+        config: n_estimators=300, learning_rate=0.05, max_depth=4,
+                num_leaves=16, subsample=0.8, colsample_bytree=0.8,
+                random_state=42
+Output: model, calibrator — LightGBM và isotonic đã fit
+
+1:  X_train_feat ← BuildFeatureMatrix(X_train)       // rolling(7,30,90d) + slope + EWMA + Z
+2:  X_val_feat   ← BuildFeatureMatrix(X_val)
+3:  model ← LGBMClassifier(n_estimators=300, learning_rate=0.05,
+4:             max_depth=4, num_leaves=16, subsample=0.8,
+5:             colsample_bytree=0.8, random_state=42, verbosity=−1)
+6:  model.fit(X_train_feat, y_train)
+7:  p_val ← model.predict_proba(X_val_feat)[:, 1]     // xác suất THÔ
+8:  calibrator ← IsotonicRegression(out_of_bounds="clip")
+9:  calibrator.fit(p_val, y_val)                     // fit CHỈ trên validation
+10: p_cal ← calibrator.predict(p_val)
+11: ECE ← ComputeECE(p_cal, y_val, bins=10)           // ước lượng sai số calib
+12: Brier ← mean((p_cal − y_val)²)
+13: return model, calibrator
+```
+
+> **[THÊM HÌNH 5 — calibration curve]**
+> **Vị trí:** sau Algorithm 4, Mục 3.5.
+> **Ảnh thật (nhúng bên dưới):**
+>
+> ![Hình 5: Hiệu chỉnh xác suất bằng isotonic — ECE giảm từ ~1,7% (test) so với chưa hiệu chỉnh](figures/fig3_calibration.png)
 >
 > ![Hình: Trang hiệu chỉnh xác suất — screenshot hệ thống](screenshots/hieuchinhxacsuat.png)
 >
-> **Caption:** "Hình 3: Hiệu chỉnh xác suất bằng isotonic — ECE giảm từ ~1,7% (test) so với chưa hiệu chỉnh"
-> **Ghi chú:** đường "Chưa hiệu chỉnh" (nét đứt), "Platt" và "Isotonic" có chú thích Brier/ECE ở cột bên phải, không dính nhau.
+> **Caption:** "Hình 5: Hiệu chỉnh xác suất bằng isotonic — ECE giảm về ~0,0% (isotonic nội bộ 0.004 → 0.000) so với chưa hiệu chỉnh (~1,7% test)."
+> **Ghi chú:** isotonic được chọn làm production calibrator sau khi so sánh Brier trên validation (P0.1). Triển khai: `load_ml_calibrator()` trong `src/core/pipeline.py`.
 
-### 3.5 Lưu trữ & Audit Trail
+### 3.6 Giao thức kiểm định temporally (Temporal Validation Protocol)
 
-- Knowledge base JSON versioned + hash SHA-256.
+Để chứng minh khả năng dự báo tương lai, nhóm nghiên cứu dùng giao thức train-on-quá-khứ / test-on-tương-lai (Hình 6, Mục 4.4) thay vì random split:
+
+**Algorithm 5. Kiểm định temporally (TemporalValidation)**
+```
+Input:  D — dataset có cột thời gian (năm hoặc shifted_year)
+        config: temporal_cut, outcome_column
+Output: {auc_temporal, auc_random, ΔAUC, capture_rate, lead_time}
+
+1:  D_train ← D[time ≤ temporal_cut]                 // ví dụ NHANES 2015-16
+2:  D_test  ← D[time > temporal_cut]                 // ví dụ NHANES 2017-18
+3:  imputer ← MedianImputer().fit(D_train)           // fit CHỈ trên train — không rò rỉ
+4:  D_train ← imputer.transform(D_train)
+5:  D_test  ← imputer.transform(D_test)
+6:  model   ← TrainModel(D_train)                    // LR hoặc LightGBM
+7:  p_temp  ← model.predict_proba(D_test)[:, 1]
+8:  auc_temporal ← ROC_AUC(D_test[outcome], p_temp)
+9:  D_rand_train, D_rand_test ← RandomSplit(D, ratio giữ nguyên) // đối chứng
+10: p_rand  ← model.predict_proba(D_rand_test)[:, 1]
+11: auc_random ← ROC_AUC(D_rand_test[outcome], p_rand)
+12: ΔAUC ← auc_temporal − auc_random                  // mức suy giảm do thời gian
+13: top_q ← quantile(p_temp, 0.8)                     // top quintile rủi ro
+14: capture_rate ← count(p_temp ≥ top_q và outcome trong chân trời) / tổng biến cố
+15: lead_time ← median(time_to_event của các ca bắt được)
+16: return {auc_temporal, auc_random, ΔAUC, capture_rate, lead_time}
+```
+
+Kết quả chính (chi tiết ở Mục 5.2, 5.5): trên NHANES-LMF test 2017-18, LR đạt AUC **0.821** (ΔAUC −0.020), LightGBM AUC **0.771** (ΔAUC −0.010); trên MIMIC-IV test shifted ≥2116, LR AUC **0.752** (ΔAUC −0.010), LightGBM AUC **0.751** (ΔAUC −0.033). LR bền hơn LightGBM khi chuyển từ random split sang temporally—phù hợp làm baseline triển khai.
+
+### 3.7 Lưu trữ & Audit Trail
+
+- Knowledge base JSON versioned + hash SHA-256; dual-write disk JSONL + optional PostgreSQL.
 - Audit trail actors: `bs_an`, `bs_test`, `bs_truong`, `tester` (synthetic).
-- Dual-write: disk JSONL + optional PostgreSQL.
+- `INSUFFICIENT_DATA` khi `n_observations < 7`; chỉ số tin cậy `conf = |α_ml − α_stat| + (auc − 0.5) × 2`.
 
 ---
 
@@ -270,13 +448,13 @@ Chỉ số tin cậy: `conf = |α_ml − α_stat| + (auc − 0.5) × 2`.
 - **Split:** train 2015-16 (n=5.048) / test 2017-18 (n=4.773).
 - **Prevalence:** train 0.97%, test 1.40%.
 
-> **[THÊM HÌNH 4 — timeline kiểm định temporally]**
+> **[SỬA HÌNH 6 — timeline kiểm định temporally (đánh số lại theo Mục 3)]**
 > **Vị trí:** cuối Mục 4.4.
 > **Ảnh thật (nhúng bên dưới):**
 >
-> ![Hình 4: Quy trình kiểm định temporally trên NHANES-LMF — train 2015-16, test 2017-18, follow-up tử vong ≤12 tháng](figures/fig4_temporal_timeline.png)
+> ![Hình 6: Quy trình kiểm định temporally trên NHANES-LMF — train 2015-16, test 2017-18, follow-up tử vong ≤12 tháng](figures/fig4_temporal_timeline.png)
 >
-> **Caption:** "Hình 4: Quy trình kiểm định temporally trên NHANES-LMF — train 2015-16, test 2017-18, follow-up tử vong ≤12 tháng"
+> **Caption:** "Hình 6: Quy trình kiểm định temporally trên NHANES-LMF — train 2015-16, test 2017-18, follow-up tử vong ≤12 tháng"
 > **File nguồn để Khánh & An chỉnh:** `figures/fig4_temporal_timeline.mmd` (gantt)
 
 ### 4.5 Dữ liệu MIMIC-IV — Kiểm định ngoại
@@ -371,9 +549,9 @@ Glucose fasting thiếu 52% → impute median chấp nhận được cho tree-ba
 > ![Hình: Biểu đồ xu hướng cá nhân tổng hợp](screenshots/giaodien_bieudo_xuhuong_canhan_tonghop.png)
 >
 > **Caption gợi ý:**
-> - "Hình 5: Giao diện trợ lý chat đánh giá nguy cơ 3 tầng"
-> - "Hình 6: Trang nhập liệu chỉ số cá nhân theo ngày"
-> - "Hình 7: Biểu đồ xu hướng cá nhân tổng hợp (Z-score, EWMA)"
+> - "Hình 7: Giao diện trợ lý chat đánh giá nguy cơ 3 tầng"
+> - "Hình 8: Trang nhập liệu chỉ số cá nhân theo ngày"
+> - "Hình 9: Biểu đồ xu hướng cá nhân tổng hợp (Z-score, EWMA)"
 > **Các screenshot khác có sẵn để Khánh & An chọn thêm:** `screenshots/giaodien_danhgia_tang1.png`, `screenshots/giaodien_danhgia_tang2va3.png`, `screenshots/giaodien_danhgia_tonghop.png`, `screenshots/dobenvung.png`, `screenshots/hieuchinhxacsuat.png`, `screenshots/complete-case_nguondulieu_tienxuly.png`.
 
 ### 5.5 Kiểm định temporally trên MIMIC-IV
@@ -391,24 +569,24 @@ Glucose fasting thiếu 52% → impute median chấp nhận được cho tree-ba
 - AUC thấp hơn NHANES-LMF (0.75 vs 0.82) do: (1) missingness vitals ~60%, (2) comorbidity flags là driver chính, (3) outcome 30d mortality trong ICU có pattern khác tử vong dân cư.
 - Capture rate ~53–54% top quintile: mô hình phát hiện >50% ca tử vong 30d trong nhóm rủi ro cao nhất.
 
-> **[THÊM HÌNH 5 — ROC 2 dataset (MỚI, quan trọng cho yêu cầu "thể hiện 2 dataset")]**
+> **[SỬA HÌNH 10 — ROC 2 dataset (MỚI, quan trọng cho yêu cầu "thể hiện 2 dataset")]**
 > **Vị trí:** cuối Mục 5.5.
 > **Ảnh thật (nhúng bên dưới):**
 >
-> ![Hình 7: Đường cong ROC của kiểm định temporally trên 2 tập dữ liệu độc lập (NHANES-LMF và MIMIC-IV)](figures/fig5_roc_dual_dataset.png)
+> ![Hình 10: Đường cong ROC của kiểm định temporally trên 2 tập dữ liệu độc lập (NHANES-LMF và MIMIC-IV)](figures/fig5_roc_dual_dataset.png)
 >
 > ![Hình: Trang benchmark — kết quả validation theo thời gian (NHANES-LMF) và validation ngoài (MIMIC-IV)](screenshots/ketquavalidation_theo_thoigian_vadulieungoai_nhande_va_mimiciv.png)
 >
-> **Caption:** "Hình 7: Đường cong ROC của kiểm định temporally trên 2 tập dữ liệu độc lập (NHANES-LMF và MIMIC-IV). Dữ liệu hiển thị là kết quả TỔNG HỢP, tuân thủ DUA — không chứa thông tin nhận dạng bệnh nhân."
+> **Caption:** "Hình 10: Đường cong ROC của kiểm định temporally trên 2 tập dữ liệu độc lập (NHANES-LMF và MIMIC-IV). Dữ liệu hiển thị là kết quả TỔNG HỢP, tuân thủ DUA — không chứa thông tin nhận dạng bệnh nhân."
 > **Ghi chú:** ROC vẽ từ predictions thật (lưu trong `experiments/*-TEMPORAL-*/roc_predictions.json.gz`, được gitignore).
 
-> **[THÊM HÌNH 6 — so sánh ΔAUC]**
-> **Vị trí:** ngay sau Hình 7.
+> **[SỬA HÌNH 11 — so sánh ΔAUC]**
+> **Vị trí:** ngay sau Hình 10.
 > **Ảnh thật (nhúng bên dưới):**
 >
-> ![Hình 8: Suy giảm AUC khi chuyển từ random split sang kiểm định temporally trên 2 dataset](figures/fig6_dual_dataset_delta_auc.png)
+> ![Hình 11: Suy giảm AUC khi chuyển từ random split sang kiểm định temporally trên 2 dataset](figures/fig6_dual_dataset_delta_auc.png)
 >
-> **Caption:** "Hình 8: Suy giảm AUC khi chuyển từ random split sang kiểm định temporally trên 2 dataset — LR bền hơn LightGBM ở cả hai môi trường."
+> **Caption:** "Hình 11: Suy giảm AUC khi chuyển từ random split sang kiểm định temporally trên 2 dataset — LR bền hơn LightGBM ở cả hai môi trường."
 
 ---
 
@@ -532,17 +710,22 @@ Glucose fasting thiếu 52% → impute median chấp nhận được cho tree-ba
 
 | Hạng mục | Làm gì | Ảnh/File |
 |---|---|---|
-| Hình 1 | Lưu đồ kiến trúc 3 tầng (đã nhúng) | `figures/fig1_architecture.png` |
-| Hình 2 | (Tùy chọn) luồng dữ liệu | `figures/fig2_data_flow.png` |
-| Algorithm 1, 2 | Mã giả sau Mục 3.1 | nội dung trong bài |
-| Hình 3 | Calibration curve (đã nhúng) | `figures/fig3_calibration.png` |
-| Hình 4 | Timeline NHANES-LMF (đã nhúng) | `figures/fig4_temporal_timeline.png` |
+| Mục 3 | Viết lại theo "Proposed Method" (SDAGS style) — không icon/emoji trong hình | nội dung trong bài |
+| Hình 1 | Kiến trúc tổng thể 3 tầng — khối hộp 3D (đã nhúng) | `figures/fig7_architecture_3d.png` |
+| Hình 2 | Chi tiết Tầng 1 — 4 mô-đun bất thường (đã nhúng) | `figures/fig8_tier1_detail.png` |
+| Hình 3 | Chi tiết Tầng 2 — Rule Engine (đã nhúng) | `figures/fig9_tier2_rules.png` |
+| Hình 4 | Chi tiết Tầng 3 — Fusion + sàn an toàn (đã nhúng) | `figures/fig10_tier3_fusion.png` |
+| Algorithm 1–5 | Mã giả chuẩn Input/Output, tên hàm tiếng Anh, chú thích tiếng Việt | nội dung trong bài |
+| Hình 5 | Calibration curve (đã nhúng) | `figures/fig3_calibration.png` |
+| Hình 6 | Timeline NHANES-LMF (đã nhúng) | `figures/fig4_temporal_timeline.png` |
 | Bảng 4A | Bảng so sánh 2 dataset (an toàn DUA) | nội dung trong bài |
-| Hình 5–7 (UI) | Screenshot thật giao diện chat/nhập liệu/xu hướng | `screenshots/giao_dien_chat.png`, `..._trang_nhap_lieu_...`, `..._bieudo_...` |
-| Hình 7 (ROC) | ROC 2 dataset (đã nhúng) | `figures/fig5_roc_dual_dataset.png` |
-| Hình 8 (ΔAUC) | So sánh ΔAUC (đã nhúng) | `figures/fig6_dual_dataset_delta_auc.png` |
+| Hình 7–9 (UI) | Screenshot thật giao diện chat/nhập liệu/xu hướng | `screenshots/giao_dien_chat.png`, `..._trang_nhap_lieu_...`, `..._bieudo_...` |
+| Hình 10 (ROC) | ROC 2 dataset (đã nhúng) | `figures/fig5_roc_dual_dataset.png` |
+| Hình 11 (ΔAUC) | So sánh ΔAUC (đã nhúng) | `figures/fig6_dual_dataset_delta_auc.png` |
 | Screenshot benchmark | Validation theo thời gian + ngoài (MIMIC-IV) | `screenshots/ketquavalidation_theo_thoigian_...png` |
 | Screenshot complete-case | Complete-case + nguồn dữ liệu | `screenshots/complete-case_nguondulieu_tienxuly.png` |
+| Screenshot rule admin | Quản trị luật (sau Hình 3) | `screenshots/giaodien_quantri_luat.png` |
+| Screenshot calibration | Trang hiệu chỉnh xác suất (sau Hình 5) | `screenshots/hieuchinhxacsuat.png` |
 | References | Thêm [18], [19] | nội dung trong bài |
 | Trích dẫn Introduction | Viết ngắn gọn "tác giả + kết quả" | [SỬA] Mục 1.1 |
 | Bảng 9 | Mở rộng so sánh thêm [18],[19] | nội dung trong bài |
