@@ -82,8 +82,9 @@ Bài tổ chức như sau: Phần 2 tổng quan liên quan; Phần 3 trình bày
 | **CLMBR-T** [11] | Foundation model (141M params) | 2.57M Stanford → SickKids, MIMIC-IV | Yêu cầu dữ liệu khổng lồ; cải thiện 13% few-shot |
 
 > **[THÊM BẢNG — hàng mới cho 2 bài thầy gửi]**
-> | **SDAGS** [18] | SMOTE + Forest Diffusion + stacking GBT | Pima Indians (768) | AUC không báo cao trên dữ liệu nhỏ; thiếu longitudinal baseline |
-> | **USLF-Net** [19] | CNN phân loại ảnh siêu âm + ứng dụng mobile | 6.323 ảnh siêu âm F0–F4 | Là phân loại ảnh, không phải dự đoán nguy cơ dọc; thiếu temporal validation |
+
+| **SDAGS** [18] | SMOTE + Forest Diffusion + stacking GBT | Pima Indians (768) | AUC không báo cao trên dữ liệu nhỏ; thiếu longitudinal baseline |
+| **USLF-Net** [19] | CNN phân loại ảnh siêu âm + ứng dụng mobile | 6.323 ảnh siêu âm F0–F4 | Là phân loại ảnh, không phải dự đoán nguy cơ dọc; thiếu temporal validation |
 
 ### 2.2 Học máy trong dự đoán nguy cơ
 
